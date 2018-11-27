@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
+
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <!-- ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <appender name="AWS_CLOUD" class="io.wisetime.wise_log_aws.cloud.WiseAppender">
+        <!-- deny all events with a level below WARN, except for io.wisetime.* packages -->
+        <filter class="io.wisetime.wise_log_aws.cloud.ThresholdFilterWithExclusion">
+            <level>WARN</level>
+            <excludedLogPrefixList>io.wisetime.</excludedLogPrefixList>
+        </filter>
+        <moduleName>wise-connector</moduleName>
+        <logGroup>wise-prod</logGroup>
+        <propertiesFilePath>runTimePropertyPath</propertiesFilePath>
+    </appender>
+
+    <root level="INFO" additivity="false">
+        <appender-ref ref="STDOUT"/>
+        <appender-ref ref="AWS_CLOUD"/>
+    </root>
+</configuration>

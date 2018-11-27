@@ -1,0 +1,234 @@
+/*
+ * Copyright (c) 2018 Practice Insight Pty Ltd. All Rights Reserved.
+ */
+
+buildscript {
+    repositories {
+        maven {
+            url 'https://storage.googleapis.com/wise-repo/repos/plugins/'
+        }
+    }
+    dependencies {
+        classpath "org.openapitools:openapi-generator-gradle-plugin:3.3.3"
+    }
+}
+
+plugins {
+    id 'java'
+    id 'maven'
+    id 'maven-publish'
+    id 'signing'
+    id 'application'
+    id 'com.google.cloud.tools.jib' version '0.10.0'
+    id 'com.github.kt3k.coveralls' version '2.8.2'
+}
+
+apply plugin: 'org.openapi.generator'
+apply from: "$rootDir/gradle/conf/checkstyle.gradle"
+apply from: "$rootDir/gradle/conf/jacoco.gradle"
+
+group = 'io.wisetime'
+archivesBaseName = 'wisetime-connector'
+version = '1.0.0'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+mainClassName = 'io.wisetime.connector.example.FolderWatchConnectApp'
+
+repositories {
+    mavenCentral()
+}
+
+openApiGenerate {
+    generatorName = "jaxrs-spec"
+    inputSpec = "https://raw.githubusercontent.com/wisetime-io/connect-api-spec/master/spec/openapi.yaml".toString()
+    outputDir = "$projectDir".toString()
+    modelPackage = "io.wisetime.generated.connect"
+}
+
+task buildModel(dependsOn: tasks.openApiGenerate) {
+    // creates latest jackson object model
+    // after creating latest auto-generated object model, delete irrelevant files
+    doLast {
+        delete "${projectDir}/.openapi-generator"
+        delete "${projectDir}/pom.xml"
+        delete "${projectDir}/src/gen/java/org"
+        delete "${projectDir}/src/main/openapi"
+        delete "${projectDir}/src/gen/java/io/wisetime/generated/RestApplication.java"
+    }
+}
+
+compileJava.dependsOn buildModel
+tasks.jib.dependsOn compileJava
+
+sourceSets {
+    main {
+        java {
+            // include auto-generated model files from spec in additional to our main bundle
+            srcDir 'src/gen/java'
+            srcDir 'src/main/java'
+        }
+    }
+}
+
+ext.jacocoLimits = [
+        'instruction': 67,
+        'line'       : 68,
+        'method'     : 71,
+        'class'      : 80
+]
+
+dependencies {
+    // spark-core 2.8.0 includes jetty runtime 9.4.12.v20180830
+    compile('com.sparkjava:spark-core:2.8.0') {
+        exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
+    compile('com.sparkjava:spark-template-thymeleaf:2.7.1') {
+        exclude group: 'com.sparkjava', module: 'spark-core'
+        exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
+
+    compile 'org.apache.commons:commons-configuration2:2.4'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.7'
+    compile 'com.fasterxml.jackson.core:jackson-core:2.9.7'
+    compile 'net.jodah:failsafe:1.1.0'
+    compile 'io.wisetime:wise-log-aws:3.1.0'
+    compile 'info.picocli:picocli:3.7.0'
+    compile 'org.apache.commons:commons-collections4:4.2'
+    compile 'com.google.guava:guava:23.0'
+    compile 'commons-io:commons-io:2.6'
+
+    compile 'org.xerial:sqlite-jdbc:3.23.1'
+    compile 'org.codejargon:fluentjdbc:1.8.3'
+
+    compile 'org.apache.httpcomponents:httpcore:4.4.10'
+    compile 'org.apache.httpcomponents:httpclient:4.5.6'
+    compile 'org.apache.httpcomponents:fluent-hc:4.5.6'
+
+    compile 'ch.qos.logback:logback-core:1.2.3'
+    compile 'ch.qos.logback:logback-classic:1.2.3'
+    compile 'org.slf4j:slf4j-api:1.7.25'
+
+    // required by activity text template engine
+    compile 'org.freemarker:freemarker:2.3.28'
+
+    // swagger-annotations and validation-api used in openApiGenerate
+    compile 'io.swagger:swagger-annotations:1.5.3'
+    compile 'javax.validation:validation-api:2.0.1.Final'
+
+    testCompile 'org.apache.httpcomponents:httpclient:4.5.6'
+    testCompile('org.junit.jupiter:junit-jupiter-api:5.3.1')
+    testCompile('org.junit.jupiter:junit-jupiter-params:5.3.1')
+    testRuntime('org.junit.jupiter:junit-jupiter-engine:5.3.1')
+    testCompile 'org.mockito:mockito-core:2.22.0'
+    testCompile 'org.assertj:assertj-core:3.11.1'
+    testCompile 'io.github.benas:random-beans:3.7.0'
+    testCompile 'com.github.javafaker:javafaker:0.16'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        // "passed", "skipped", "failed"
+        events 'skipped', 'failed'
+    }
+}
+
+configurations.all {
+    resolutionStrategy {
+        // fail eagerly on version conflict of transitive dependencies
+        failOnVersionConflict()
+
+        force 'org.thymeleaf:thymeleaf:3.0.5.RELEASE',
+                'commons-codec:commons-codec:1.11',
+                'org.apache.commons:commons-lang3:3.8.1',
+                'org.objenesis:objenesis:2.6',
+                'com.fasterxml.jackson.core:jackson-databind:2.9.7',
+                'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.7'
+    }
+}
+
+tasks.withType(Checkstyle) {
+    source = sourceSets.main.allJava.matching {
+        exclude '**/generated/**/*'
+    }
+}
+
+task sourcesJar(type: Jar) {
+    from sourceSets.main.allJava
+    classifier = 'sources'
+}
+
+task javadocJar(type: Jar) {
+    from javadoc
+    classifier = 'javadoc'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId = 'wisetime-connector'
+            from components.java
+            artifact sourcesJar
+            artifact javadocJar
+            pom {
+                name = 'WiseTime Connector'
+                description = 'WiseTime Connector Library'
+                url = 'https://wisetime.io/docs/connect/'
+                licenses {
+                    license {
+                        name = 'The Apache License, Version 2.0'
+                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    }
+                }
+                developers {
+                    developer {
+                        id = 'wisetime'
+                        name = 'WiseTime Team'
+                        email = 'contact@wisetime.io'
+                    }
+                }
+                scm {
+                    connection = 'scm:git:https://github.com/wisetime-io/wisetime-connector-java.git'
+                    developerConnection = 'scm:git:https://github.com/wisetime-io/wisetime-connector-java.git'
+                    url = 'https://github.com/wisetime-io/wisetime-connector-java'
+                }
+            }
+        }
+    }
+    repositories {
+        maven {
+            def releasesRepoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+            def snapshotsRepoUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username project.hasProperty('ossrhUsername') ? ossrhUsername : ""
+                password project.hasProperty('ossrhPassword') ? ossrhPassword : ""
+            }
+        }
+    }
+}
+
+signing {
+    sign publishing.publications.mavenJava
+}
+
+javadoc {
+    exclude 'io/wisetime/generated'
+    exclude 'io/wisetime/connector/api_client'
+    exclude 'io/wisetime/connector/config'
+    exclude 'io/wisetime/connector/datastore'
+    exclude 'io/wisetime/connector/example'
+    exclude 'io/wisetime/connector/health'
+    exclude 'io/wisetime/connector/server'
+    exclude 'io/wisetime/connector/template'
+    if (JavaVersion.current().isJava9Compatible()) {
+        options.addBooleanOption('html5', true)
+    }
+}
+
+clean {
+    delete "${projectDir}/out"
+    delete "${projectDir}/.openapi-generator"
+    delete "${projectDir}/pom.xml"
+    delete "${projectDir}/src/gen/java"
+}

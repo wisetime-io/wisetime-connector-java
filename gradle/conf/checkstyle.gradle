@@ -1,0 +1,10 @@
+apply plugin: 'checkstyle'
+
+checkstyle {
+    toolVersion = '8.1'
+    configFile = new File(rootDir, 'gradle/conf/checkstyle.xml')
+    configProperties.checkstyleConfigDir = new File(rootDir, 'gradle/conf')
+    configProperties.suppressionFile = new File(rootDir, 'gradle/conf/suppression.xml')
+    ignoreFailures = false
+    showViolations = true
+}
