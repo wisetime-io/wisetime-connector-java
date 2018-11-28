@@ -12,7 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
 
+import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
 import io.wisetime.generated.connect.DeleteTagResponse;
@@ -36,13 +38,15 @@ class DefaultApiClientIntegrationTest {
 
   @BeforeAll
   static void setup() {
-    boolean runnable = RuntimeConfig.findString(ConnectorConfigKey.API_KEY).isPresent()
+    Optional<String> apiKey = RuntimeConfig.findString(ConnectorConfigKey.API_KEY);
+    boolean runnable = apiKey.isPresent()
         && !RuntimeConfig.findString(ConnectorConfigKey.API_BASE_URL).orElse("").contains("wisetime.io");
     if (!runnable) {
       log.info("DefaultApiClientIntegrationTest skipped");
       return;
     }
-    defaultApiClient = new DefaultApiClient();
+    RestRequestExecutor requestExecutor = new RestRequestExecutor(apiKey.get());
+    defaultApiClient = new DefaultApiClient(requestExecutor);
   }
 
   @Test

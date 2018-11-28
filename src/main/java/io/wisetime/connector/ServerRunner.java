@@ -33,6 +33,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.ConsoleAppender;
 import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.api_client.DefaultApiClient;
+import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
 import io.wisetime.connector.datastore.FileStore;
@@ -138,7 +139,8 @@ public class ServerRunner {
           throw new IllegalArgumentException(
               "an apiKey must be supplied via constructor or environment parameter to use the default apiClient");
         }
-        apiClient = new DefaultApiClient();
+        RestRequestExecutor requestExecutor = new RestRequestExecutor(apiKey);
+        apiClient = new DefaultApiClient(requestExecutor);
       }
 
       if (wiseTimeConnector == null) {
