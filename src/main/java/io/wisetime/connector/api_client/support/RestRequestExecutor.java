@@ -11,6 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.NameValuePair;
+import org.eclipse.jetty.util.URIUtil;
 
 import java.io.IOException;
 import java.util.List;
@@ -19,8 +20,8 @@ import java.util.regex.Pattern;
 
 import io.wisetime.connector.api_client.EndpointPath;
 import io.wisetime.connector.config.ConnectorConfigKey;
-import io.wisetime.connector.config.TolerantObjectMapper;
 import io.wisetime.connector.config.RuntimeConfig;
+import io.wisetime.connector.config.TolerantObjectMapper;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -111,7 +112,7 @@ public class RestRequestExecutor {
 
       // replace matched group with value
       mergedTemplate = new StringBuilder(mergedTemplate)
-          .replace(startIndex, endIndex, keyValuePair.getValue())
+          .replace(startIndex, endIndex, URIUtil.encodePath(keyValuePair.getValue()))
           .toString();
     }
 
