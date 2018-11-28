@@ -4,6 +4,7 @@
 
 package io.wisetime.connector.api_client;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -15,7 +16,12 @@ import java.io.IOException;
 
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
+import io.wisetime.generated.connect.AddKeywordsRequest;
+import io.wisetime.generated.connect.AddKeywordsResponse;
+import io.wisetime.generated.connect.DeleteKeywordResponse;
 import io.wisetime.generated.connect.DeleteTagResponse;
+import io.wisetime.generated.connect.SubscribeRequest;
+import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.TeamInfoResult;
 import io.wisetime.generated.connect.UpsertTagRequest;
 import io.wisetime.generated.connect.UpsertTagResponse;
@@ -71,6 +77,20 @@ class DefaultApiClientIntegrationTest {
   }
 
   @Test
+  void tagUpsert_hasSpace() throws IOException {
+    if (defaultApiClient == null) {
+      return;
+    }
+    UpsertTagRequest request = new UpsertTagRequest();
+    request.setName("CreatedViaApi with space");
+    request.setDescription("Tag from API");
+    request.setPath("/");
+    request.setAdditionalKeywords(Lists.newArrayList("CreatedViaApi with space"));
+    UpsertTagResponse response = defaultApiClient.tagUpsert(request);
+    log.info("UpsertTagResponse={}", response.toString());
+  }
+
+  @Test
   void tagDelete() throws IOException {
     if (defaultApiClient == null) {
       return;
@@ -78,5 +98,40 @@ class DefaultApiClientIntegrationTest {
     DeleteTagResponse response = defaultApiClient.tagDelete("Management");
     log.info(response.toString());
     defaultApiClient.tagDelete("Shared-1439");
+  }
+
+  @Test
+  void addTagKeyword() throws IOException {
+    if (defaultApiClient == null) {
+      return;
+    }
+    AddKeywordsRequest request = new AddKeywordsRequest();
+    request.setAdditionalKeywords(ImmutableList.of("keyword_from_API", "keyword with space"));
+    AddKeywordsResponse response = defaultApiClient.addTagKeyword("CreatedViaApi", request);
+    log.info(response.toString());
+  }
+
+  @Test
+  void deleteTagKeyword() throws IOException {
+    if (defaultApiClient == null) {
+      return;
+    }
+    DeleteKeywordResponse response = defaultApiClient.deleteTagKeyword("CreatedViaApi", "keyword_from_API");
+    log.info(response.toString());
+
+    response = defaultApiClient.deleteTagKeyword("CreatedViaApi", "keyword with space");
+    log.info(response.toString());
+  }
+
+  @Test
+  void subscribe() throws IOException {
+    if (defaultApiClient == null) {
+      return;
+    }
+    SubscribeRequest subscribeRequest = new SubscribeRequest();
+    subscribeRequest.callbackUrl("http://testurl");
+    subscribeRequest.setCallerKey("sample-caller-key");
+    SubscribeResult response = defaultApiClient.subscribe(subscribeRequest);
+    log.info(response.toString());
   }
 }
