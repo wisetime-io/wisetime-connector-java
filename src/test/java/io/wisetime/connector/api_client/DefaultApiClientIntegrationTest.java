@@ -13,18 +13,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Optional;
 
+import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
 import io.wisetime.generated.connect.AddKeywordsRequest;
-import io.wisetime.generated.connect.AddKeywordsResponse;
-import io.wisetime.generated.connect.DeleteKeywordResponse;
-import io.wisetime.generated.connect.DeleteTagResponse;
 import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.TeamInfoResult;
 import io.wisetime.generated.connect.UpsertTagRequest;
-import io.wisetime.generated.connect.UpsertTagResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -42,13 +40,15 @@ class DefaultApiClientIntegrationTest {
 
   @BeforeAll
   static void setup() {
-    boolean runnable = RuntimeConfig.findString(ConnectorConfigKey.API_KEY).isPresent()
+    Optional<String> apiKey = RuntimeConfig.findString(ConnectorConfigKey.API_KEY);
+    boolean runnable = apiKey.isPresent()
         && !RuntimeConfig.findString(ConnectorConfigKey.API_BASE_URL).orElse("").contains("wisetime.io");
     if (!runnable) {
       log.info("DefaultApiClientIntegrationTest skipped");
       return;
     }
-    defaultApiClient = new DefaultApiClient();
+    RestRequestExecutor requestExecutor = new RestRequestExecutor(apiKey.get());
+    defaultApiClient = new DefaultApiClient(requestExecutor);
   }
 
   @Test
@@ -72,8 +72,7 @@ class DefaultApiClientIntegrationTest {
     request.setDescription("Tag from API");
     request.setPath("/");
     request.setAdditionalKeywords(Lists.newArrayList("ViaCreatedApi"));
-    UpsertTagResponse response = defaultApiClient.tagUpsert(request);
-    log.info("UpsertTagResponse={}", response.toString());
+    defaultApiClient.tagUpsert(request);
   }
 
   @Test
@@ -86,8 +85,7 @@ class DefaultApiClientIntegrationTest {
     request.setDescription("Tag from API");
     request.setPath("/");
     request.setAdditionalKeywords(Lists.newArrayList("CreatedViaApi with space"));
-    UpsertTagResponse response = defaultApiClient.tagUpsert(request);
-    log.info("UpsertTagResponse={}", response.toString());
+    defaultApiClient.tagUpsert(request);
   }
 
   @Test
@@ -95,8 +93,7 @@ class DefaultApiClientIntegrationTest {
     if (defaultApiClient == null) {
       return;
     }
-    DeleteTagResponse response = defaultApiClient.tagDelete("Management");
-    log.info(response.toString());
+    defaultApiClient.tagDelete("Management");
     defaultApiClient.tagDelete("Shared-1439");
   }
 
@@ -107,8 +104,7 @@ class DefaultApiClientIntegrationTest {
     }
     AddKeywordsRequest request = new AddKeywordsRequest();
     request.setAdditionalKeywords(ImmutableList.of("keyword_from_API", "keyword with space"));
-    AddKeywordsResponse response = defaultApiClient.tagAddKeywords("CreatedViaApi", request);
-    log.info(response.toString());
+    defaultApiClient.tagAddKeywords("CreatedViaApi", request);
   }
 
   @Test
@@ -116,11 +112,8 @@ class DefaultApiClientIntegrationTest {
     if (defaultApiClient == null) {
       return;
     }
-    DeleteKeywordResponse response = defaultApiClient.tagDeleteKeyword("CreatedViaApi", "keyword_from_API");
-    log.info(response.toString());
-
-    response = defaultApiClient.tagDeleteKeyword("CreatedViaApi", "keyword with space");
-    log.info(response.toString());
+    defaultApiClient.tagDeleteKeyword("CreatedViaApi", "keyword_from_API");
+    defaultApiClient.tagDeleteKeyword("CreatedViaApi", "keyword with space");
   }
 
   @Test
