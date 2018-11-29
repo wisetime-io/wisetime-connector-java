@@ -6,7 +6,12 @@ package io.wisetime.connector.api_client;
 
 import java.io.IOException;
 
+import io.wisetime.generated.connect.AddKeywordsRequest;
+import io.wisetime.generated.connect.AddKeywordsResponse;
+import io.wisetime.generated.connect.DeleteKeywordResponse;
 import io.wisetime.generated.connect.DeleteTagResponse;
+import io.wisetime.generated.connect.SubscribeRequest;
+import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.TeamInfoResult;
 import io.wisetime.generated.connect.UpsertTagRequest;
 import io.wisetime.generated.connect.UpsertTagResponse;
@@ -26,6 +31,11 @@ public interface ApiClient {
    */
   DeleteTagResponse tagDelete(String tagName) throws IOException;
 
+  AddKeywordsResponse tagAddKeywords(String tagName, AddKeywordsRequest addKeywordsRequest) throws IOException;
+
+  DeleteKeywordResponse tagDeleteKeyword(String tagName, String keyword) throws IOException;
 
   TeamInfoResult teamInfo() throws IOException;
+
+  SubscribeResult postedTimeSubscribe(SubscribeRequest subscribeRequest) throws IOException;
 }
