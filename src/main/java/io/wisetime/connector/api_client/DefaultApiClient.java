@@ -33,9 +33,11 @@ public class DefaultApiClient implements ApiClient {
 
   private static final Logger log = LoggerFactory.getLogger(DefaultApiClient.class);
   private RestRequestExecutor restRequestExecutor;
+  private ForkJoinPool forkJoinPool;
 
   public DefaultApiClient(RestRequestExecutor restRequestExecutor) {
     this.restRequestExecutor = restRequestExecutor;
+    forkJoinPool = new ForkJoinPool(10);
   }
 
   @Override
@@ -49,7 +51,7 @@ public class DefaultApiClient implements ApiClient {
 
   /**
    * This implementation upserts the batch of tags in parallel.
-   * It stops if an error is encountered while upserting tags.
+   * It terminates early if an error is encountered while upserting tags.
    */
   @Override
   public void tagUpsertBatch(List<UpsertTagRequest> upsertTagRequests) throws IOException {
@@ -69,20 +71,15 @@ public class DefaultApiClient implements ApiClient {
         .findFirst()
         .orElse(empty());
 
-    ForkJoinPool forkJoinPool = null;
     Optional<Exception> error;
 
     try {
-      // Use a ForkJoinPool to control parallelism
-      forkJoinPool = new ForkJoinPool(10);
+      // We use our own ForkJoinPool to have more control on the level of parallelism and
+      // because we are IO bound. We don't want to affect other tasks on the default pool.
       error = forkJoinPool.submit(parallelUntilError).get();
     } catch (InterruptedException | ExecutionException e) {
-      // Tidy up so client code only needs to deal with one type of exception
+      // It's nicer for client code to only have to deal with one type of exception
       throw new IOException(e);
-    } finally {
-      if (forkJoinPool != null) {
-        forkJoinPool.shutdown();
-      }
     }
     if (error.isPresent()) {
       throw new IOException("Failed to complete tag upsert batch. Stopped at first error. ", error.get());
