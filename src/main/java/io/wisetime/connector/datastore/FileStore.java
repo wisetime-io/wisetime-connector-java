@@ -23,6 +23,7 @@ import javax.annotation.Nullable;
 
 /**
  * @author thomas.haines@practiceinsight.io
+ * @author shane.xie@practiceinsight.io
  */
 public class FileStore implements StorageManager {
 
@@ -53,14 +54,16 @@ public class FileStore implements StorageManager {
         .run();
   }
 
-  public Optional<String> findValue(String keyName) {
+  @Override
+  public Optional<String> getString(String key) {
     return fluentJdbc.query()
         .select("SELECT value FROM key_map WHERE key_name=?")
-        .params(keyName)
+        .params(key)
         .firstResult(rs -> rs.getString(1));
   }
 
-  public void setValue(String keyName, String value) {
+  @Override
+  public void putString(String keyName, String value) {
     final Query query = fluentJdbc.query();
     query.transaction().inNoResult(() -> {
       UpdateResult result = query.update("UPDATE key_map SET value=? WHERE key_name=?")
@@ -73,6 +76,22 @@ public class FileStore implements StorageManager {
             .run();
       }
     });
+  }
+
+  @Override
+  public Optional<Long> getLong(String key) {
+    return getString(key).flatMap(value -> {
+      try {
+        return Optional.of(Long.valueOf(value));
+      } catch (NumberFormatException e) {
+        return Optional.empty();
+      }
+    });
+  }
+
+  @Override
+  public void putLong(String keyName, long value) {
+    putString(keyName, String.valueOf(value));
   }
 
   private File getDatabasePath(String storageDirectoryPath) {

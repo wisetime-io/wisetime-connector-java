@@ -11,7 +11,11 @@ import java.util.Optional;
  */
 public interface StorageManager {
 
-  Optional<String> findValue(String keyName);
+  Optional<String> getString(String key);
 
-  void setValue(String keyName, String value);
+  void putString(String keyName, String value);
+
+  Optional<Long> getLong(String key);
+
+  void putLong(String keyName, long value);
 }
