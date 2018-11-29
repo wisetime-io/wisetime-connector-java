@@ -22,7 +22,7 @@ import java.util.Random;
 import io.github.benas.randombeans.EnhancedRandomBuilder;
 import io.github.benas.randombeans.api.EnhancedRandom;
 import io.wisetime.connector.api_client.ApiClient;
-import io.wisetime.connector.datastore.StorageManager;
+import io.wisetime.connector.datastore.ConnectorStore;
 import io.wisetime.connector.integrate.ConnectorModule;
 import io.wisetime.connector.template.TemplateFormatter;
 import io.wisetime.generated.connect.TimeGroup;
@@ -55,7 +55,7 @@ class FolderBasedConnectorTest {
     ConnectorModule connectorModuleMock = new ConnectorModule(
         apiClientMock,
         templateFormatterMock,
-        mock(StorageManager.class));
+        mock(ConnectorStore.class));
     folderConnect.init(connectorModuleMock);
 
     Random randomMock = mock(Random.class);

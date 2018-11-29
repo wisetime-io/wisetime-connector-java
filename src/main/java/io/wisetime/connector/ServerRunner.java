@@ -37,7 +37,7 @@ import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
 import io.wisetime.connector.datastore.FileStore;
-import io.wisetime.connector.datastore.StorageManager;
+import io.wisetime.connector.datastore.ConnectorStore;
 import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.integrate.ConnectorModule;
 import io.wisetime.connector.integrate.WiseTimeConnector;
@@ -162,18 +162,16 @@ public class ServerRunner {
       server.setHandler(webAppContext);
       addCustomizers(getPort(), server);
 
-      StorageManager storeManager = createStore(persistentStorageOnly);
-
       ConnectorModule connectorModule = new ConnectorModule(
           apiClient,
           new TemplateFormatter(templateConfigBuilder.build()),
-          storeManager
+          createStore(persistentStorageOnly)
       );
 
       return new ServerRunner(server, port, webAppContext, wiseTimeConnector, connectorModule);
     }
 
-    private StorageManager createStore(boolean persistenceRequired) {
+    private ConnectorStore createStore(boolean persistenceRequired) {
       String persistentStoreDir = RuntimeConfig.findString(ConnectorConfigKey.PERSISTENT_DIR).orElse(null);
       if (persistenceRequired && persistentStoreDir == null) {
         throw new IllegalArgumentException(String.format(

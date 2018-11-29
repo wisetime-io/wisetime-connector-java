@@ -25,7 +25,7 @@ import javax.annotation.Nullable;
  * @author thomas.haines@practiceinsight.io
  * @author shane.xie@practiceinsight.io
  */
-public class FileStore implements StorageManager {
+public class FileStore implements ConnectorStore {
 
   private static final Logger log = LoggerFactory.getLogger(FileStore.class);
   private final FluentJdbc fluentJdbc;
@@ -63,16 +63,16 @@ public class FileStore implements StorageManager {
   }
 
   @Override
-  public void putString(String keyName, String value) {
+  public void putString(String key, String value) {
     final Query query = fluentJdbc.query();
     query.transaction().inNoResult(() -> {
       UpdateResult result = query.update("UPDATE key_map SET value=? WHERE key_name=?")
-          .params(value, keyName)
+          .params(value, key)
           .run();
       if (result.affectedRows() == 0) {
         // new key value
         query.update("INSERT INTO key_map (key_name,value) VALUES (?,?)")
-            .params(keyName, value)
+            .params(key, value)
             .run();
       }
     });
@@ -90,8 +90,8 @@ public class FileStore implements StorageManager {
   }
 
   @Override
-  public void putLong(String keyName, long value) {
-    putString(keyName, String.valueOf(value));
+  public void putLong(String key, long value) {
+    putString(key, String.valueOf(value));
   }
 
   private File getDatabasePath(String storageDirectoryPath) {

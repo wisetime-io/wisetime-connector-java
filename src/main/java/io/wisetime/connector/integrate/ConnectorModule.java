@@ -5,7 +5,7 @@
 package io.wisetime.connector.integrate;
 
 import io.wisetime.connector.api_client.ApiClient;
-import io.wisetime.connector.datastore.StorageManager;
+import io.wisetime.connector.datastore.ConnectorStore;
 import io.wisetime.connector.template.TemplateFormatter;
 
 /**
@@ -16,18 +16,18 @@ public class ConnectorModule {
 
   private final ApiClient apiClient;
   private final TemplateFormatter templateFormatter;
-  private final StorageManager storageManager;
+  private final ConnectorStore connectorStore;
 
   public ConnectorModule(ApiClient apiClient,
                          TemplateFormatter templateFormatter,
-                         StorageManager storageManager) {
+                         ConnectorStore connectorStore) {
     this.apiClient = apiClient;
     this.templateFormatter = templateFormatter;
-    this.storageManager = storageManager;
+    this.connectorStore = connectorStore;
   }
 
-  public StorageManager getStorageManager() {
-    return storageManager;
+  public ConnectorStore getConnectorStore() {
+    return connectorStore;
   }
 
   public ApiClient getApiClient() {
