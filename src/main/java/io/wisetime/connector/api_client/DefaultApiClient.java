@@ -46,8 +46,8 @@ public class DefaultApiClient implements ApiClient {
   }
 
   @Override
-  public UpsertTagResponse tagUpsert(UpsertTagRequest upsertTagRequest) throws IOException {
-    return restRequestExecutor.executeTypedBodyRequest(
+  public void tagUpsert(UpsertTagRequest upsertTagRequest) throws IOException {
+    restRequestExecutor.executeTypedBodyRequest(
         UpsertTagResponse.class,
         EndpointPath.TagUpsert,
         upsertTagRequest
@@ -92,8 +92,8 @@ public class DefaultApiClient implements ApiClient {
   }
 
   @Override
-  public DeleteTagResponse tagDelete(String tagName) throws IOException {
-    return restRequestExecutor.executeTypedRequest(
+  public void tagDelete(String tagName) throws IOException {
+    restRequestExecutor.executeTypedRequest(
         DeleteTagResponse.class,
         EndpointPath.TagDelete,
         Lists.newArrayList(new BasicNameValuePair("tagName", tagName))
@@ -101,8 +101,8 @@ public class DefaultApiClient implements ApiClient {
   }
 
   @Override
-  public AddKeywordsResponse tagAddKeywords(String tagName, AddKeywordsRequest addKeywordsRequest) throws IOException {
-    return restRequestExecutor.executeTypedBodyRequest(
+  public void tagAddKeywords(String tagName, AddKeywordsRequest addKeywordsRequest) throws IOException {
+    restRequestExecutor.executeTypedBodyRequest(
         AddKeywordsResponse.class,
         EndpointPath.TagAddKeyword,
         Lists.newArrayList(new BasicNameValuePair("tagName", tagName)),
@@ -111,8 +111,8 @@ public class DefaultApiClient implements ApiClient {
   }
 
   @Override
-  public DeleteKeywordResponse tagDeleteKeyword(String tagName, String keyword) throws IOException {
-    return restRequestExecutor.executeTypedRequest(
+  public void tagDeleteKeyword(String tagName, String keyword) throws IOException {
+    restRequestExecutor.executeTypedRequest(
         DeleteKeywordResponse.class,
         EndpointPath.TagDeleteKeyword,
         Lists.newArrayList(
