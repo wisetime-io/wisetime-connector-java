@@ -38,7 +38,7 @@ public class FolderWatchConnectApp extends FolderWatchParam implements Callable<
       paramFailure("apiKey is required when default api client is used");
     }
 
-    if (StringUtils.isBlank(getApiKey())) {
+    if (StringUtils.isBlank(getCallerKey())) {
       paramFailure("caller key is required");
     }
 
