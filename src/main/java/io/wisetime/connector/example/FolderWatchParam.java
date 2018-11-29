@@ -15,6 +15,9 @@ class FolderWatchParam {
   @CommandLine.Option(names = {"--apiKey", "--key", "-k"}, description = "api key when using the default api client")
   String apiKey = "";
 
+  @CommandLine.Option(names = {"--callerKey"}, description = "caller key to verify the origin of posted time requests")
+  String callerKey = "";
+
   @CommandLine.Option(names = {"--watchDir", "-d", "--dir"}, required = true,
       description = "folder to watch for new files (which are uploaded as tags)")
   String watchFolder;
@@ -40,6 +43,10 @@ class FolderWatchParam {
 
   String getWatchFolder() {
     return watchFolder;
+  }
+
+  String getCallerKey() {
+    return callerKey;
   }
 
   public boolean isTemplateUseWinClr() {

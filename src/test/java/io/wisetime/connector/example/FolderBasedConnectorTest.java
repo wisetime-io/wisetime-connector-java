@@ -45,11 +45,13 @@ class FolderBasedConnectorTest {
   private FolderBasedConnector folderConnect;
   private ApiClient apiClientMock;
   private TemplateFormatter templateFormatterMock;
+  private String callerKey;
 
   @BeforeEach
   void standUp() throws Exception {
+    callerKey = faker.numerify("callerKey######");
     watchDir = Files.createTempDirectory("watch");
-    folderConnect = new FolderBasedConnector(watchDir.toFile());
+    folderConnect = new FolderBasedConnector(watchDir.toFile(), callerKey);
     apiClientMock = mock(ApiClient.class);
     templateFormatterMock = mock(TemplateFormatter.class);
     ConnectorModule connectorModuleMock = new ConnectorModule(
@@ -112,6 +114,7 @@ class FolderBasedConnectorTest {
         .build();
 
     final TimeGroup timeGroup = enhancedRandom.nextObject(TimeGroup.class);
+    timeGroup.setCallerKey(callerKey);
 
     folderConnect.postTime(mock(spark.Request.class), timeGroup);
 

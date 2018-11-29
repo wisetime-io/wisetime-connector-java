@@ -9,6 +9,7 @@ import com.google.common.collect.Lists;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,14 +44,19 @@ class FolderBasedConnector implements WiseTimeConnector {
   private final File uploadedDir;
   private final File postDir;
   private final File watchDir;
+  private final String callerKey;
   private ApiClient apiClient;
   private TemplateFormatter templateFormatter;
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
-  FolderBasedConnector(File watchDir) {
+  FolderBasedConnector(File watchDir, String callerKey) {
     this.watchDir = watchDir;
     if (!watchDir.exists() || !watchDir.isDirectory()) {
       throw new IllegalStateException(String.format("invalid directory '%s'", watchDir.getAbsolutePath()));
+    }
+    this.callerKey = callerKey;
+    if (StringUtils.isBlank(callerKey)) {
+      throw new IllegalArgumentException("Caller key must be provided");
     }
 
     postDir = new File(watchDir, "posted");
@@ -137,6 +143,10 @@ class FolderBasedConnector implements WiseTimeConnector {
       // chaos monkey
       if (random.nextInt(10) == 1) {
         return PostResult.TRANSIENT_FAILURE;
+      }
+      // Wrong caller key
+      if (!callerKey.equals(userPostedTime.getCallerKey())) {
+        return PostResult.PERMANENT_FAILURE;
       }
 
       String resultAsJson = om.writeValueAsString(userPostedTime);
