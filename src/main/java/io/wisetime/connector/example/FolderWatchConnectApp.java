@@ -38,13 +38,17 @@ public class FolderWatchConnectApp extends FolderWatchParam implements Callable<
       paramFailure("apiKey is required when default api client is used");
     }
 
+    if (StringUtils.isBlank(getCallerKey())) {
+      paramFailure("caller key is required");
+    }
+
     final File watchDir = new File(getWatchFolder());
     if (!watchDir.isDirectory() || !watchDir.exists()) {
       paramFailure(String.format("watchFolder '%s' does not exist", getWatchFolder()));
     }
 
     // our basic connector implementation for this example
-    final FolderBasedConnector folderConnector = new FolderBasedConnector(watchDir);
+    final FolderBasedConnector folderConnector = new FolderBasedConnector(watchDir, getCallerKey());
 
     ServerRunner runner = serverBuilder
         .withWiseTimeConnector(folderConnector)
