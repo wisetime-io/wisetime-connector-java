@@ -31,11 +31,11 @@ public interface ApiClient {
    */
   DeleteTagResponse tagDelete(String tagName) throws IOException;
 
-  AddKeywordsResponse addTagKeyword(String tagName, AddKeywordsRequest addKeywordsRequest) throws IOException;
+  AddKeywordsResponse tagAddKeywords(String tagName, AddKeywordsRequest addKeywordsRequest) throws IOException;
 
-  DeleteKeywordResponse deleteTagKeyword(String tagName, String keyword) throws IOException;
+  DeleteKeywordResponse tagDeleteKeyword(String tagName, String keyword) throws IOException;
 
   TeamInfoResult teamInfo() throws IOException;
 
-  SubscribeResult subscribe(SubscribeRequest subscribeRequest) throws IOException;
+  SubscribeResult postedTimeSubscribe(SubscribeRequest subscribeRequest) throws IOException;
 }

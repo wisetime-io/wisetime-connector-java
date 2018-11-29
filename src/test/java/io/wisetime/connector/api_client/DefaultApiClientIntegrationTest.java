@@ -101,37 +101,37 @@ class DefaultApiClientIntegrationTest {
   }
 
   @Test
-  void addTagKeyword() throws IOException {
+  void tagAddKeywords() throws IOException {
     if (defaultApiClient == null) {
       return;
     }
     AddKeywordsRequest request = new AddKeywordsRequest();
     request.setAdditionalKeywords(ImmutableList.of("keyword_from_API", "keyword with space"));
-    AddKeywordsResponse response = defaultApiClient.addTagKeyword("CreatedViaApi", request);
+    AddKeywordsResponse response = defaultApiClient.tagAddKeywords("CreatedViaApi", request);
     log.info(response.toString());
   }
 
   @Test
-  void deleteTagKeyword() throws IOException {
+  void tagDeleteKeyword() throws IOException {
     if (defaultApiClient == null) {
       return;
     }
-    DeleteKeywordResponse response = defaultApiClient.deleteTagKeyword("CreatedViaApi", "keyword_from_API");
+    DeleteKeywordResponse response = defaultApiClient.tagDeleteKeyword("CreatedViaApi", "keyword_from_API");
     log.info(response.toString());
 
-    response = defaultApiClient.deleteTagKeyword("CreatedViaApi", "keyword with space");
+    response = defaultApiClient.tagDeleteKeyword("CreatedViaApi", "keyword with space");
     log.info(response.toString());
   }
 
   @Test
-  void subscribe() throws IOException {
+  void postedTimeSubscribe() throws IOException {
     if (defaultApiClient == null) {
       return;
     }
     SubscribeRequest subscribeRequest = new SubscribeRequest();
     subscribeRequest.callbackUrl("http://testurl");
     subscribeRequest.setCallerKey("sample-caller-key");
-    SubscribeResult response = defaultApiClient.subscribe(subscribeRequest);
+    SubscribeResult response = defaultApiClient.postedTimeSubscribe(subscribeRequest);
     log.info(response.toString());
   }
 }
