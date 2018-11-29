@@ -87,7 +87,7 @@ public class DefaultApiClient implements ApiClient {
       throw new IOException(e);
     }
     if (error.isPresent()) {
-      throw new IOException("Failed to complete tag upsert batch. Stopped at first error. ", error.get());
+      throw new IOException("Failed to complete tag upsert batch. Stopped at error.", error.get());
     }
   }
 
