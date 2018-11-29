@@ -60,10 +60,8 @@ public class DefaultApiClient implements ApiClient {
         .map(request -> {
           try {
             tagUpsert(request);
-            log.info("Success: " + request.getName());
             return Optional.<Exception>empty();
           } catch (Exception e) {
-            log.info("Failed: " + request.getName());
             return Optional.of(e);
           }
         })
