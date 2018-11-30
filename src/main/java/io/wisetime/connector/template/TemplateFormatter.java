@@ -59,6 +59,15 @@ public class TemplateFormatter {
     return configuration;
   }
 
+  /**
+   * Format a TimeGroup into text that is suitable for output to integrated systems.
+   * For example, we may want to generate text for inclusion into invoices that we'll send to clients.
+   *
+   * @param timeGroup the TimeGroup to format
+   * @return formatted text for the TimeGroup
+   * @throws IOException if the template file could not be read
+   * @throws TemplateException if the template could not be processed. E.g. badly defined template.
+   */
   public String format(TimeGroup timeGroup) throws IOException, TemplateException {
     Template template = configuration.getTemplate(templateLoaderHelper.getTemplateName());
     StringWriter stringWriter = new StringWriter();
