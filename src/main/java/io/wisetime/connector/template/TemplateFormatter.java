@@ -65,21 +65,24 @@ public class TemplateFormatter {
    *
    * @param timeGroup the TimeGroup to format
    * @return formatted text for the TimeGroup
-   * @throws IOException if the template file could not be read
-   * @throws TemplateException if the template could not be processed. E.g. badly defined template.
+   * @throws TemplateProcessingException if there was an error processing the template
    */
-  public String format(TimeGroup timeGroup) throws IOException, TemplateException {
-    Template template = configuration.getTemplate(templateLoaderHelper.getTemplateName());
-    StringWriter stringWriter = new StringWriter();
-    template.process(timeGroup, stringWriter);
-    String result = stringWriter.toString().trim();
-    if (activityTextTemplateConfig.isUseWinclr()) {
-      result = result.replaceAll("\n", "\r\n");
+  public String format(TimeGroup timeGroup) throws TemplateProcessingException {
+    try {
+      Template template = configuration.getTemplate(templateLoaderHelper.getTemplateName());
+      StringWriter stringWriter = new StringWriter();
+      template.process(timeGroup, stringWriter);
+      String result = stringWriter.toString().trim();
+      if (activityTextTemplateConfig.isUseWinclr()) {
+        result = result.replaceAll("\n", "\r\n");
+      }
+      if (needToCutString(result)) {
+        result = result.substring(0, activityTextTemplateConfig.getMaxLength() - 3) + "...";
+      }
+      return result;
+    } catch (IOException | TemplateException e) {
+      throw new TemplateProcessingException("Failed to process template", e);
     }
-    if (needToCutString(result)) {
-      result = result.substring(0, activityTextTemplateConfig.getMaxLength() - 3) + "...";
-    }
-    return result;
   }
 
   private boolean needToCutString(String result) {
