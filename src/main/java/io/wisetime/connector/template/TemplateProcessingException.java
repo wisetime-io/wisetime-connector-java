@@ -7,9 +7,9 @@ package io.wisetime.connector.template;
 /**
  * @author shane.xie@practiceinsight.io
  */
-public class TemplateProcessingException extends Exception {
+public class TemplateProcessingException extends RuntimeException {
 
   public TemplateProcessingException(final String message, final Throwable cause) {
-    new Exception(message, cause);
+    new RuntimeException(message, cause);
   }
 }

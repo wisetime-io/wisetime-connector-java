@@ -67,7 +67,7 @@ public class TemplateFormatter {
    * @return formatted text for the TimeGroup
    * @throws TemplateProcessingException if there was an error processing the template
    */
-  public String format(TimeGroup timeGroup) throws TemplateProcessingException {
+  public String format(TimeGroup timeGroup) {
     try {
       Template template = configuration.getTemplate(templateLoaderHelper.getTemplateName());
       StringWriter stringWriter = new StringWriter();
