@@ -62,7 +62,7 @@ public class HealthCheck extends TimerTask {
     };
     this.latencyTolerance = 2000;
     this.maxMinsSinceSuccess = RuntimeConfig
-        .findInteger(ConnectorConfigKey.HEALTH_MAX_MINS_SINCE_SUCCESS)
+        .getInt(ConnectorConfigKey.HEALTH_MAX_MINS_SINCE_SUCCESS)
         .orElse(MAX_MINS_SINCE_SUCCESS_DEFAULT);
   }
 

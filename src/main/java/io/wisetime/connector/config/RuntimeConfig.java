@@ -23,6 +23,8 @@ import java.util.Properties;
 import static io.wisetime.connector.config.ConnectorConfigKey.CONNECTOR_PROPERTIES_FILE;
 
 /**
+ * Provides runtime configuration for WiseTime connectors
+ *
  * @author thomas.haines@practiceinsight.io
  */
 @SuppressWarnings("WeakerAccess")
@@ -51,7 +53,7 @@ public class RuntimeConfig {
     return Optional.ofNullable(StringUtils.trimToNull(config.getString(key)));
   }
 
-  private Optional<Integer> getInteger(String key) {
+  private Optional<Integer> getInt(String key) {
     final String intAsString = StringUtils.trimToEmpty(config.getString(key));
     if (!intAsString.isEmpty()) {
       try {
@@ -64,11 +66,23 @@ public class RuntimeConfig {
     return Optional.empty();
   }
 
-  public static Optional<Integer> findInteger(RuntimeConfigKey configKey) {
-    return INSTANCE.getInteger(configKey.getConfigKey());
+  /**
+   * Get Integer config value for key
+   *
+   * @param configKey the key for which to get the value
+   * @return the Integer value, or an empty optional if there is no value configured for the key
+   */
+  public static Optional<Integer> getInt(RuntimeConfigKey configKey) {
+    return INSTANCE.getInt(configKey.getConfigKey());
   }
 
-  public static Optional<String> findString(RuntimeConfigKey configKey) {
+  /**
+   * Get String config value for key
+   *
+   * @param configKey the key for which to get the value
+   * @return the String value, or an empty optional if there is no value configured for the key
+   */
+  public static Optional<String> getString(RuntimeConfigKey configKey) {
     return INSTANCE.getString(configKey.getConfigKey());
   }
 

@@ -10,6 +10,7 @@ package io.wisetime.connector.config;
 public enum ConnectorConfigKey implements RuntimeConfigKey {
 
   API_KEY("API_KEY"),
+  CALLER_KEY("CALLER_KEY"),
   PERSISTENT_DIR("PERSISTENT_DIR"),
   CONNECTOR_PROPERTIES_FILE("CONNECTOR_PROPERTIES_FILE"),
   HEALTH_MAX_MINS_SINCE_SUCCESS("HEALTH_MAX_MINS_SINCE_SUCCESS"),

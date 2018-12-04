@@ -50,10 +50,10 @@ public class RuntimeConfigTest {
       System.setProperty(CONNECTOR_PROPERTIES_FILE.getConfigKey(), propertyFile.getPath());
       RuntimeConfig.rebuild();
 
-      assertThat(RuntimeConfig.findString(() -> keyA))
+      assertThat(RuntimeConfig.getString(() -> keyA))
           .contains(valueA);
 
-      assertThat(RuntimeConfig.findString(() -> keyB))
+      assertThat(RuntimeConfig.getString(() -> keyB))
           .contains(valueB);
 
     } finally {
@@ -61,7 +61,7 @@ public class RuntimeConfigTest {
       RuntimeConfig.rebuild();
     }
 
-    assertThat(RuntimeConfig.findString(() -> keyB))
+    assertThat(RuntimeConfig.getString(() -> keyB))
         .isNotPresent();
   }
 
@@ -72,9 +72,9 @@ public class RuntimeConfigTest {
     System.setProperty(key, value);
 
     RuntimeConfig.rebuild();
-    assertThat(RuntimeConfig.findString(() -> key))
+    assertThat(RuntimeConfig.getString(() -> key))
         .contains(value);
-    assertThat(RuntimeConfig.findString(() -> value))
+    assertThat(RuntimeConfig.getString(() -> value))
         .isNotPresent();
 
     System.clearProperty(key);
@@ -87,9 +87,9 @@ public class RuntimeConfigTest {
     System.setProperty(key, value.toString());
     RuntimeConfig.rebuild();
 
-    assertThat(RuntimeConfig.findInteger(() -> key))
+    assertThat(RuntimeConfig.getInt(() -> key))
         .contains(value);
-    assertThat(RuntimeConfig.findInteger(value::toString))
+    assertThat(RuntimeConfig.getInt(value::toString))
         .isNotPresent();
 
     System.clearProperty(key);

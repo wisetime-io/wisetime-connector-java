@@ -40,9 +40,9 @@ class DefaultApiClientIntegrationTest {
 
   @BeforeAll
   static void setup() {
-    Optional<String> apiKey = RuntimeConfig.findString(ConnectorConfigKey.API_KEY);
+    Optional<String> apiKey = RuntimeConfig.getString(ConnectorConfigKey.API_KEY);
     boolean runnable = apiKey.isPresent()
-        && !RuntimeConfig.findString(ConnectorConfigKey.API_BASE_URL).orElse("").contains("wisetime.io");
+        && !RuntimeConfig.getString(ConnectorConfigKey.API_BASE_URL).orElse("").contains("wisetime.io");
     if (!runnable) {
       log.info("DefaultApiClientIntegrationTest skipped");
       return;

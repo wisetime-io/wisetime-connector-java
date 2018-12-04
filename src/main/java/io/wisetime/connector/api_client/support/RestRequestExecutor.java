@@ -34,7 +34,7 @@ public class RestRequestExecutor {
   private final String apiKey;
 
   public RestRequestExecutor(String apiKey) {
-    this(apiKey, RuntimeConfig.findString(ConnectorConfigKey.API_BASE_URL).orElse(BASE_URL));
+    this(apiKey, RuntimeConfig.getString(ConnectorConfigKey.API_BASE_URL).orElse(BASE_URL));
   }
 
   public RestRequestExecutor(String apiKey, String apiBaseUrl) {

@@ -72,7 +72,7 @@ public class ServerRunner {
 
   public static ServerBuilder createServerBuilder() {
     ServerBuilder builder = new ServerBuilder();
-    RuntimeConfig.findString(ConnectorConfigKey.API_KEY).ifPresent(builder::withApiKey);
+    RuntimeConfig.getString(ConnectorConfigKey.API_KEY).ifPresent(builder::withApiKey);
     return builder;
   }
 
@@ -172,7 +172,7 @@ public class ServerRunner {
     }
 
     private ConnectorStore createStore(boolean persistenceRequired) {
-      String persistentStoreDir = RuntimeConfig.findString(ConnectorConfigKey.PERSISTENT_DIR).orElse(null);
+      String persistentStoreDir = RuntimeConfig.getString(ConnectorConfigKey.PERSISTENT_DIR).orElse(null);
       if (persistenceRequired && persistentStoreDir == null) {
         throw new IllegalArgumentException(String.format(
             "requirePersistentStore enabled for server -> a persistent directory must be provided using setting '%s'",
@@ -241,7 +241,7 @@ public class ServerRunner {
 
 
         final String userPropertyPath = RuntimeConfig
-            .findString(ConnectorConfigKey.CONNECTOR_PROPERTIES_FILE)
+            .getString(ConnectorConfigKey.CONNECTOR_PROPERTIES_FILE)
             .orElse("");
 
         configurator.doConfigure(
