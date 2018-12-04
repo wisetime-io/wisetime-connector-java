@@ -57,6 +57,7 @@ public class IntegrateApplication implements SparkApplication {
 
     post("/receiveTimePostedEvent", (request, response) -> {
       TimeGroup userPostedTime = om.readValue(request.body(), TimeGroup.class);
+      // TODO: Handle PostResult from connector
       wiseTimeConnector.postTime(request, userPostedTime);
       response.type("plain/text");
       return "success";
