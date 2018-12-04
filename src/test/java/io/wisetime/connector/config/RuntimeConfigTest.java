@@ -81,7 +81,7 @@ public class RuntimeConfigTest {
   }
 
   @Test
-  void getInteger() {
+  void getInt() {
     String key = faker.faker().ancient().god();
     Integer value = faker.faker().number().numberBetween(10, 30);
     System.setProperty(key, value.toString());
