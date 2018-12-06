@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.HashMap;
 
+import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.config.TolerantObjectMapper;
 import io.wisetime.connector.integrate.WiseTimeConnector;
 import io.wisetime.generated.connect.TimeGroup;
@@ -57,10 +58,23 @@ public class IntegrateApplication implements SparkApplication {
 
     post("/receiveTimePostedEvent", (request, response) -> {
       TimeGroup userPostedTime = om.readValue(request.body(), TimeGroup.class);
-      // TODO: Handle PostResult from connector
-      wiseTimeConnector.postTime(request, userPostedTime);
+
+      PostResult postResult = wiseTimeConnector.postTime(request, userPostedTime);
+
       response.type("plain/text");
-      return "success";
+      switch (postResult) {
+        case SUCCESS:
+          response.status(200);
+          return "success";
+        case PERMANENT_FAILURE:
+          response.status(400);
+          return "Invalid request";
+        case TRANSIENT_FAILURE:
+        default:
+          // If we don't get a recognized PostResult, this is an unexpected error
+          response.status(500);
+          return "Unexpected error";
+      }
     });
   }
 
