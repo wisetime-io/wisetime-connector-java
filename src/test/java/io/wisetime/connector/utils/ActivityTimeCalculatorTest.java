@@ -30,7 +30,7 @@ class ActivityTimeCalculatorTest {
     final TimeGroup timeGroup = fakeEntities.randomTimeGroup().timeRows(ImmutableList.of());
 
     assertThat(startTime(timeGroup))
-        .isEqualTo(Optional.empty())
+        .isEmpty()
         .as("Can't calculate start time since there are no time rows");
   }
 
