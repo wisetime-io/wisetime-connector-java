@@ -17,15 +17,14 @@ import io.wisetime.generated.connect.TimeRow;
  */
 public class ActivityTimeCalculator {
 
+  private static final DateTimeFormatter ACTIVITY_HOUR_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHH");
+
   public static Optional<LocalDateTime> startTime(final TimeGroup timeGroup) {
     return timeGroup
         .getTimeRows()
         .stream()
         .min(Comparator.comparingInt(TimeRow::getActivityHour))
         .map(TimeRow::getActivityHour)
-        .map(hour -> {
-          DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHH");
-          return LocalDateTime.parse(String.valueOf(hour), formatter);
-        });
+        .map(hour -> LocalDateTime.parse(String.valueOf(hour), ACTIVITY_HOUR_FORMATTER));
   }
 }
