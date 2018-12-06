@@ -41,7 +41,7 @@ public class TagDurationCalculator {
     double totalDuration = timeGroup.getTotalDurationSecs();
 
     if (!disregardExperienceRating) {
-      totalDuration = timeGroup.getTotalDurationSecs() * timeGroup.getUser().getExperienceWeightingPercent() / 100;
+      totalDuration = timeGroup.getTotalDurationSecs() * timeGroup.getUser().getExperienceWeightingPercent() / 100.0;
     }
 
     switch (timeGroup.getDurationSplitStrategy()) {

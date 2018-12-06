@@ -46,11 +46,11 @@ class TagDurationCalculatorTest {
     final User user = fakeEntities.randomUser().experienceWeightingPercent(10);
     final TimeGroup timeGroup = fakeEntities.randomTimeGroup()
         .user(user)
-        .totalDurationSecs(100)
+        .totalDurationSecs(105)
         .durationSplitStrategy(TimeGroup.DurationSplitStrategyEnum.DIVIDE_BETWEEN_TAGS);
 
     assertThat(tagDuration(timeGroup))
-        .isEqualTo(10.0 / timeGroup.getTags().size())
+        .isEqualTo(10.5 / timeGroup.getTags().size())
         .as("Calculated duration should take into account experience rating and" +
             "split the total duration between the tags");
   }
