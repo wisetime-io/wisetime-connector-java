@@ -45,6 +45,7 @@ public class FakeEntities {
 
   public Tag randomTag(final String path) {
     return new Tag()
+        .path(path)
         .name(FAKER.letterify("??-") + FAKER.number().numberBetween(1000, 9999))
         .description(FAKER.lorem().characters(30, 200));
   }
