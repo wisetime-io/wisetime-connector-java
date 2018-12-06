@@ -65,7 +65,7 @@ public class IntegrateApplication implements SparkApplication {
       switch (postResult) {
         case SUCCESS:
           response.status(200);
-          return "success";
+          return "Success";
         case PERMANENT_FAILURE:
           response.status(400);
           return "Invalid request";
