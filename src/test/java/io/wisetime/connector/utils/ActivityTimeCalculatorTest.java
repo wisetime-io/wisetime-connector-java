@@ -41,7 +41,7 @@ class ActivityTimeCalculatorTest {
     final TimeGroup timeGroup = fakeEntities.randomTimeGroup().timeRows(ImmutableList.of(row1, row2));
 
     assertThat(startTime(timeGroup))
-        .isEqualTo(Optional.of(LocalDateTime.of(2018, 11, 1, 9, 0)))
+        .contains(LocalDateTime.of(2018, 11, 1, 9, 0))
         .as("The start time is the segment hour of the earliest time row");
   }
 }
