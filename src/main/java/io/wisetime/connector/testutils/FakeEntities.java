@@ -78,7 +78,7 @@ public class FakeEntities {
         .collect(Collectors.toList());
   }
 
-  private static <T extends Enum<?>> T randomEnum(Class<T> clazz) {
+  private static <T extends Enum<?>> T randomEnum(final Class<T> clazz) {
     final int index = FAKER.random().nextInt(clazz.getEnumConstants().length);
     return clazz.getEnumConstants()[index];
   }
