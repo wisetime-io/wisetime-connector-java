@@ -115,6 +115,8 @@ dependencies {
     compile 'io.swagger:swagger-annotations:1.5.3'
     compile 'javax.validation:validation-api:2.0.1.Final'
 
+    compile 'com.github.javafaker:javafaker:0.16'
+
     testCompile 'org.apache.httpcomponents:httpclient:4.5.6'
     testCompile 'org.junit.jupiter:junit-jupiter-api:5.3.1'
     testCompile 'org.junit.jupiter:junit-jupiter-params:5.3.1'
@@ -122,7 +124,6 @@ dependencies {
     testCompile 'org.mockito:mockito-core:2.22.0'
     testCompile 'org.assertj:assertj-core:3.11.1'
     testCompile 'io.github.benas:random-beans:3.7.0'
-    testCompile 'com.github.javafaker:javafaker:0.16'
 }
 
 test {
