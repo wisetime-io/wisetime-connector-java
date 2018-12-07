@@ -47,7 +47,7 @@ public class RuntimeConfigTest {
     FileUtils.writeStringToFile(propertyFile, fileContent.toString(), StandardCharsets.UTF_8);
 
     try {
-      System.setProperty(CONNECTOR_PROPERTIES_FILE.getConfigKey(), propertyFile.getPath());
+      RuntimeConfig.setProperty(CONNECTOR_PROPERTIES_FILE, propertyFile.getPath());
       RuntimeConfig.rebuild();
 
       assertThat(RuntimeConfig.getString(() -> keyA))
@@ -57,8 +57,7 @@ public class RuntimeConfigTest {
           .contains(valueB);
 
     } finally {
-      System.clearProperty(CONNECTOR_PROPERTIES_FILE.getConfigKey());
-      RuntimeConfig.rebuild();
+      RuntimeConfig.clearProperty(CONNECTOR_PROPERTIES_FILE);
     }
 
     assertThat(RuntimeConfig.getString(() -> keyB))

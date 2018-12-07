@@ -86,6 +86,16 @@ public class RuntimeConfig {
     return INSTANCE.getString(configKey.getConfigKey());
   }
 
+  public static void setProperty(RuntimeConfigKey configKey, String value) {
+    System.setProperty(configKey.getConfigKey(), value);
+    rebuild();
+  }
+
+  public static void clearProperty(RuntimeConfigKey configKey) {
+    System.clearProperty(configKey.getConfigKey());
+    rebuild();
+  }
+
   @VisibleForTesting
   public static void rebuild() {
     INSTANCE = new RuntimeConfig();
