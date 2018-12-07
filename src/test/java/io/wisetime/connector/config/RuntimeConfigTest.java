@@ -48,7 +48,6 @@ public class RuntimeConfigTest {
 
     try {
       RuntimeConfig.setProperty(CONNECTOR_PROPERTIES_FILE, propertyFile.getPath());
-      RuntimeConfig.rebuild();
 
       assertThat(RuntimeConfig.getString(() -> keyA))
           .contains(valueA);
