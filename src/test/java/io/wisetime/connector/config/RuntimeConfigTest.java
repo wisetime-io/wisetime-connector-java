@@ -47,7 +47,8 @@ public class RuntimeConfigTest {
     FileUtils.writeStringToFile(propertyFile, fileContent.toString(), StandardCharsets.UTF_8);
 
     try {
-      RuntimeConfig.setProperty(CONNECTOR_PROPERTIES_FILE, propertyFile.getPath());
+      System.setProperty(CONNECTOR_PROPERTIES_FILE.getConfigKey(), propertyFile.getPath());
+      RuntimeConfig.rebuild();
 
       assertThat(RuntimeConfig.getString(() -> keyA))
           .contains(valueA);
@@ -56,9 +57,10 @@ public class RuntimeConfigTest {
           .contains(valueB);
 
     } finally {
-      RuntimeConfig.clearProperty(CONNECTOR_PROPERTIES_FILE);
+      System.clearProperty(CONNECTOR_PROPERTIES_FILE.getConfigKey());
     }
 
+    RuntimeConfig.rebuild();
     assertThat(RuntimeConfig.getString(() -> keyB))
         .isNotPresent();
   }
@@ -91,5 +93,33 @@ public class RuntimeConfigTest {
         .isNotPresent();
 
     System.clearProperty(key);
+  }
+
+  @Test
+  void setProperty() {
+    String key = faker.faker().ancient().god();
+    String value = faker.faker().ancient().titan();
+    RuntimeConfig.rebuild();
+    RuntimeConfig.setProperty(() -> key, value);
+
+    assertThat(RuntimeConfig.getString(() -> key))
+        .contains(value);
+    RuntimeConfig.rebuild();
+    assertThat(RuntimeConfig.getString(() -> key))
+        .isNotPresent();
+  }
+
+  @Test
+  void clearProperty() {
+    String key = faker.faker().ancient().god();
+    String value = faker.faker().ancient().titan();
+    RuntimeConfig.rebuild();
+    RuntimeConfig.setProperty(() -> key, value);
+
+    assertThat(RuntimeConfig.getString(() -> key))
+        .contains(value);
+    RuntimeConfig.clearProperty(() -> key);
+    assertThat(RuntimeConfig.getString(() -> key))
+        .isNotPresent();
   }
 }

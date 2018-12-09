@@ -31,6 +31,7 @@ import static io.wisetime.connector.config.ConnectorConfigKey.CONNECTOR_PROPERTI
 public class RuntimeConfig {
 
   private final CompositeConfiguration config;
+  private final MapConfiguration inMemoryConfig;
   private static RuntimeConfig INSTANCE = new RuntimeConfig();
 
   private RuntimeConfig() {
@@ -39,7 +40,8 @@ public class RuntimeConfig {
     config.addConfiguration(new CaseInsensitiveSystemConfiguration());
 
     // second tier environment variables
-    config.addConfiguration(new MapConfiguration(new CaseInsensitiveMap<String, Object>(System.getenv())));
+    inMemoryConfig = new MapConfiguration(new CaseInsensitiveMap<String, Object>(System.getenv()));
+    config.addConfiguration(inMemoryConfig);
 
     String connectorPropertyFilePath = config.getString(CONNECTOR_PROPERTIES_FILE.getConfigKey());
     if (StringUtils.isNotBlank(connectorPropertyFilePath)) {
@@ -86,14 +88,22 @@ public class RuntimeConfig {
     return INSTANCE.getString(configKey.getConfigKey());
   }
 
+  /**
+   * This property can removed by {@link #clearProperty(RuntimeConfigKey)}.
+   * All properties set by this method will not survive though {@link #rebuild()}.
+   * In case same key provided from multiple sources - this method overcome file configuration,
+   * but not system properties.
+   */
   public static void setProperty(RuntimeConfigKey configKey, String value) {
-    System.setProperty(configKey.getConfigKey(), value);
-    rebuild();
+    INSTANCE.inMemoryConfig.setProperty(configKey.getConfigKey(), value);
   }
 
+  /**
+   * This method will clean up only configuration set by {@link #setProperty(RuntimeConfigKey, String)}.
+   * This method will not effect properties provided from environment config or file config.
+   */
   public static void clearProperty(RuntimeConfigKey configKey) {
-    System.clearProperty(configKey.getConfigKey());
-    rebuild();
+    INSTANCE.inMemoryConfig.clearProperty(configKey.getConfigKey());
   }
 
   @VisibleForTesting
