@@ -10,6 +10,6 @@ package io.wisetime.connector.template;
 public class TemplateProcessingException extends RuntimeException {
 
   public TemplateProcessingException(final String message, final Throwable cause) {
-    new RuntimeException(message, cause);
+    super(message, cause);
   }
 }

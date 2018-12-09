@@ -25,10 +25,10 @@ import static java.lang.String.format;
 public class FakeEntities {
 
   private static final Faker FAKER = new Faker();
-  private static final String TAG_PATH = format("/{}/{}/", FAKER.lorem().word(), FAKER.lorem().word());
+  private static final String TAG_PATH = format("/%s/%s/", FAKER.lorem().word(), FAKER.lorem().word());
 
   public TimeGroup randomTimeGroup() {
-    final List<TimeRow> timeRows = randomEntities(() -> randomTimeRow(), 1, 10);
+    final List<TimeRow> timeRows = randomEntities(this::randomTimeRow, 1, 10);
 
     return new TimeGroup()
         .callerKey(FAKER.bothify("#?#?#?#?#?"))
