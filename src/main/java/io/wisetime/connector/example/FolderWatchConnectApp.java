@@ -52,9 +52,12 @@ public class FolderWatchConnectApp extends FolderWatchParam implements Callable<
 
     ServerRunner runner = serverBuilder
         .withWiseTimeConnector(folderConnector)
-        .withTemplateMaxLength(getTemplateMaxLength())
-        .withTemplatePath(getTemplatePath())
-        .withTemplateUseWinClr(isTemplateUseWinClr())
+        .withPublicTemplateMaxLength(getTemplateMaxLength())
+        .withPublicTemplatePath(getTemplatePath())
+        .withPublicTemplateUseWinClr(isTemplateUseWinClr())
+        .withInternalTemplateMaxLength(getTemplateMaxLength())
+        .withInternalTemplatePath(getTemplatePath())
+        .withInternalTemplateUseWinClr(isTemplateUseWinClr())
         .build();
 
     // blocking call

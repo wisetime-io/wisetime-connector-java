@@ -15,14 +15,27 @@ import io.wisetime.connector.template.TemplateFormatter;
 public class ConnectorModule {
 
   private final ApiClient apiClient;
-  private final TemplateFormatter templateFormatter;
+  private final TemplateFormatter publicTemplateFormatter;
+  private final TemplateFormatter internalTemplateFormatter;
   private final ConnectorStore connectorStore;
 
+  /**
+   * Contains required dependencies needed for a WiseTime Connector to start.
+   *
+   * @param apiClient The client stub to call the WiseTime Connect APIs
+   * @param publicTemplateFormatter The template formatter for general use. This formatter can be use to provide information
+   *                                that do not have sensitive data.
+   * @param internalTemplateFormatter The template formatter for providing more detailed information that might include
+   *                                  sensitive data.
+   * @param connectorStore Provides simple storage functionality.
+   */
   public ConnectorModule(ApiClient apiClient,
-                         TemplateFormatter templateFormatter,
+                         TemplateFormatter publicTemplateFormatter,
+                         TemplateFormatter internalTemplateFormatter,
                          ConnectorStore connectorStore) {
     this.apiClient = apiClient;
-    this.templateFormatter = templateFormatter;
+    this.publicTemplateFormatter = publicTemplateFormatter;
+    this.internalTemplateFormatter = internalTemplateFormatter;
     this.connectorStore = connectorStore;
   }
 
@@ -34,7 +47,11 @@ public class ConnectorModule {
     return apiClient;
   }
 
-  public TemplateFormatter getTemplateFormatter() {
-    return templateFormatter;
+  public TemplateFormatter getPublicTemplateFormatter() {
+    return publicTemplateFormatter;
+  }
+
+  public TemplateFormatter getInternalTemplateFormatter() {
+    return internalTemplateFormatter;
   }
 }

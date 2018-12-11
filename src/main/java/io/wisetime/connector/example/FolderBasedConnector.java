@@ -46,7 +46,8 @@ class FolderBasedConnector implements WiseTimeConnector {
   private final File watchDir;
   private final String callerKey;
   private ApiClient apiClient;
-  private TemplateFormatter templateFormatter;
+  private TemplateFormatter publicTemplateFormatter;
+  private TemplateFormatter internalTemplateFormatter;
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
   FolderBasedConnector(File watchDir, String callerKey) {
@@ -73,7 +74,8 @@ class FolderBasedConnector implements WiseTimeConnector {
   @Override
   public void init(ConnectorModule connectorModule) {
     this.apiClient = connectorModule.getApiClient();
-    templateFormatter = connectorModule.getTemplateFormatter();
+    this.publicTemplateFormatter = connectorModule.getPublicTemplateFormatter();
+    this.internalTemplateFormatter = connectorModule.getInternalTemplateFormatter();
   }
 
   /**
@@ -153,9 +155,13 @@ class FolderBasedConnector implements WiseTimeConnector {
       File resultFile = new File(postDir, userPostedTime.getGroupId() + ".json");
       FileUtils.writeStringToFile(resultFile, resultAsJson, StandardCharsets.UTF_8);
 
-      String humanReadableDescription = templateFormatter.format(userPostedTime);
+      String humanReadableDescription = publicTemplateFormatter.format(userPostedTime);
       File descriptionFile = new File(watchDir, userPostedTime.getGroupId() + ".txt");
       FileUtils.writeStringToFile(descriptionFile, humanReadableDescription, StandardCharsets.UTF_8);
+
+      String internalDescription = internalTemplateFormatter.format(userPostedTime);
+      File internalDescriptionFile = new File(watchDir, userPostedTime.getGroupId() + "-internal.txt");
+      FileUtils.writeStringToFile(internalDescriptionFile, internalDescription, StandardCharsets.UTF_8);
 
       return PostResult.SUCCESS;
     } catch (Exception e) {

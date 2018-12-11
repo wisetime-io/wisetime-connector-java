@@ -44,7 +44,8 @@ class FolderBasedConnectorTest {
   private Path watchDir;
   private FolderBasedConnector folderConnect;
   private ApiClient apiClientMock;
-  private TemplateFormatter templateFormatterMock;
+  private TemplateFormatter publicTemplateFormatterMock;
+  private TemplateFormatter internalTemplateFormatterMock;
   private String callerKey;
 
   @BeforeEach
@@ -53,10 +54,12 @@ class FolderBasedConnectorTest {
     watchDir = Files.createTempDirectory("watch");
     folderConnect = new FolderBasedConnector(watchDir.toFile(), callerKey);
     apiClientMock = mock(ApiClient.class);
-    templateFormatterMock = mock(TemplateFormatter.class);
+    publicTemplateFormatterMock = mock(TemplateFormatter.class);
+    internalTemplateFormatterMock = mock(TemplateFormatter.class);
     ConnectorModule connectorModuleMock = new ConnectorModule(
         apiClientMock,
-        templateFormatterMock,
+        publicTemplateFormatterMock,
+        internalTemplateFormatterMock,
         mock(ConnectorStore.class));
     folderConnect.init(connectorModuleMock);
 
@@ -129,6 +132,7 @@ class FolderBasedConnectorTest {
         .as("expect deserialized is equal")
         .isEqualTo(timeGroup);
 
-    verify(templateFormatterMock, times(1)).format(timeGroup);
+    verify(publicTemplateFormatterMock, times(1)).format(timeGroup);
+    verify(internalTemplateFormatterMock, times(1)).format(timeGroup);
   }
 }

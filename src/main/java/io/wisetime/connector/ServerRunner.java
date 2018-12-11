@@ -125,7 +125,8 @@ public class ServerRunner {
     private WiseTimeConnector wiseTimeConnector;
     private ApiClient apiClient;
     private String apiKey;
-    private TemplateFormatterConfig.Builder templateConfigBuilder = TemplateFormatterConfig.builder();
+    private TemplateFormatterConfig.Builder publicTemplateConfigBuilder = TemplateFormatterConfig.builder();
+    private TemplateFormatterConfig.Builder internalTemplateConfigBuilder = TemplateFormatterConfig.builder();
 
     public ServerRunner build() {
 
@@ -164,7 +165,8 @@ public class ServerRunner {
 
       ConnectorModule connectorModule = new ConnectorModule(
           apiClient,
-          new TemplateFormatter(templateConfigBuilder.build()),
+          new TemplateFormatter(publicTemplateConfigBuilder.build()),
+          new TemplateFormatter(internalTemplateConfigBuilder.build()),
           createStore(persistentStorageOnly)
       );
 
@@ -208,24 +210,49 @@ public class ServerRunner {
     /**
      * @see TemplateFormatterConfig#DEFAULT_USE_WINCLR
      */
-    public ServerBuilder withTemplateUseWinClr(boolean useWinClr) {
-      templateConfigBuilder.withWindowsClr(useWinClr);
+    public ServerBuilder withPublicTemplateUseWinClr(boolean useWinClr) {
+      publicTemplateConfigBuilder.withWindowsClr(useWinClr);
+      return this;
+    }
+
+    /**
+     * @see TemplateFormatterConfig#DEFAULT_USE_WINCLR
+     */
+    public ServerBuilder withInternalTemplateUseWinClr(boolean useWinClr) {
+      publicTemplateConfigBuilder.withWindowsClr(useWinClr);
       return this;
     }
 
     /**
      * @see TemplateFormatterConfig#DEFAULT_TEMPLATE_PATH
      */
-    public ServerBuilder withTemplatePath(String templatePath) {
-      templateConfigBuilder.withTemplatePath(templatePath);
+    public ServerBuilder withPublicTemplatePath(String templatePath) {
+      publicTemplateConfigBuilder.withTemplatePath(templatePath);
+      return this;
+    }
+
+    /**
+     * Comparing to the {@link ServerBuilder#ServerRunner#withPublicTemplatePath(String)} this
+     * template provides more detailed information that might include sensitive data.
+     */
+    public ServerBuilder withInternalTemplatePath(String internalTemplatePath) {
+      publicTemplateConfigBuilder.withTemplatePath(internalTemplatePath);
       return this;
     }
 
     /**
      * @see TemplateFormatterConfig#DEFAULT_MAX_LENGTH
      */
-    public ServerBuilder withTemplateMaxLength(int maxLength) {
-      templateConfigBuilder.withMaxLength(maxLength);
+    public ServerBuilder withPublicTemplateMaxLength(int maxLength) {
+      publicTemplateConfigBuilder.withMaxLength(maxLength);
+      return this;
+    }
+
+    /**
+     * @see TemplateFormatterConfig#DEFAULT_MAX_LENGTH
+     */
+    public ServerBuilder withInternalTemplateMaxLength(int maxLength) {
+      internalTemplateConfigBuilder.withMaxLength(maxLength);
       return this;
     }
 
