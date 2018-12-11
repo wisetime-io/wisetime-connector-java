@@ -85,11 +85,14 @@ public class ConnectorLauncher {
   public static void main(final String... args) throws Exception {
     ServerRunner.createServerBuilder()
         .withWiseTimeConnector(new HelloConnector())
+        .withPort(8080)
         .build()
         .startServer();
   }
 }
 ```
+
+The connector will launch a web server at port 8080. The server implements the [Posted Time Webhook](https://wisetime.io/docs/connect/posted-time-webhook/) that WiseTime will call whenever a user posts time to the team.
 
 ## Sample Project
 
