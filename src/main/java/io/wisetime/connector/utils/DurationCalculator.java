@@ -17,7 +17,7 @@ import io.wisetime.generated.connect.TimeRow;
 public class DurationCalculator {
 
   private TimeGroup timeGroup;
-  private DurationFrom durationFrom = DurationFrom.TIME_GROUP;
+  private DurationSource durationSource = DurationSource.TIME_GROUP;
   private boolean useExperienceRating = true;
 
   /**
@@ -27,7 +27,7 @@ public class DurationCalculator {
    * @return a DurationCalculator with the default configuration equivalent to:
    *
    *   DurationCalculator.of(timeGroup)
-   *       .useDurationFrom(DurationFrom.TIME_GROUP)
+   *       .useDurationFrom(DurationSource.TIME_GROUP)
    *       .useExperienceRating()
    */
   public static DurationCalculator of(final TimeGroup timeGroup) {
@@ -41,11 +41,11 @@ public class DurationCalculator {
   /**
    * Tell the calculator whether to read the duration from the TimeGroup or its TimeRows.
    *
-   * @param durationFrom which DurationFrom option to use
+   * @param durationSource which DurationSource option to use
    * @return the DurationCalculator with the duration from option applied
    */
-  public DurationCalculator useDurationFrom(final DurationFrom durationFrom) {
-    this.durationFrom = durationFrom;
+  public DurationCalculator useDurationFrom(final DurationSource durationSource) {
+    this.durationSource = durationSource;
     return this;
   }
 
@@ -77,16 +77,11 @@ public class DurationCalculator {
   public Result calculate() {
     final double totalDuration = sourceTotalDuration
         .andThen(applyExperienceRating)
-        .apply(durationFrom);
+        .apply(durationSource);
 
     final double perTagDuration = applyDurationSplitStrategy.apply(totalDuration);
 
     return new Result(Math.round(perTagDuration), Math.round(totalDuration));
-  }
-
-  public enum DurationFrom {
-    TIME_GROUP,
-    SUM_TIME_ROWS;
   }
 
   /**
@@ -121,14 +116,14 @@ public class DurationCalculator {
     }
   }
 
-  private final Function<DurationFrom, Double> sourceTotalDuration = durationFrom -> {
-    switch (durationFrom) {
+  private final Function<DurationSource, Double> sourceTotalDuration = durationSource -> {
+    switch (durationSource) {
       case TIME_GROUP:
         return timeGroup.getTotalDurationSecs().doubleValue();
       case SUM_TIME_ROWS:
         return timeGroup.getTimeRows().stream().mapToDouble(TimeRow::getDurationSecs).sum();
       default:
-        throw new IllegalStateException("Unhandled DurationFrom option");
+        throw new IllegalStateException("Unhandled DurationSource option");
     }
   };
 

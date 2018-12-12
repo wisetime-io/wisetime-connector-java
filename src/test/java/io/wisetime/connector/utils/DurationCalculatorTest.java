@@ -48,7 +48,7 @@ class DurationCalculatorTest {
     final DurationCalculator.Result result = DurationCalculator
         .of(timeGroup)
         .disregardExperienceRating()
-        .useDurationFrom(DurationCalculator.DurationFrom.TIME_GROUP)
+        .useDurationFrom(DurationSource.TIME_GROUP)
         .calculate();
 
     assertThat(result.getTotalDuration())
@@ -69,7 +69,7 @@ class DurationCalculatorTest {
     final DurationCalculator.Result result = DurationCalculator
         .of(timeGroup)
         .disregardExperienceRating()
-        .useDurationFrom(DurationCalculator.DurationFrom.SUM_TIME_ROWS)
+        .useDurationFrom(DurationSource.SUM_TIME_ROWS)
         .calculate();
 
     assertThat(result.getTotalDuration())
@@ -89,7 +89,7 @@ class DurationCalculatorTest {
     final DurationCalculator.Result result = DurationCalculator
         .of(timeGroup)
         .useExperienceRating()
-        .useDurationFrom(DurationCalculator.DurationFrom.TIME_GROUP)
+        .useDurationFrom(DurationSource.TIME_GROUP)
         .calculate();
 
     assertThat(result.getTotalDuration())
@@ -109,7 +109,7 @@ class DurationCalculatorTest {
     final DurationCalculator.Result result = DurationCalculator
         .of(timeGroup)
         .disregardExperienceRating()
-        .useDurationFrom(DurationCalculator.DurationFrom.TIME_GROUP)
+        .useDurationFrom(DurationSource.TIME_GROUP)
         .calculate();
 
     assertThat(result.getTotalDuration())
@@ -128,7 +128,7 @@ class DurationCalculatorTest {
     final DurationCalculator.Result result = DurationCalculator
         .of(timeGroup)
         .disregardExperienceRating()
-        .useDurationFrom(DurationCalculator.DurationFrom.TIME_GROUP)
+        .useDurationFrom(DurationSource.TIME_GROUP)
         .calculate();
 
     assertThat(result.getPerTagDuration())
@@ -147,7 +147,7 @@ class DurationCalculatorTest {
     final DurationCalculator.Result result = DurationCalculator
         .of(timeGroup)
         .disregardExperienceRating()
-        .useDurationFrom(DurationCalculator.DurationFrom.TIME_GROUP)
+        .useDurationFrom(DurationSource.TIME_GROUP)
         .calculate();
 
     assertThat(result.getPerTagDuration())
