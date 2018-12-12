@@ -43,6 +43,10 @@ public class FakeEntities {
         .durationSplitStrategy(randomEnum(TimeGroup.DurationSplitStrategyEnum.class));
   }
 
+  public Tag randomTag() {
+    return randomTag(format("/{}/", FAKER.lorem().word()));
+  }
+
   public Tag randomTag(final String path) {
     return new Tag()
         .path(path)

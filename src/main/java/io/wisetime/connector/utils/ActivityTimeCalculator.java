@@ -13,12 +13,20 @@ import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeRow;
 
 /**
+ * Utility to calculate activity times relevant to WiseTime.
+ *
  * @author shane.xie@practiceinsight.io
  */
 public class ActivityTimeCalculator {
 
   private static final DateTimeFormatter ACTIVITY_HOUR_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHH");
 
+  /**
+   * The start time of a TimeGroup is the start of the segment hour of the earliest TimeRow in the group.
+   *
+   * @param timeGroup the TimeGroup whose start time to calculate
+   * @return start time without timezone information
+   */
   public static Optional<LocalDateTime> startTime(final TimeGroup timeGroup) {
     return timeGroup
         .getTimeRows()
