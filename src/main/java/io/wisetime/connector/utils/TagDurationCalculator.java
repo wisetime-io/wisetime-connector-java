@@ -7,8 +7,13 @@ package io.wisetime.connector.utils;
 import io.wisetime.generated.connect.TimeGroup;
 
 /**
+ * Utility to calculate Tag durations for a TimeGroup.
+ *
  * @author shane.xie@practiceinsight.io
+ *
+ * @deprecated use {@link DurationCalculator instead}
  */
+@Deprecated
 public class TagDurationCalculator {
 
   /**
