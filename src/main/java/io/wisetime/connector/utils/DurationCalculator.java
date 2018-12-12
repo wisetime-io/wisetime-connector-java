@@ -129,7 +129,7 @@ public class DurationCalculator {
 
   private final Function<Double, Double> applyExperienceRating = duration -> {
     if (useExperienceRating) {
-      return duration * timeGroup.getUser().getExperienceWeightingPercent() / 100;
+      return duration * timeGroup.getUser().getExperienceWeightingPercent() / 100.0;
     }
     return duration;
   };

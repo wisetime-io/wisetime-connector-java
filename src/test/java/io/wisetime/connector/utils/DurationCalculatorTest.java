@@ -79,11 +79,11 @@ class DurationCalculatorTest {
 
   @Test
   void config_useExperienceRating() {
-    final User user = fakeEntities.randomUser().experienceWeightingPercent(50);
+    final User user = fakeEntities.randomUser().experienceWeightingPercent(10);
 
     final TimeGroup timeGroup = fakeEntities
         .randomTimeGroup()
-        .totalDurationSecs(120)
+        .totalDurationSecs(105)
         .user(user);
 
     final DurationCalculator.Result result = DurationCalculator
@@ -93,8 +93,8 @@ class DurationCalculatorTest {
         .calculate();
 
     assertThat(result.getTotalDuration())
-        .isEqualTo(60)
-        .as("The user's experience rating should be taken into account");
+        .isEqualTo(11)
+        .as("The user's experience rating should be taken into account, and result rounded correctly");
   }
 
   @Test
