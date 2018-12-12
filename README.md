@@ -16,7 +16,7 @@ The WiseTime Connector Library is available on Maven Central. You can include it
 #### Gradle
 
 ```groovy
-compile 'io.wisetime:wisetime-connector:1.0.7'
+compile 'io.wisetime:wisetime-connector:1.1.0'
 ```
 
 #### Maven
@@ -25,7 +25,7 @@ compile 'io.wisetime:wisetime-connector:1.0.7'
 <dependency>
   <groupId>io.wisetime</groupId>
   <artifactId>wisetime-connector</artifactId>
-  <version>1.0.7</version>
+  <version>1.1.0</version>
 </dependency>
 ```
 
