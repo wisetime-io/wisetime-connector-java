@@ -10,6 +10,7 @@ buildscript {
     }
     dependencies {
         classpath "org.openapitools:openapi-generator-gradle-plugin:3.3.4"
+        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.12.0"
     }
 }
 
@@ -21,6 +22,7 @@ plugins {
     id 'application'
     id 'com.google.cloud.tools.jib' version '0.10.0'
     id 'com.github.kt3k.coveralls' version '2.8.2'
+    id 'io.codearte.nexus-staging' version '0.12.0'
 }
 
 apply plugin: 'org.openapi.generator'
@@ -228,6 +230,11 @@ javadoc {
     if (JavaVersion.current().isJava9Compatible()) {
         options.addBooleanOption('html5', true)
     }
+}
+
+nexusStaging {
+    username = project.hasProperty('ossrhUsername') ? ossrhUsername : ""
+    password = project.hasProperty('ossrhPassword') ? ossrhPassword : ""
 }
 
 clean {
