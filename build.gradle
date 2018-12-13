@@ -166,6 +166,7 @@ task javadocJar(type: Jar) {
     classifier = 'javadoc'
 }
 
+// publishing to maven central
 publishing {
     publications {
         mavenJava(MavenPublication) {
