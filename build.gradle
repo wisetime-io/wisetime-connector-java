@@ -30,8 +30,10 @@ apply from: "$rootDir/gradle/conf/jacoco.gradle"
 group = 'io.wisetime'
 archivesBaseName = 'wisetime-connector'
 if (version == 'unspecified') {
+    println "Version is unspecified..."
     version = '1.1-SNAPSHOT'
 }
+println "Current version is set to ${version}"
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 mainClassName = 'io.wisetime.connector.example.FolderWatchConnectApp'
@@ -203,6 +205,7 @@ publishing {
             def releasesRepoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
             def snapshotsRepoUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
             url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            println "Publish to URL: ${url}"
             credentials {
                 username project.hasProperty('ossrhUsername') ? ossrhUsername : ""
                 password project.hasProperty('ossrhPassword') ? ossrhPassword : ""
