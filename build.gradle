@@ -29,7 +29,7 @@ apply from: "$rootDir/gradle/conf/jacoco.gradle"
 
 group = 'io.wisetime'
 archivesBaseName = 'wisetime-connector'
-version = '1.0-SNAPSHOT'
+version = '1.1-SNAPSHOT'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 mainClassName = 'io.wisetime.connector.example.FolderWatchConnectApp'
