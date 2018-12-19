@@ -86,6 +86,9 @@ public class ServerRunner {
   }
 
   public void startServer() throws Exception {
+    // Ensure that WiseTimeConnector is initialized
+    startServer(true);
+
     final TagRunner tagRunTask = new TagRunner(wiseTimeConnector::performTagUpdate);
     final HealthCheck healthRunner = new HealthCheck(
         getPort(),
@@ -99,8 +102,6 @@ public class ServerRunner {
     // start thread to monitor and upload new tags
     Timer tagTimer = new Timer("tag-check-timer");
     tagTimer.scheduleAtFixedRate(tagRunTask, TimeUnit.SECONDS.toMillis(15), TimeUnit.MINUTES.toMillis(5));
-
-    startServer(true);
   }
 
   // Visible for testing
