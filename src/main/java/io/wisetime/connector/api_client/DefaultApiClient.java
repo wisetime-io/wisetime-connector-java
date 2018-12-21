@@ -4,6 +4,7 @@
 
 package io.wisetime.connector.api_client;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import org.apache.http.message.BasicNameValuePair;
@@ -12,7 +13,9 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
@@ -83,7 +86,6 @@ public class DefaultApiClient implements ApiClient {
       // because we are IO bound. We don't want to affect other tasks on the default pool.
       error = forkJoinPool.submit(parallelUntilError).get();
     } catch (InterruptedException | ExecutionException e) {
-      // It's nicer for client code to only have to deal with one type of exception
       throw new IOException(e);
     }
     if (error.isPresent()) {
@@ -101,13 +103,46 @@ public class DefaultApiClient implements ApiClient {
   }
 
   @Override
-  public void tagAddKeywords(String tagName, AddKeywordsRequest addKeywordsRequest) throws IOException {
+  public void tagAddKeywords(String tagName, Set<String> additionalKeywords) throws IOException {
     restRequestExecutor.executeTypedBodyRequest(
         AddKeywordsResponse.class,
         EndpointPath.TagAddKeyword,
         Lists.newArrayList(new BasicNameValuePair("tagName", tagName)),
-        addKeywordsRequest
+        new AddKeywordsRequest().additionalKeywords(ImmutableList.copyOf(additionalKeywords))
     );
+  }
+
+  @Override
+  public void tagAddKeywordsBatch(Map<String, Set<String>> tagNamesAndAdditionalKeywords) throws IOException {
+
+    final Callable<Optional<Exception>> parallelUntilError = () -> tagNamesAndAdditionalKeywords
+        .entrySet()
+        .parallelStream()
+        // Wrap any exception with an Optional so we can short circuit the stream on error
+        .map(tagKeywords -> {
+          try {
+            tagAddKeywords(tagKeywords.getKey(), tagKeywords.getValue());
+            return Optional.<Exception>empty();
+          } catch (Exception e) {
+            return Optional.of(e);
+          }
+        })
+        .filter(Optional::isPresent)
+        .findFirst()
+        .orElse(empty());
+
+    Optional<Exception> error;
+
+    try {
+      // We use our own ForkJoinPool to have more control on the level of parallelism and
+      // because we are IO bound. We don't want to affect other tasks on the default pool.
+      error = forkJoinPool.submit(parallelUntilError).get();
+    } catch (InterruptedException | ExecutionException e) {
+      throw new IOException(e);
+    }
+    if (error.isPresent()) {
+      throw new IOException("Failed to complete tag keywords upsert batch. Stopped at error.", error.get());
+    }
   }
 
   @Override

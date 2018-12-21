@@ -4,7 +4,7 @@
 
 package io.wisetime.connector.api_client;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -18,7 +18,6 @@ import java.util.Optional;
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
-import io.wisetime.generated.connect.AddKeywordsRequest;
 import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.TeamInfoResult;
@@ -102,9 +101,7 @@ class DefaultApiClientIntegrationTest {
     if (defaultApiClient == null) {
       return;
     }
-    AddKeywordsRequest request = new AddKeywordsRequest();
-    request.setAdditionalKeywords(ImmutableList.of("keyword_from_API", "keyword with space"));
-    defaultApiClient.tagAddKeywords("CreatedViaApi", request);
+    defaultApiClient.tagAddKeywords("CreatedViaApi", ImmutableSet.of("keyword_from_API", "keyword with space"));
   }
 
   @Test
