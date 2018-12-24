@@ -6,8 +6,9 @@ package io.wisetime.connector.api_client;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
-import io.wisetime.generated.connect.AddKeywordsRequest;
 import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.TeamInfoResult;
@@ -45,13 +46,21 @@ public interface ApiClient {
   void tagDelete(String tagName) throws IOException;
 
   /**
-   * Add keywords to a tag. Existing keywords not be overwritten.
+   * Add keywords to a tag. Existing keywords will not be overwritten.
    *
    * @param tagName the tag to which to add the keywords
-   * @param addKeywordsRequest request contains list of keywords to be added
+   * @param additionalKeywords set of new keyword Strings to add to the tag
    * @throws IOException
    */
-  void tagAddKeywords(String tagName, AddKeywordsRequest addKeywordsRequest) throws IOException;
+  void tagAddKeywords(String tagName, Set<String> additionalKeywords) throws IOException;
+
+  /**
+   * Add keywords to a batch of tags. Existing keywords will not be overwritten.
+   *
+   * @param tagNamesAndAdditionalKeywords a map of tag names and set of keywords to add to each tag
+   * @throws IOException
+   */
+  void tagAddKeywordsBatch(Map<String, Set<String>> tagNamesAndAdditionalKeywords) throws IOException;
 
   /**
    * Delete keyword from a tag.
