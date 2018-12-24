@@ -173,11 +173,11 @@ public class ServerRunner {
     }
 
     private ConnectorStore createStore(boolean persistenceRequired) {
-      String persistentStoreDir = RuntimeConfig.getString(ConnectorConfigKey.PERSISTENT_DIR).orElse(null);
+      String persistentStoreDir = RuntimeConfig.getString(ConnectorConfigKey.DATA_DIR).orElse(null);
       if (persistenceRequired && persistentStoreDir == null) {
         throw new IllegalArgumentException(String.format(
             "requirePersistentStore enabled for server -> a persistent directory must be provided using setting '%s'",
-            ConnectorConfigKey.PERSISTENT_DIR.getConfigKey()));
+            ConnectorConfigKey.DATA_DIR.getConfigKey()));
       }
       return new FileStore(persistentStoreDir);
     }
