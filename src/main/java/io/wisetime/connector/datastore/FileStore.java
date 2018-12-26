@@ -22,6 +22,9 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 
 /**
+ * Sqlite implementation of {@link ConnectorStore}. If {@link io.wisetime.connector.config.ConnectorConfigKey#DATA_DIR} is
+ * set - data will survive though application restarts, otherwise this is not guaranteed.
+ *
  * @author thomas.haines@practiceinsight.io
  * @author shane.xie@practiceinsight.io
  */

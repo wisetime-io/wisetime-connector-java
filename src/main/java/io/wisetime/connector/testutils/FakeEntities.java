@@ -20,6 +20,8 @@ import io.wisetime.generated.connect.User;
 import static java.lang.String.format;
 
 /**
+ * Generator of entities with random field values. Typically used to mock real data.
+ *
  * @author shane.xie@practiceinsight.io
  */
 public class FakeEntities {
@@ -44,7 +46,7 @@ public class FakeEntities {
   }
 
   public Tag randomTag() {
-    return randomTag(format("/{}/", FAKER.lorem().word()));
+    return randomTag(format("/%s/", FAKER.lorem().word()));
   }
 
   public Tag randomTag(final String path) {

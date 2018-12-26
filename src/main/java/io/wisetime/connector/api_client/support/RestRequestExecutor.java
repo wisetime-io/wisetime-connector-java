@@ -25,6 +25,9 @@ import io.wisetime.connector.config.TolerantObjectMapper;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+/**
+ * WiseTime request executor.
+ */
 @SuppressWarnings("WeakerAccess")
 public class RestRequestExecutor {
 

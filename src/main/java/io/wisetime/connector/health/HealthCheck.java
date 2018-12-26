@@ -20,6 +20,13 @@ import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
 
 /**
+ * Task that will automatically stop application after 3 consecutive health check failures. Application considered to be
+ * unhealthy if:
+ * 1. For {@link ConnectorConfigKey#HEALTH_MAX_MINS_SINCE_SUCCESS} minutes there was no successful time posting processing;
+ * 2. {@link io.wisetime.connector.integrate.WiseTimeConnector#isConnectorHealthy()} returns false;
+ * or
+ * 3. Ping request to current connector instance was unsuccessful.
+ *
  * @author thomas.haines@practiceinsight.io
  */
 public class HealthCheck extends TimerTask {

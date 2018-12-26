@@ -9,6 +9,9 @@ import io.wisetime.generated.connect.TimeGroup;
 import spark.Request;
 
 /**
+ * Main extension point of application. User have to implement this interface and provide it during building
+ * {@link io.wisetime.connector.ServerRunner}.
+ *
  * @author thomas.haines@practiceinsight.io
  */
 public interface WiseTimeConnector {

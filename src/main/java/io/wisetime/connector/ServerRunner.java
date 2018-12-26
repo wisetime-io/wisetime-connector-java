@@ -47,6 +47,20 @@ import io.wisetime.connector.template.TemplateFormatter;
 import io.wisetime.connector.template.TemplateFormatterConfig;
 
 /**
+ * Main entry point of WiseTime connector. Instance of service is created by {@link ServerBuilder}:
+ *
+ *     ServerRunner runner = ServerRunner.createServerBuilder()
+ *         .withWiseTimeConnector(myConnector)
+ *         .withApiKey(apiKey)
+ *         .build();
+ *
+ * Then you start server by calling {@link #startServer()}. This is blocking call meaning current thread will wait till
+ * application dies.
+ *
+ * Main extension point is {@link WiseTimeConnector}.
+ * More information regarding Api key can be found here:
+ * <a href="https://wisetime.io/docs/connect/api/">WiseTime Connect API</a>.
+ *
  * @author thomas.haines@practiceinsight.io
  */
 @SuppressWarnings("WeakerAccess")
@@ -70,6 +84,9 @@ public class ServerRunner {
     this.connectorModule = connectorModule;
   }
 
+  /**
+   * Method to create new {@link ServerBuilder} instance. Automatically checks system properties for API_KEY.
+   */
   public static ServerBuilder createServerBuilder() {
     ServerBuilder builder = new ServerBuilder();
     RuntimeConfig.getString(ConnectorConfigKey.API_KEY).ifPresent(builder::withApiKey);
@@ -85,6 +102,10 @@ public class ServerRunner {
     return webAppContext;
   }
 
+  /**
+   * Start the server. This method call is blocking meaning current thread will wait till application stop.
+   * Also this will run scheduled tasks for tags update and health checks.
+   */
   public void startServer() throws Exception {
     // Ensure that WiseTimeConnector is initialized
     startServer(true);
@@ -113,10 +134,16 @@ public class ServerRunner {
     }
   }
 
-  public Server getServer() {
+  //Visible for testing
+  Server getServer() {
     return server;
   }
 
+  /**
+   * Builder for {@link ServerRunner}. You have to provide API key or custom {@link ApiClient} that will handle
+   * authentication. You can get own API key: <a href="https://wisetime.io/docs/connect/api/">WiseTime Connect API</a>.
+   * You also have to set connector by calling {@link #withWiseTimeConnector(WiseTimeConnector)}.
+   */
   @SuppressWarnings("UnusedReturnValue")
   public static class ServerBuilder {
 
@@ -128,6 +155,10 @@ public class ServerRunner {
     private String apiKey;
     private TemplateFormatterConfig.Builder templateConfigBuilder = TemplateFormatterConfig.builder();
 
+    /**
+     * Build {@link ServerRunner}. Make sure to set {@link WiseTimeConnector} and apiKey or apiClient before calling
+     * this method.
+     */
     public ServerRunner build() {
 
       if (!useSlf4JOnly) {
@@ -182,16 +213,32 @@ public class ServerRunner {
       return new FileStore(persistentStoreDir);
     }
 
+    /**
+     * Implementation of {@link WiseTimeConnector} is required to start server.
+     */
     public ServerBuilder withWiseTimeConnector(WiseTimeConnector wiseTimeConnector) {
       this.wiseTimeConnector = wiseTimeConnector;
       return this;
     }
 
+    /**
+     * More information about WiseTime API key: <a href="https://wisetime.io/docs/connect/api/">WiseTime Connect API</a>.
+     * You have to provide api key or custom implementation of {@link ApiClient} for successful authorisation.
+     * @see #withApiClient(ApiClient)
+     */
     public ServerBuilder withApiKey(String apiKey) {
       this.apiKey = apiKey;
       return this;
     }
 
+    /**
+     * Whether persistent storage required for this integration or not. This property protects from accidental data loss
+     * during restarts of connector.
+     * If true - you have to set system property DATA_DIR - this folder will be used to save internal connector data.
+     * If false - application will use DATA_DIR system property if set (otherwise temp directory) for internal connector
+     * data. Not recommended for production environment.
+     * Default is false.
+     */
     public ServerBuilder requirePersistentStore(boolean persistentStorageOnly) {
       this.persistentStorageOnly = persistentStorageOnly;
       return this;
@@ -201,6 +248,10 @@ public class ServerRunner {
       return this.apiKey;
     }
 
+    /**
+     * Custom implementation of {@link ApiClient}. If set - API key property is ignored.
+     * @see #withApiKey(String)
+     */
     public ServerBuilder withApiClient(ApiClient apiClient) {
       this.apiClient = apiClient;
       return this;
@@ -319,6 +370,9 @@ public class ServerRunner {
       return port;
     }
 
+    /**
+     * Set custom port server port. Default is 8080.
+     */
     public ServerBuilder withPort(int port) {
       this.port = port;
       return this;
