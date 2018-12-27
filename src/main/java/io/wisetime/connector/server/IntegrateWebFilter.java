@@ -10,6 +10,8 @@ import spark.servlet.SparkApplication;
 import spark.servlet.SparkFilter;
 
 /**
+ * Filter to bind {@link SparkApplication} to server.
+ *
  * @author thomas.haines@practiceinsight.io
  */
 public class IntegrateWebFilter extends SparkFilter {

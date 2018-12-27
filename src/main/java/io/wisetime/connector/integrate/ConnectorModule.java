@@ -9,6 +9,8 @@ import io.wisetime.connector.datastore.ConnectorStore;
 import io.wisetime.connector.template.TemplateFormatter;
 
 /**
+ * Module with main WiseTime connector dependencies.
+ *
  * @author thomas.haines@practiceinsight.io
  */
 @SuppressWarnings("WeakerAccess")

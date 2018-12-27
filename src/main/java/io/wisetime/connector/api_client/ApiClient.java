@@ -15,7 +15,11 @@ import io.wisetime.generated.connect.TeamInfoResult;
 import io.wisetime.generated.connect.UpsertTagRequest;
 
 /**
+ * Client that is responsible to perform authentication and send requests to the WiseTime Connect web API. Contains a list of
+ * API methods available for use.
+ *
  * @author thomas.haines@practiceinsight.io
+ * @see DefaultApiClient for sample implementation
  */
 public interface ApiClient {
 

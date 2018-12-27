@@ -47,6 +47,21 @@ import io.wisetime.connector.template.TemplateFormatter;
 import io.wisetime.connector.template.TemplateFormatterConfig;
 
 /**
+ * Main entry point of WiseTime connector. Instance of service is created by {@link ServerBuilder}:
+ *
+ *     ServerRunner runner = ServerRunner.createServerBuilder()
+ *         .withWiseTimeConnector(myConnector)
+ *         .withApiKey(apiKey)
+ *         .build();
+ *
+ * You can then start the server by calling {@link #startServer()}. This is a blocking call, meaning that the current thread
+ * will wait till the application dies.
+ *
+ * Main extension point is {@link WiseTimeConnector}.
+ *
+ * More information regarding the API key can be found here:
+ * <a href="https://wisetime.io/docs/connect/api/">WiseTime Connect API</a>.
+ *
  * @author thomas.haines@practiceinsight.io
  */
 @SuppressWarnings("WeakerAccess")
@@ -70,6 +85,9 @@ public class ServerRunner {
     this.connectorModule = connectorModule;
   }
 
+  /**
+   * Method to create new {@link ServerBuilder} instance. Automatically checks system properties for API_KEY.
+   */
   public static ServerBuilder createServerBuilder() {
     ServerBuilder builder = new ServerBuilder();
     RuntimeConfig.getString(ConnectorConfigKey.API_KEY).ifPresent(builder::withApiKey);
@@ -85,6 +103,11 @@ public class ServerRunner {
     return webAppContext;
   }
 
+  /**
+   * Start the server. This will run scheduled tasks for tag updates and health checks.
+   *
+   * This method call is blocking, meaning that the current thread will wait until the application stops.
+   */
   public void startServer() throws Exception {
     final TagRunner tagRunTask = new TagRunner(wiseTimeConnector::performTagUpdate);
     final HealthCheck healthRunner = new HealthCheck(
@@ -112,10 +135,18 @@ public class ServerRunner {
     }
   }
 
-  public Server getServer() {
+  //Visible for testing
+  Server getServer() {
     return server;
   }
 
+  /**
+   * Builder for {@link ServerRunner}. You have to provide an API key or custom {@link ApiClient} that will handle
+   * authentication. For more information on how to obtain an API key, refer to:
+   * <a href="https://wisetime.io/docs/connect/api/">WiseTime Connect API</a>.
+   *
+   * You have to set a connector by calling {@link #withWiseTimeConnector(WiseTimeConnector)}.
+   */
   @SuppressWarnings("UnusedReturnValue")
   public static class ServerBuilder {
 
@@ -127,6 +158,10 @@ public class ServerRunner {
     private String apiKey;
     private TemplateFormatterConfig.Builder templateConfigBuilder = TemplateFormatterConfig.builder();
 
+    /**
+     * Build {@link ServerRunner}. Make sure to set {@link WiseTimeConnector} and apiKey or apiClient before calling
+     * this method.
+     */
     public ServerRunner build() {
 
       if (!useSlf4JOnly) {
@@ -181,16 +216,34 @@ public class ServerRunner {
       return new FileStore(persistentStoreDir);
     }
 
+    /**
+     * Implementation of {@link WiseTimeConnector} is required to start server.
+     */
     public ServerBuilder withWiseTimeConnector(WiseTimeConnector wiseTimeConnector) {
       this.wiseTimeConnector = wiseTimeConnector;
       return this;
     }
 
+    /**
+     * More information about WiseTime API key: <a href="https://wisetime.io/docs/connect/api/">WiseTime Connect API</a>.
+     * You have to provide api key or custom implementation of {@link ApiClient} for successful authorization.
+     * @see #withApiClient(ApiClient)
+     */
     public ServerBuilder withApiKey(String apiKey) {
       this.apiKey = apiKey;
       return this;
     }
 
+    /**
+     * Whether persistent storage is required for this connector. If true, this property forces the operator to set the
+     * DATA_DIR configuration parameter (via system property or environment variable). The DATA_DIR directory will be used
+     * to persist data across connector restarts.
+     *
+     * If false, the connector will not force the operator to specify a DATA_DIR. It will still use the DATA_DIR path if
+     * one is set. If none is provided, a subdirectory in the /tmp/ path will be used.
+     *
+     * Default is false.
+     */
     public ServerBuilder requirePersistentStore(boolean persistentStorageOnly) {
       this.persistentStorageOnly = persistentStorageOnly;
       return this;
@@ -200,6 +253,10 @@ public class ServerRunner {
       return this.apiKey;
     }
 
+    /**
+     * Custom implementation of {@link ApiClient}. If set the API key property is ignored.
+     * @see #withApiKey(String)
+     */
     public ServerBuilder withApiClient(ApiClient apiClient) {
       this.apiClient = apiClient;
       return this;
@@ -318,6 +375,9 @@ public class ServerRunner {
       return port;
     }
 
+    /**
+     * Set custom port server port. Default is 8080.
+     */
     public ServerBuilder withPort(int port) {
       this.port = port;
       return this;

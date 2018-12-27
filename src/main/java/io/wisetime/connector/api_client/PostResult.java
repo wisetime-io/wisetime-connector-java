@@ -9,13 +9,25 @@ import com.google.common.base.Preconditions;
 import java.util.Optional;
 
 /**
+ * Indicator of posted time status.
+ *
  * @author thomas.haines@practiceinsight.io
  * @author shane.xie@practiceinsight.io
  */
 public enum PostResult {
 
+  /**
+   * Indicates that posted time was processed correctly - no need for retry.
+   */
   SUCCESS(200),
+  /**
+   * Indicates temporary error during processing posted time. WiseTime Connect will call the post time webhook again at a
+   * later point to retry posting this time.
+   */
   TRANSIENT_FAILURE(420),
+  /**
+   * Posted time processing failed. Indicates that automatic retry is impossible.
+   */
   PERMANENT_FAILURE(428);
 
   private final int statusCode;

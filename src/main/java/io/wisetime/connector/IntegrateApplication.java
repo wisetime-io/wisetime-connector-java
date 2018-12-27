@@ -21,7 +21,10 @@ import static spark.Spark.post;
 import static spark.Spark.staticFileLocation;
 
 /**
+ * Spark web application that implements WiseTime posted time web hook.
+ *
  * @author thomas.haines@practiceinsight.io
+ * @see <a href="http://sparkjava.com">Spark</a> for more infromation about Spark framework.
  */
 public class IntegrateApplication implements SparkApplication {
 

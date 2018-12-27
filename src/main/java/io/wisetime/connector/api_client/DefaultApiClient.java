@@ -34,6 +34,9 @@ import io.wisetime.generated.connect.UpsertTagResponse;
 import static java.util.Optional.empty;
 
 /**
+ * Multi-thread implementation of {@link ApiClient}.
+ * {@link RestRequestExecutor} is responsible for handling authentication.
+ *
  * @author thomas.haines@practiceinsight.io
  * @author shane.xie@practiceinsight.io
  */
