@@ -25,7 +25,6 @@ import io.wisetime.generated.connect.UpsertTagResponse;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.atLeast;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -70,14 +69,8 @@ public class DefaultApiClientTest {
         apiClient.tagUpsertBatch(fakeUpsertTagRequests(1000))
     );
 
-    // Requests are made in parallel before we notice an error.
-    verify(requestExecutor, atLeast(9)).executeTypedBodyRequest(
-        any(),
-        any(EndpointPath.TagUpsert.getClass()),
-        any(UpsertTagRequest.class)
-    );
-
     // We should notice that a request has failed way before we reach the end of the list
+    // Allowance is made for requests sent in parallel before we notice an error
     verify(requestExecutor, atMost(20)).executeTypedBodyRequest(
         any(),
         any(EndpointPath.TagUpsert.getClass()),
@@ -120,15 +113,8 @@ public class DefaultApiClientTest {
         apiClient.tagAddKeywordsBatch(fakeTagNamesAndAdditionalKeywords(1000))
     );
 
-    // Requests are made in parallel before we notice an error.
-    verify(requestExecutor, atLeast(9)).executeTypedBodyRequest(
-        any(),
-        any(EndpointPath.TagAddKeyword.getClass()),
-        any(List.class),
-        any(AddKeywordsRequest.class)
-    );
-
     // We should notice that a request has failed way before we reach the end of the list
+    // Allowance is made for requests sent in parallel before we notice an error
     verify(requestExecutor, atMost(20)).executeTypedBodyRequest(
         any(),
         any(EndpointPath.TagAddKeyword.getClass()),
