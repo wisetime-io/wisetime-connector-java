@@ -9,7 +9,7 @@ import com.google.common.base.Preconditions;
 import java.util.Optional;
 
 /**
- * Indicator of posting time status.
+ * Indicator of posted time status.
  *
  * @author thomas.haines@practiceinsight.io
  * @author shane.xie@practiceinsight.io
@@ -21,7 +21,8 @@ public enum PostResult {
    */
   SUCCESS(200),
   /**
-   * Indicates temporary error during processing posted time. Retry will occur later.
+   * Indicates temporary error during processing posted time. WiseTime Connect will call the post time webhook again at a
+   * later point to retry posting this time.
    */
   TRANSIENT_FAILURE(420),
   /**

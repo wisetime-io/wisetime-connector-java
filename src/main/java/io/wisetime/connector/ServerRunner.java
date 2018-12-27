@@ -54,11 +54,12 @@ import io.wisetime.connector.template.TemplateFormatterConfig;
  *         .withApiKey(apiKey)
  *         .build();
  *
- * Then you start server by calling {@link #startServer()}. This is blocking call meaning current thread will wait till
- * application dies.
+ * You can then start the server by calling {@link #startServer()}. This is a blocking call, meaning that the current thread
+ * will wait till the application dies.
  *
  * Main extension point is {@link WiseTimeConnector}.
- * More information regarding Api key can be found here:
+ *
+ * More information regarding the API key can be found here:
  * <a href="https://wisetime.io/docs/connect/api/">WiseTime Connect API</a>.
  *
  * @author thomas.haines@practiceinsight.io
@@ -103,8 +104,9 @@ public class ServerRunner {
   }
 
   /**
-   * Start the server. This method call is blocking meaning current thread will wait till application stop.
-   * Also this will run scheduled tasks for tags update and health checks.
+   * Start the server. This will run scheduled tasks for tag updates and health checks.
+   *
+   * This method call is blocking, meaning that the current thread will wait until the application stops.
    */
   public void startServer() throws Exception {
     // Ensure that WiseTimeConnector is initialized
@@ -140,9 +142,11 @@ public class ServerRunner {
   }
 
   /**
-   * Builder for {@link ServerRunner}. You have to provide API key or custom {@link ApiClient} that will handle
-   * authentication. You can get own API key: <a href="https://wisetime.io/docs/connect/api/">WiseTime Connect API</a>.
-   * You also have to set connector by calling {@link #withWiseTimeConnector(WiseTimeConnector)}.
+   * Builder for {@link ServerRunner}. You have to provide an API key or custom {@link ApiClient} that will handle
+   * authentication. For more information on how to obtain an API key, refer to:
+   * <a href="https://wisetime.io/docs/connect/api/">WiseTime Connect API</a>.
+   *
+   * You have to set a connector by calling {@link #withWiseTimeConnector(WiseTimeConnector)}.
    */
   @SuppressWarnings("UnusedReturnValue")
   public static class ServerBuilder {
@@ -223,7 +227,7 @@ public class ServerRunner {
 
     /**
      * More information about WiseTime API key: <a href="https://wisetime.io/docs/connect/api/">WiseTime Connect API</a>.
-     * You have to provide api key or custom implementation of {@link ApiClient} for successful authorisation.
+     * You have to provide api key or custom implementation of {@link ApiClient} for successful authorization.
      * @see #withApiClient(ApiClient)
      */
     public ServerBuilder withApiKey(String apiKey) {
@@ -232,11 +236,13 @@ public class ServerRunner {
     }
 
     /**
-     * Whether persistent storage required for this integration or not. This property protects from accidental data loss
-     * during restarts of connector.
-     * If true - you have to set system property DATA_DIR - this folder will be used to save internal connector data.
-     * If false - application will use DATA_DIR system property if set (otherwise temp directory) for internal connector
-     * data. Not recommended for production environment.
+     * Whether persistent storage is required for this connector. If true, this property forces the operator to set the
+     * DATA_DIR configuration parameter (via system property or environment variable). The DATA_DIR directory will be used
+     * to persist data across connector restarts.
+     *
+     * If false, the connector will not force the operator to specify a DATA_DIR. It will still use the DATA_DIR path if
+     * one is set. If none is provided, a subdirectory in the /tmp/ path will be used.
+     *
      * Default is false.
      */
     public ServerBuilder requirePersistentStore(boolean persistentStorageOnly) {
@@ -249,7 +255,7 @@ public class ServerRunner {
     }
 
     /**
-     * Custom implementation of {@link ApiClient}. If set - API key property is ignored.
+     * Custom implementation of {@link ApiClient}. If set the API key property is ignored.
      * @see #withApiKey(String)
      */
     public ServerBuilder withApiClient(ApiClient apiClient) {
