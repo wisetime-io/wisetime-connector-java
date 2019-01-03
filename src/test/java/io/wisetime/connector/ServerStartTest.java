@@ -66,7 +66,7 @@ public class ServerStartTest {
         .build();
     long startTime = System.currentTimeMillis();
 
-    runner.startServer(false);
+    startServerRunner(runner);
     Server server = runner.getServer();
     SparkTestUtil testUtil = new SparkTestUtil(getPort(server));
 
@@ -79,6 +79,14 @@ public class ServerStartTest {
 
     log.info((System.currentTimeMillis() - startTime) + "ms server start http://localhost:{}", getPort(server));
     return server;
+  }
+
+  /**
+   * Start server runner for tests. Server start is not blocking, not timer tasks scheduled.
+   */
+  private static void startServerRunner(ServerRunner serverRunner) throws Exception {
+    serverRunner.initWiseTimeConnector();
+    serverRunner.getServer().start();
   }
 
   private static void getHome(SparkTestUtil testUtil) throws Exception {

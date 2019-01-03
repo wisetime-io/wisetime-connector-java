@@ -109,6 +109,7 @@ public class ServerRunner {
    * This method call is blocking, meaning that the current thread will wait until the application stops.
    */
   public void startServer() throws Exception {
+    initWiseTimeConnector();
     final TagRunner tagRunTask = new TagRunner(wiseTimeConnector::performTagUpdate);
     final HealthCheck healthRunner = new HealthCheck(
         getPort(),
@@ -123,16 +124,13 @@ public class ServerRunner {
     Timer tagTimer = new Timer("tag-check-timer");
     tagTimer.scheduleAtFixedRate(tagRunTask, TimeUnit.SECONDS.toMillis(15), TimeUnit.MINUTES.toMillis(5));
 
-    startServer(true);
+    server.start();
+    server.join();
   }
 
-  // Visible for testing
-  void startServer(boolean blocking) throws Exception {
+  //visible for testing
+  void initWiseTimeConnector() {
     wiseTimeConnector.init(connectorModule);
-    server.start();
-    if (blocking) {
-      server.join();
-    }
   }
 
   //Visible for testing
