@@ -8,11 +8,13 @@ import com.google.common.base.Preconditions;
 
 /**
  * Immutable configuration for {@link TemplateFormatter}. Already populated with default configuration.
+ * <p>
  * If you need to change one value use:
- *
- * ActivityTextTemplateConfig.builder()
+ * <pre>
+ * TemplateFormatterConfig.builder()
  *     .withWindownsClr(true)
  *     .build();
+ * </pre>
  *
  * @author vadym
  */
@@ -49,14 +51,14 @@ public class TemplateFormatterConfig {
   }
 
   /**
-   * return whether or not use Windows-style CLR (\r\n) instead of \n.
+   * @return whether or not use Windows-style CLR (\r\n) instead of \n.
    */
   public boolean isUseWinclr() {
     return useWinclr;
   }
 
   /**
-   * 0 or negative value - no limit. Otherwise activity text return by {@link TemplateFormatter} guaranteed
+   * @return 0 or negative value - no limit. Otherwise activity text return by {@link TemplateFormatter} guaranteed
    * to not exceed provided value (if longer - activity text will end with ...).
    */
   public int getMaxLength() {
@@ -73,7 +75,7 @@ public class TemplateFormatterConfig {
 
   /**
    * Builder for {@link TemplateFormatterConfig}. Recommended to use:
-   * ActivityTextTemplateConfig.builder() to obtain instance.
+   * {@link TemplateFormatterConfig#builder()} to obtain instance.
    */
   public static class Builder {
 

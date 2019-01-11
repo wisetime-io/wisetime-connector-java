@@ -6,7 +6,9 @@ package io.wisetime.connector.template.loader;
 
 /**
  * Factory for {@link TemplateLoaderHelper} that will choose appropriate implementation based on schema.
+ * <p>
  * To specify path to template located on classpath use classpath:template-file.ftl.
+ * <p>
  * To specify path to template saved in file system use absolute path, e.g. /var/jenkins/template.ftl.
  *
  * @author vadym

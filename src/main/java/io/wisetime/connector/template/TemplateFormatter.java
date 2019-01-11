@@ -21,11 +21,13 @@ import io.wisetime.connector.template.loader.TemplateLoaderHelper;
 import io.wisetime.connector.template.loader.TemplateLoaderHelperFactory;
 import io.wisetime.generated.connect.TimeGroup;
 
-
 /**
  * Template to format user activity text based on Freemarker engine.
+ * <p>
  * Supports Windows CLR (see {@link TemplateFormatterConfig#isUseWinclr()}).
+ * <p>
  * Supports max activity text length (see {@link TemplateFormatterConfig#getMaxLength()}).
+ * <p>
  * Returned activity text is trimmed.
  *
  * @author vadym
@@ -61,11 +63,13 @@ public class TemplateFormatter {
 
   /**
    * Format a TimeGroup into text that is suitable for output to integrated systems.
+   * <p>
    * For example, we may want to generate text for inclusion into invoices that we'll send to clients.
+   * <p>
+   * This method throws a {@link TemplateProcessingException} if an error occurs when processing the template.
    *
    * @param timeGroup the TimeGroup to format
    * @return formatted text for the TimeGroup
-   * @throws TemplateProcessingException if there was an error processing the template
    */
   public String format(TimeGroup timeGroup) {
     try {

@@ -10,7 +10,7 @@ import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeRow;
 
 /**
- * Utility to assist with calculating durations for a TimeGroup.
+ * Utility to assist with calculating durations for a {@link TimeGroup}.
  *
  * @author shane.xie@practiceinsight.io
  */
@@ -21,14 +21,19 @@ public class DurationCalculator {
   private boolean useExperienceRating = true;
 
   /**
-   * Create a DurationCalculator for a TimeGroup.
+   * Create a DurationCalculator for a {@link TimeGroup}.
+   * <p>
+   * Usage example:
+   * <pre>
+   * DurationCalculator.of(timeGroup)
+   *     .useDurationFrom(DurationSource.TIME_GROUP)
+   *     .useExperienceRating();
+   * </pre>
    *
    * @param timeGroup the TimeGroup whose durations we want to calculate
    * @return a DurationCalculator with the default configuration equivalent to:
    *
-   *   DurationCalculator.of(timeGroup)
-   *       .useDurationFrom(DurationSource.TIME_GROUP)
-   *       .useExperienceRating()
+   *
    */
   public static DurationCalculator of(final TimeGroup timeGroup) {
     return new DurationCalculator(timeGroup);
@@ -39,10 +44,10 @@ public class DurationCalculator {
   }
 
   /**
-   * Tell the calculator whether to read the duration from the TimeGroup or its TimeRows.
+   * Tell the calculator whether to read the duration from the {@link TimeGroup} or its {@link TimeRow}s.
    *
-   * @param durationSource which DurationSource option to use
-   * @return the DurationCalculator with the duration from option applied
+   * @param durationSource which {@link DurationSource} option to use
+   * @return the {@link DurationCalculator} with the duration from option applied
    */
   public DurationCalculator useDurationFrom(final DurationSource durationSource) {
     this.durationSource = durationSource;
@@ -52,7 +57,7 @@ public class DurationCalculator {
   /**
    * Tell the calculator to use the user's experience rating in its calculations.
    *
-   * @return the DurationCalculator configured to use the user's experience rating
+   * @return the {@link DurationCalculator} configured to use the user's experience rating
    */
   public DurationCalculator useExperienceRating() {
     useExperienceRating = true;
@@ -62,7 +67,7 @@ public class DurationCalculator {
   /**
    * Tell the calculator to disregard the user's experience rating in its calculations.
    *
-   * @return the DurationCalculator configured to ignore the user's experience rating
+   * @return the {@link DurationCalculator} configured to ignore the user's experience rating
    */
   public DurationCalculator disregardExperienceRating() {
     useExperienceRating = false;
@@ -70,7 +75,7 @@ public class DurationCalculator {
   }
 
   /**
-   * Calculate durations for the TimeGroup.
+   * Calculate durations for the {@link TimeGroup}
    *
    * @return Result containing the calculated per-tag and total durations
    */
@@ -85,7 +90,7 @@ public class DurationCalculator {
   }
 
   /**
-   * The result of running DurationCalculator#calculate
+   * The result of running {@link #calculate}
    */
   public static class Result {
 
@@ -98,7 +103,7 @@ public class DurationCalculator {
     }
 
     /**
-     * Get the calculated per-tag duration for the TimeGroup
+     * Get the calculated per-tag duration for the {@link TimeGroup}
      *
      * @return per-tag duration in seconds
      */
@@ -107,7 +112,7 @@ public class DurationCalculator {
     }
 
     /**
-     * Get the calculated total duration for the TimeGroup
+     * Get the calculated total duration for the {@link TimeGroup}
      *
      * @return total duration in seconds
      */
@@ -116,6 +121,14 @@ public class DurationCalculator {
     }
   }
 
+  /**
+   * Determine base total duration, can be either of:
+   * <p>
+   * <ul>
+   *   <li>TIME_GROUP: Total duration of the {@link TimeGroup}, in seconds</li>
+   *   <li>SUM_TIME_ROWS: Sum of the duration for all {@link TimeRow}s in the {@link TimeGroup}, in seconds</li>
+   * </ul>
+   */
   private final Function<DurationSource, Double> sourceTotalDuration = durationSource -> {
     switch (durationSource) {
       case TIME_GROUP:
@@ -127,6 +140,10 @@ public class DurationCalculator {
     }
   };
 
+  /**
+   * If {@link #useExperienceRating} is set to {@code}true{@code}, a percentage based on the user's experience rating
+   * is applied to the duration; otherwise return the full duration.
+   */
   private final Function<Double, Double> applyExperienceRating = duration -> {
     if (useExperienceRating) {
       return duration * timeGroup.getUser().getExperienceWeightingPercent() / 100.0;
@@ -134,6 +151,14 @@ public class DurationCalculator {
     return duration;
   };
 
+  /**
+   * Distributes duration between tags for a time group, can be either of:
+   * <p>
+   * <ul>
+   *   <li>DIVIDE_BETWEEN_TAGS: Distribute duration between the total number of tags in the {@link TimeGroup}</li>
+   *   <li>WHOLE_DURATION_TO_EACH_TAG: Assign full duration to each tag</li>
+   * </ul>
+   */
   private final Function<Double, Double> applyDurationSplitStrategy = duration -> {
     switch (timeGroup.getDurationSplitStrategy()) {
       case DIVIDE_BETWEEN_TAGS:

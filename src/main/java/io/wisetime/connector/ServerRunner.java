@@ -48,17 +48,18 @@ import io.wisetime.connector.template.TemplateFormatterConfig;
 
 /**
  * Main entry point of WiseTime connector. Instance of service is created by {@link ServerBuilder}:
- *
+ *     <pre>
  *     ServerRunner runner = ServerRunner.createServerBuilder()
  *         .withWiseTimeConnector(myConnector)
  *         .withApiKey(apiKey)
  *         .build();
+ *     </pre>
  *
  * You can then start the server by calling {@link #startServer()}. This is a blocking call, meaning that the current thread
  * will wait till the application dies.
- *
+ * <p>
  * Main extension point is {@link WiseTimeConnector}.
- *
+ * <p>
  * More information regarding the API key can be found here:
  * <a href="https://wisetime.io/docs/connect/api/">WiseTime Connect API</a>.
  *
@@ -74,10 +75,10 @@ public class ServerRunner {
   private final ConnectorModule connectorModule;
 
   private ServerRunner(Server server,
-               int port,
-               WebAppContext webAppContext,
-               WiseTimeConnector wiseTimeConnector,
-               ConnectorModule connectorModule) {
+                       int port,
+                       WebAppContext webAppContext,
+                       WiseTimeConnector wiseTimeConnector,
+                       ConnectorModule connectorModule) {
     this.server = server;
     this.port = port;
     this.webAppContext = webAppContext;
@@ -105,7 +106,7 @@ public class ServerRunner {
 
   /**
    * Start the server. This will run scheduled tasks for tag updates and health checks.
-   *
+   * <p>
    * This method call is blocking, meaning that the current thread will wait until the application stops.
    */
   public void startServer() throws Exception {
@@ -142,7 +143,7 @@ public class ServerRunner {
    * Builder for {@link ServerRunner}. You have to provide an API key or custom {@link ApiClient} that will handle
    * authentication. For more information on how to obtain an API key, refer to:
    * <a href="https://wisetime.io/docs/connect/api/">WiseTime Connect API</a>.
-   *
+   * <p>
    * You have to set a connector by calling {@link #withWiseTimeConnector(WiseTimeConnector)}.
    */
   @SuppressWarnings("UnusedReturnValue")
@@ -216,6 +217,8 @@ public class ServerRunner {
 
     /**
      * Implementation of {@link WiseTimeConnector} is required to start server.
+     *
+     * @param wiseTimeConnector see {@link WiseTimeConnector}
      */
     public ServerBuilder withWiseTimeConnector(WiseTimeConnector wiseTimeConnector) {
       this.wiseTimeConnector = wiseTimeConnector;
@@ -224,8 +227,10 @@ public class ServerRunner {
 
     /**
      * More information about WiseTime API key: <a href="https://wisetime.io/docs/connect/api/">WiseTime Connect API</a>.
+     * <p>
      * You have to provide api key or custom implementation of {@link ApiClient} for successful authorization.
-     * @see #withApiClient(ApiClient)
+     *
+     * @param apiKey see {@link #withApiClient(ApiClient)}
      */
     public ServerBuilder withApiKey(String apiKey) {
       this.apiKey = apiKey;
@@ -233,14 +238,16 @@ public class ServerRunner {
     }
 
     /**
-     * Whether persistent storage is required for this connector. If true, this property forces the operator to set the
-     * DATA_DIR configuration parameter (via system property or environment variable). The DATA_DIR directory will be used
-     * to persist data across connector restarts.
-     *
-     * If false, the connector will not force the operator to specify a DATA_DIR. It will still use the DATA_DIR path if
+     * If persistent storage is required, this property forces the operator to set the DATA_DIR configuration parameter
+     * (via system property or environment variable). The DATA_DIR directory will be used to persist data across connector
+     * restarts.
+     * <p>
+     * Otherwise the connector will not force the operator to specify a DATA_DIR. It will still use the DATA_DIR path if
      * one is set. If none is provided, a subdirectory in the /tmp/ path will be used.
-     *
+     * <p>
      * Default is false.
+     *
+     * @param persistentStorageOnly whether persistent storage is required for this connector.
      */
     public ServerBuilder requirePersistentStore(boolean persistentStorageOnly) {
       this.persistentStorageOnly = persistentStorageOnly;
@@ -253,7 +260,8 @@ public class ServerRunner {
 
     /**
      * Custom implementation of {@link ApiClient}. If set the API key property is ignored.
-     * @see #withApiKey(String)
+     *
+     * @param apiClient see {@link #withApiKey(String)}
      */
     public ServerBuilder withApiClient(ApiClient apiClient) {
       this.apiClient = apiClient;
@@ -261,7 +269,7 @@ public class ServerRunner {
     }
 
     /**
-     * @see TemplateFormatterConfig#DEFAULT_USE_WINCLR
+     * @param useWinClr see {@link TemplateFormatterConfig#DEFAULT_USE_WINCLR}
      */
     public ServerBuilder withTemplateUseWinClr(boolean useWinClr) {
       templateConfigBuilder.withWindowsClr(useWinClr);
@@ -269,7 +277,7 @@ public class ServerRunner {
     }
 
     /**
-     * @see TemplateFormatterConfig#DEFAULT_TEMPLATE_PATH
+     * @param templatePath see {@link TemplateFormatterConfig#DEFAULT_TEMPLATE_PATH}
      */
     public ServerBuilder withTemplatePath(String templatePath) {
       templateConfigBuilder.withTemplatePath(templatePath);
@@ -277,7 +285,7 @@ public class ServerRunner {
     }
 
     /**
-     * @see TemplateFormatterConfig#DEFAULT_MAX_LENGTH
+     * @param maxLength see {@link TemplateFormatterConfig#DEFAULT_MAX_LENGTH}
      */
     public ServerBuilder withTemplateMaxLength(int maxLength) {
       templateConfigBuilder.withMaxLength(maxLength);
@@ -374,7 +382,7 @@ public class ServerRunner {
     }
 
     /**
-     * Set custom port server port. Default is 8080.
+     * Set custom server port. Default is 8080.
      */
     public ServerBuilder withPort(int port) {
       this.port = port;

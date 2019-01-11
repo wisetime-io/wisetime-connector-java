@@ -11,7 +11,7 @@ import io.wisetime.generated.connect.TimeGroup;
  *
  * @author shane.xie@practiceinsight.io
  *
- * @deprecated use {@link DurationCalculator instead}
+ * @deprecated use {@link DurationCalculator} instead
  */
 @Deprecated
 public class TagDurationCalculator {

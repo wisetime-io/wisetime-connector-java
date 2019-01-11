@@ -1,4 +1,5 @@
 # WiseTime Java Connector
+[![Javadocs](https://www.javadoc.io/badge/io.wisetime/wisetime-connector.svg)](https://www.javadoc.io/doc/io.wisetime/wisetime-connector)
 
 WiseTime Java Connector is an open source library that enables you to write a WiseTime connector with a few lines of Java code. It calls the [WiseTime Connect API](https://wisetime.io/docs/connect/api/) to communicate with WiseTime.
 
@@ -97,3 +98,7 @@ The connector will launch a web server at port 8080. The server implements the [
 ## Sample Project
 
 Take a look at our open source [Jira Connector](https://github.com/wisetime-io/wisetime-jira-connector) for an example of a fully implemented, production-ready connector project. The connector is implemented in just [3 classes](https://github.com/wisetime-io/wisetime-jira-connector/tree/master/src/main/java/io/wisetime/connector/jira) and comes with great test coverage.
+
+## Javadoc
+
+The latest javadoc for the WiseTime Connector Library can be accessed [here](https://www.javadoc.io/doc/io.wisetime/wisetime-connector).

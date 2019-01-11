@@ -17,9 +17,10 @@ import io.wisetime.generated.connect.UpsertTagRequest;
 /**
  * Client that is responsible to perform authentication and send requests to the WiseTime Connect web API. Contains a list of
  * API methods available for use.
+ * <p>
+ * For sample implementation see {@link DefaultApiClient}
  *
  * @author thomas.haines@practiceinsight.io
- * @see DefaultApiClient for sample implementation
  */
 public interface ApiClient {
 
@@ -33,7 +34,8 @@ public interface ApiClient {
 
   /**
    * Upsert a batch of tags. Use this method if you have a large number of tags to upsert.
-   * Blocks until completion or throws an IOException on the first error.
+   * <p>
+   * Blocks until completion or throws an {@link IOException} on the first error.
    * It is safe to retry on error since tag upsert is idempotent.
    *
    * @param upsertTagRequests request list of tags to be upserted
@@ -71,7 +73,6 @@ public interface ApiClient {
    *
    * @param tagName the tag whose keyword we want to delete
    * @param keyword the keyword to be deleted
-   * @return result of the keyword delete operation
    * @throws IOException
    */
   void tagDeleteKeyword(String tagName, String keyword) throws IOException;

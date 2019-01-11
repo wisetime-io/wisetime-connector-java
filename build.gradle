@@ -220,13 +220,11 @@ signing {
 
 javadoc {
     exclude 'io/wisetime/generated'
-    exclude 'io/wisetime/connector/api_client'
-    exclude 'io/wisetime/connector/config'
-    exclude 'io/wisetime/connector/datastore'
+    exclude 'io/wisetime/connector/api_client/support'
     exclude 'io/wisetime/connector/example'
-    exclude 'io/wisetime/connector/health'
-    exclude 'io/wisetime/connector/server'
-    exclude 'io/wisetime/connector/template'
+    exclude 'io/wisetime/connector/template/format'
+    exclude 'io/wisetime/connector/template/loader'
+    exclude 'io/wisetime/connector/testutils'
     if (JavaVersion.current().isJava9Compatible()) {
         options.addBooleanOption('html5', true)
     }
