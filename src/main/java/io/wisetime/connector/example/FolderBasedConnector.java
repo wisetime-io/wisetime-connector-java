@@ -41,16 +41,17 @@ class FolderBasedConnector implements WiseTimeConnector {
   private static final String TAG_SUFFIX = ".tag";
   private final ObjectMapper om = TolerantObjectMapper.create();
   private Random random = new Random();
+  private final TemplateFormatter templateFormatter;
   private final File uploadedDir;
   private final File postDir;
   private final File watchDir;
   private final String callerKey;
   private ApiClient apiClient;
-  private TemplateFormatter templateFormatter;
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
-  FolderBasedConnector(File watchDir, String callerKey) {
+  FolderBasedConnector(File watchDir, String callerKey, TemplateFormatter templateConfig) {
     this.watchDir = watchDir;
+    this.templateFormatter = templateConfig;
     if (!watchDir.exists() || !watchDir.isDirectory()) {
       throw new IllegalStateException(String.format("invalid directory '%s'", watchDir.getAbsolutePath()));
     }
@@ -73,7 +74,6 @@ class FolderBasedConnector implements WiseTimeConnector {
   @Override
   public void init(ConnectorModule connectorModule) {
     this.apiClient = connectorModule.getApiClient();
-    templateFormatter = connectorModule.getTemplateFormatter();
   }
 
   /**

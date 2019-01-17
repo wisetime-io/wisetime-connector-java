@@ -51,13 +51,10 @@ class FolderBasedConnectorTest {
   void standUp() throws Exception {
     callerKey = faker.numerify("callerKey######");
     watchDir = Files.createTempDirectory("watch");
-    folderConnect = new FolderBasedConnector(watchDir.toFile(), callerKey);
-    apiClientMock = mock(ApiClient.class);
     templateFormatterMock = mock(TemplateFormatter.class);
-    ConnectorModule connectorModuleMock = new ConnectorModule(
-        apiClientMock,
-        templateFormatterMock,
-        mock(ConnectorStore.class));
+    folderConnect = new FolderBasedConnector(watchDir.toFile(), callerKey, templateFormatterMock);
+    apiClientMock = mock(ApiClient.class);
+    ConnectorModule connectorModuleMock = new ConnectorModule(apiClientMock, mock(ConnectorStore.class));
     folderConnect.init(connectorModuleMock);
 
     Random randomMock = mock(Random.class);

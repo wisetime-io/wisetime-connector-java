@@ -36,19 +36,17 @@ import io.wisetime.connector.api_client.DefaultApiClient;
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
-import io.wisetime.connector.datastore.FileStore;
 import io.wisetime.connector.datastore.ConnectorStore;
+import io.wisetime.connector.datastore.FileStore;
 import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.integrate.ConnectorModule;
 import io.wisetime.connector.integrate.WiseTimeConnector;
 import io.wisetime.connector.server.IntegrateWebFilter;
 import io.wisetime.connector.server.TagRunner;
-import io.wisetime.connector.template.TemplateFormatter;
-import io.wisetime.connector.template.TemplateFormatterConfig;
 
 /**
  * Main entry point of WiseTime connector. Instance of service is created by {@link ServerBuilder}:
- *     <pre>
+ * <pre>
  *     ServerRunner runner = ServerRunner.createServerBuilder()
  *         .withWiseTimeConnector(myConnector)
  *         .withApiKey(apiKey)
@@ -155,11 +153,10 @@ public class ServerRunner {
     private WiseTimeConnector wiseTimeConnector;
     private ApiClient apiClient;
     private String apiKey;
-    private TemplateFormatterConfig.Builder templateConfigBuilder = TemplateFormatterConfig.builder();
 
     /**
-     * Build {@link ServerRunner}. Make sure to set {@link WiseTimeConnector} and apiKey or apiClient before calling
-     * this method.
+     * Build {@link ServerRunner}. Make sure to set {@link WiseTimeConnector} and apiKey or apiClient before calling this
+     * method.
      */
     public ServerRunner build() {
 
@@ -198,7 +195,6 @@ public class ServerRunner {
 
       ConnectorModule connectorModule = new ConnectorModule(
           apiClient,
-          new TemplateFormatter(templateConfigBuilder.build()),
           createStore(persistentStorageOnly)
       );
 
@@ -238,12 +234,12 @@ public class ServerRunner {
     }
 
     /**
-     * If persistent storage is required, this property forces the operator to set the DATA_DIR configuration parameter
-     * (via system property or environment variable). The DATA_DIR directory will be used to persist data across connector
+     * If persistent storage is required, this property forces the operator to set the DATA_DIR configuration parameter (via
+     * system property or environment variable). The DATA_DIR directory will be used to persist data across connector
      * restarts.
      * <p>
-     * Otherwise the connector will not force the operator to specify a DATA_DIR. It will still use the DATA_DIR path if
-     * one is set. If none is provided, a subdirectory in the /tmp/ path will be used.
+     * Otherwise the connector will not force the operator to specify a DATA_DIR. It will still use the DATA_DIR path if one
+     * is set. If none is provided, a subdirectory in the /tmp/ path will be used.
      * <p>
      * Default is false.
      *
@@ -265,30 +261,6 @@ public class ServerRunner {
      */
     public ServerBuilder withApiClient(ApiClient apiClient) {
       this.apiClient = apiClient;
-      return this;
-    }
-
-    /**
-     * @param useWinClr see {@link TemplateFormatterConfig#DEFAULT_USE_WINCLR}
-     */
-    public ServerBuilder withTemplateUseWinClr(boolean useWinClr) {
-      templateConfigBuilder.withWindowsClr(useWinClr);
-      return this;
-    }
-
-    /**
-     * @param templatePath see {@link TemplateFormatterConfig#DEFAULT_TEMPLATE_PATH}
-     */
-    public ServerBuilder withTemplatePath(String templatePath) {
-      templateConfigBuilder.withTemplatePath(templatePath);
-      return this;
-    }
-
-    /**
-     * @param maxLength see {@link TemplateFormatterConfig#DEFAULT_MAX_LENGTH}
-     */
-    public ServerBuilder withTemplateMaxLength(int maxLength) {
-      templateConfigBuilder.withMaxLength(maxLength);
       return this;
     }
 

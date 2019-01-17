@@ -50,6 +50,11 @@ public class TemplateFormatterConfig {
     return new Builder();
   }
 
+  public static TemplateFormatterConfig defaultInstance() {
+    return new Builder().build();
+  }
+
+
   /**
    * @return whether or not use Windows-style CLR (\r\n) instead of \n.
    */
