@@ -11,6 +11,8 @@ import java.util.concurrent.Callable;
 
 import io.wisetime.connector.ServerRunner;
 import io.wisetime.connector.ServerRunner.ServerBuilder;
+import io.wisetime.connector.template.TemplateFormatter;
+import io.wisetime.connector.template.TemplateFormatterConfig;
 import picocli.CommandLine;
 
 /**
@@ -47,14 +49,20 @@ public class FolderWatchConnectApp extends FolderWatchParam implements Callable<
       paramFailure(String.format("watchFolder '%s' does not exist", getWatchFolder()));
     }
 
+    TemplateFormatterConfig templateConfig = TemplateFormatterConfig.builder()
+        .withTemplatePath(getTemplatePath())
+        .withWindowsClr(isTemplateUseWinClr())
+        .withMaxLength(getTemplateMaxLength())
+        .build();
+
     // our basic connector implementation for this example
-    final FolderBasedConnector folderConnector = new FolderBasedConnector(watchDir, getCallerKey());
+    final FolderBasedConnector folderConnector = new FolderBasedConnector(
+        watchDir,
+        getCallerKey(),
+        new TemplateFormatter(templateConfig));
 
     ServerRunner runner = serverBuilder
         .withWiseTimeConnector(folderConnector)
-        .withTemplateMaxLength(getTemplateMaxLength())
-        .withTemplatePath(getTemplatePath())
-        .withTemplateUseWinClr(isTemplateUseWinClr())
         .build();
 
     // blocking call

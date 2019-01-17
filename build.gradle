@@ -75,10 +75,10 @@ sourceSets {
 }
 
 ext.jacocoLimits = [
-        'instruction': 77,
-        'line'       : 76,
-        'method'     : 79,
-        'class'      : 92
+        'instruction': 74,
+        'line'       : 74,
+        'method'     : 78,
+        'class'      : 90
 ]
 
 dependencies {
@@ -88,25 +88,38 @@ dependencies {
     }
     compile('com.sparkjava:spark-template-thymeleaf:2.7.1') {
         exclude group: 'com.sparkjava', module: 'spark-core'
+        exclude group: 'org.thymeleaf', module: 'thymeleaf'
+        exclude group: 'org.slf4j', module: 'slf4j-api'
+    }
+    compile ('org.thymeleaf:thymeleaf:3.0.5.RELEASE') {
         exclude group: 'org.slf4j', module: 'slf4j-api'
     }
 
     compile 'org.apache.commons:commons-configuration2:2.4'
+    compile 'org.apache.commons:commons-lang3:3.8.1'
+    compile 'net.jodah:failsafe:1.1.0'
+
+    compile ('io.wisetime:wise-log-aws:3.1.0') {
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+        exclude group: 'com.fasterxml.jackson.dataformat', module: 'jackson-dataformat-cbor'
+    }
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.7'
     compile 'com.fasterxml.jackson.core:jackson-core:2.9.7'
-    compile 'net.jodah:failsafe:1.1.0'
-    compile 'io.wisetime:wise-log-aws:3.1.0'
+    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.7'
+
     compile 'info.picocli:picocli:3.7.0'
     compile 'org.apache.commons:commons-collections4:4.2'
-    compile 'com.google.guava:guava:23.0'
+    compile 'com.google.guava:guava:25.1-jre'
     compile 'commons-io:commons-io:2.6'
 
     compile 'org.xerial:sqlite-jdbc:3.23.1'
     compile 'org.codejargon:fluentjdbc:1.8.3'
 
     compile 'org.apache.httpcomponents:httpcore:4.4.10'
-    compile 'org.apache.httpcomponents:httpclient:4.5.6'
-    compile 'org.apache.httpcomponents:fluent-hc:4.5.6'
+    compile ('org.apache.httpcomponents:fluent-hc:4.5.6') {
+        exclude group: 'commons-codec', module: 'commons-codec'
+    }
+    compile 'commons-codec:commons-codec:1.11'
 
     compile 'ch.qos.logback:logback-core:1.2.3'
     compile 'ch.qos.logback:logback-classic:1.2.3'
@@ -119,15 +132,20 @@ dependencies {
     compile 'io.swagger:swagger-annotations:1.5.3'
     compile 'javax.validation:validation-api:2.0.1.Final'
 
-    compile 'com.github.javafaker:javafaker:0.16'
+    testCompile ('com.github.javafaker:javafaker:0.16') {
+        exclude group: 'org.apache.commons', module: 'commons-lang3'
+    }
 
-    testCompile 'org.apache.httpcomponents:httpclient:4.5.6'
-    testCompile 'org.junit.jupiter:junit-jupiter-api:5.3.1'
-    testCompile 'org.junit.jupiter:junit-jupiter-params:5.3.1'
-    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.3.1'
+    testCompile 'org.junit.jupiter:junit-jupiter-api:5.3.2'
+    testCompile 'org.junit.jupiter:junit-jupiter-params:5.3.2'
+    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.3.2'
     testCompile 'org.mockito:mockito-core:2.22.0'
+    testCompile 'org.objenesis:objenesis:2.6'
     testCompile 'org.assertj:assertj-core:3.11.1'
-    testCompile 'io.github.benas:random-beans:3.7.0'
+    testCompile ('io.github.benas:random-beans:3.7.0') {
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+        exclude group: 'org.objenesis', module: 'objenesis'
+    }
 }
 
 test {
@@ -142,13 +160,6 @@ configurations.all {
     resolutionStrategy {
         // fail eagerly on version conflict of transitive dependencies
         failOnVersionConflict()
-
-        force 'org.thymeleaf:thymeleaf:3.0.5.RELEASE',
-                'commons-codec:commons-codec:1.11',
-                'org.apache.commons:commons-lang3:3.8.1',
-                'org.objenesis:objenesis:2.6',
-                'com.fasterxml.jackson.core:jackson-databind:2.9.7',
-                'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.7'
     }
 }
 

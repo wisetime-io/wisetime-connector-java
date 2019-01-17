@@ -2,7 +2,7 @@
  * Copyright (c) 2018 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector.testutils;
+package io.wisetime.connector.test_util;
 
 import com.github.javafaker.Faker;
 

@@ -9,9 +9,8 @@ import com.google.common.collect.ImmutableList;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
-import io.wisetime.connector.testutils.FakeEntities;
+import io.wisetime.connector.test_util.FakeEntities;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeRow;
 
@@ -41,7 +40,7 @@ class ActivityTimeCalculatorTest {
     final TimeGroup timeGroup = fakeEntities.randomTimeGroup().timeRows(ImmutableList.of(row1, row2));
 
     assertThat(startTime(timeGroup))
-        .contains(LocalDateTime.of(2018, 11, 1, 9, 0))
-        .as("The start time is the segment hour of the earliest time row");
+        .as("The start time is the segment hour of the earliest time row")
+        .contains(LocalDateTime.of(2018, 11, 1, 9, 0));
   }
 }

@@ -8,7 +8,7 @@ import com.google.common.collect.ImmutableList;
 
 import org.junit.jupiter.api.Test;
 
-import io.wisetime.connector.testutils.FakeEntities;
+import io.wisetime.connector.test_util.FakeEntities;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeRow;
 import io.wisetime.generated.connect.User;

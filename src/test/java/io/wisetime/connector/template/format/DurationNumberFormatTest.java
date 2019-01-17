@@ -15,10 +15,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author vadym
  */
-public class DurationNumberFormatTest {
+class DurationNumberFormatTest {
 
   @Test
-  public void formatToPlainText() throws TemplateModelException, TemplateValueFormatException {
+  void formatToPlainText() throws TemplateModelException, TemplateValueFormatException {
     DurationNumberFormat numberFormatter = new DurationNumberFormat();
     assertThat(numberFormatter.formatToPlainText(new SimpleNumber(1000)))
         .isEqualTo("16m 40s");
