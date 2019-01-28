@@ -7,6 +7,7 @@ package io.wisetime.connector.template;
 import com.google.common.collect.ImmutableMap;
 
 import freemarker.cache.TemplateLoader;
+import freemarker.core.TemplateNumberFormatFactory;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -14,7 +15,9 @@ import freemarker.template.TemplateExceptionHandler;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.Map;
 
+import io.wisetime.connector.template.format.ActivityTimeUTCFormatFactory;
 import io.wisetime.connector.template.format.DurationNumberFormatFactory;
 import io.wisetime.connector.template.format.PrintSubmittedDateFormatFactory;
 import io.wisetime.connector.template.loader.TemplateLoaderHelper;
@@ -41,22 +44,40 @@ public class TemplateFormatter {
   public TemplateFormatter(TemplateFormatterConfig activityTextTemplateConfig) {
     this.activityTextTemplateConfig = activityTextTemplateConfig;
     templateLoaderHelper = TemplateLoaderHelperFactory.from(activityTextTemplateConfig.getTemplatePath());
-    configuration = createFreemarkerConfiguration(templateLoaderHelper.createTemplateLoader());
+    configuration = createFreemarkerConfiguration(templateLoaderHelper.createTemplateLoader(), activityTextTemplateConfig);
   }
 
-  private Configuration createFreemarkerConfiguration(TemplateLoader templateLoader) {
+  private Configuration createFreemarkerConfiguration(TemplateLoader templateLoader,
+                                                      TemplateFormatterConfig templateFormatterConfig) {
     Configuration configuration = new Configuration(Configuration.VERSION_2_3_28);
     configuration.setDefaultEncoding("UTF-8");
     configuration.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
     configuration.setLogTemplateExceptions(false);
     configuration.setWrapUncheckedExceptions(true);
     configuration.setTemplateLoader(templateLoader);
-    configuration.setCustomNumberFormats(ImmutableMap.of(
+
+    if (templateFormatterConfig.getTimezone() != null) {
+      configuration.setTimeZone(templateFormatterConfig.getTimezone());
+    }
+
+    if (templateFormatterConfig.getCustomDateFormats() != null) {
+      configuration.setCustomDateFormats(templateFormatterConfig.getCustomDateFormats());
+    }
+
+    // default and custom number formatters
+    final Map<String, TemplateNumberFormatFactory> numberFormatters = ImmutableMap.of(
         // this one provide support for duration format e.g.: ${durationSec?string.@duration}
         "duration", new DurationNumberFormatFactory(),
         // this one provide support for submitted time formatting e.g.:
         // ${timeRow.getSubmittedDate()?string.@printSubmittedDate_HH\:mm} to print with pattern HH:mm
-        "printSubmittedDate", new PrintSubmittedDateFormatFactory()));
+        "printSubmittedDate", new PrintSubmittedDateFormatFactory(),
+        // converts yyyyMMddHHmm to ISO-like date-time format with offset and zone in UTC
+        "activityTimeUTC", new ActivityTimeUTCFormatFactory()
+    );
+    if (templateFormatterConfig.getCustomNumberFormats() != null) {
+      numberFormatters.putAll(templateFormatterConfig.getCustomNumberFormats());
+    }
+    configuration.setCustomNumberFormats(numberFormatters);
 
     return configuration;
   }

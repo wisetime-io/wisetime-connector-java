@@ -6,6 +6,12 @@ package io.wisetime.connector.template;
 
 import com.google.common.base.Preconditions;
 
+import freemarker.core.TemplateDateFormatFactory;
+import freemarker.core.TemplateNumberFormatFactory;
+
+import java.util.Map;
+import java.util.TimeZone;
+
 /**
  * Immutable configuration for {@link TemplateFormatter}. Already populated with default configuration.
  * <p>
@@ -39,11 +45,17 @@ public class TemplateFormatterConfig {
   private final boolean useWinclr;
   private final int maxLength;
   private final String templatePath;
+  private final TimeZone timezone;
+  private final Map<String, TemplateDateFormatFactory> customDateFormats;
+  private final Map<String, TemplateNumberFormatFactory> customNumberFormats;
 
   private TemplateFormatterConfig(Builder builder) {
     this.useWinclr = builder.winclr;
     this.maxLength = builder.maxLength;
     this.templatePath = builder.templatePath;
+    this.timezone = builder.timezone;
+    this.customDateFormats = builder.customDateFormats;
+    this.customNumberFormats = builder.customNumberFormats;
   }
 
   public static Builder builder() {
@@ -79,6 +91,30 @@ public class TemplateFormatterConfig {
   }
 
   /**
+   * The timezone to be used in templates. When a date formatter is used for a UTC date, it will convert the time to the
+   * timezone specified.
+   */
+  public TimeZone getTimezone() {
+    return timezone;
+  }
+
+  /**
+   * Custom {@link TemplateDateFormatFactory} that can be used for formatting dates in template file.
+   * @return
+   */
+  public Map<String, TemplateDateFormatFactory> getCustomDateFormats() {
+    return customDateFormats;
+  }
+
+  /**
+   * Custom {@link TemplateNumberFormatFactory} that can be used for formatting numbers in template file.
+   * @return
+   */
+  public Map<String, TemplateNumberFormatFactory> getCustomNumberFormats() {
+    return customNumberFormats;
+  }
+
+  /**
    * Builder for {@link TemplateFormatterConfig}. Recommended to use:
    * {@link TemplateFormatterConfig#builder()} to obtain instance.
    */
@@ -87,6 +123,9 @@ public class TemplateFormatterConfig {
     private boolean winclr = DEFAULT_USE_WINCLR;
     private int maxLength = DEFAULT_MAX_LENGTH;
     private String templatePath = DEFAULT_TEMPLATE_PATH;
+    private TimeZone timezone;
+    private Map<String, TemplateDateFormatFactory> customDateFormats;
+    private Map<String, TemplateNumberFormatFactory> customNumberFormats;
 
     public Builder withWindowsClr(boolean useWinclr) {
       this.winclr = useWinclr;
@@ -100,6 +139,21 @@ public class TemplateFormatterConfig {
 
     public Builder withTemplatePath(String templatePath) {
       this.templatePath = templatePath;
+      return this;
+    }
+
+    public Builder withTimezone(TimeZone timezone) {
+      this.timezone = timezone;
+      return this;
+    }
+
+    public Builder withCustomDateFormats(Map<String, TemplateDateFormatFactory> customDateFormats) {
+      this.customDateFormats = customDateFormats;
+      return this;
+    }
+
+    public Builder withCutsomNumberFormats(Map<String, TemplateNumberFormatFactory> customNumberFormats) {
+      this.customNumberFormats = customNumberFormats;
       return this;
     }
 
