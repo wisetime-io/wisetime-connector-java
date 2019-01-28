@@ -4,7 +4,7 @@
 
 package io.wisetime.connector.template;
 
-import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Maps;
 
 import freemarker.cache.TemplateLoader;
 import freemarker.core.TemplateNumberFormatFactory;
@@ -64,20 +64,21 @@ public class TemplateFormatter {
       configuration.setCustomDateFormats(templateFormatterConfig.getCustomDateFormats());
     }
 
-    // default and custom number formatters
-    final Map<String, TemplateNumberFormatFactory> numberFormatters = ImmutableMap.of(
-        // this one provide support for duration format e.g.: ${durationSec?string.@duration}
-        "duration", new DurationNumberFormatFactory(),
-        // this one provide support for submitted time formatting e.g.:
-        // ${timeRow.getSubmittedDate()?string.@printSubmittedDate_HH\:mm} to print with pattern HH:mm
-        "printSubmittedDate", new PrintSubmittedDateFormatFactory(),
-        // converts yyyyMMddHHmm to ISO-like date-time format with offset and zone in UTC
-        "activityTimeUTC", new ActivityTimeUTCFormatFactory()
-    );
+    // default number formats
+    final Map<String, TemplateNumberFormatFactory> numberFormats = Maps.newHashMap();
+    // this one provide support for duration format e.g.: ${durationSec?string.@duration}
+    numberFormats.put("duration", new DurationNumberFormatFactory());
+    // this one provide support for submitted time formatting e.g.:
+    // ${timeRow.getSubmittedDate()?string.@printSubmittedDate_HH\:mm} to print with pattern HH:mm
+    numberFormats.put("printSubmittedDate", new PrintSubmittedDateFormatFactory());
+    // converts yyyyMMddHHmm to ISO-like date-time format with offset and zone in UTC
+    numberFormats.put("activityTimeUTC", new ActivityTimeUTCFormatFactory());
+
     if (templateFormatterConfig.getCustomNumberFormats() != null) {
-      numberFormatters.putAll(templateFormatterConfig.getCustomNumberFormats());
+      numberFormats.putAll(templateFormatterConfig.getCustomNumberFormats());
     }
-    configuration.setCustomNumberFormats(numberFormatters);
+    configuration.setCustomNumberFormats(numberFormats);
+
 
     return configuration;
   }
