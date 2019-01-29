@@ -1,9 +1,14 @@
 package io.wisetime.connector.template;
 
+import com.google.common.collect.ImmutableMap;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
+import java.util.TimeZone;
 
+import io.wisetime.connector.template.format.TestCustomDateFormatterFactory;
+import io.wisetime.connector.template.format.TestCustomNumberFormatterFactory;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeRow;
 
@@ -49,6 +54,46 @@ class TemplateFormatterTest {
     assertThat(result)
         .as("check template formatter result")
         .isEqualTo("groupName [16m 40s]\r\ndescription\r\n\r\n  15:00 - Application - Window Title");
+  }
+
+  @Test
+  void format_with_custom_formats() {
+    TimeGroup timeGroup = new TimeGroup()
+        .groupName("1990-06-04T09:00:00Z") // using date as group name for testing
+        .totalDurationSecs(64);
+    TemplateFormatterConfig config = TemplateFormatterConfig.builder()
+        .withTemplatePath("classpath:freemarker-template/test-template_with-custom-formats.ftl")
+        .withCustomDateFormats(ImmutableMap.of("customDateFormat", new TestCustomDateFormatterFactory()))
+        .withCustomNumberFormats(ImmutableMap.of("duration", new TestCustomNumberFormatterFactory()))
+        .build();
+    TemplateFormatter template = new TemplateFormatter(config);
+
+    String result = template.format(timeGroup);
+
+    assertThat(result)
+        .as("custom formats should be used")
+        .isEqualTo(
+            "The month is JUNE\n" +
+            "I got 64"
+        );
+  }
+
+  @Test
+  void format_check_timezone() {
+    TimeGroup timeGroup = new TimeGroup()
+        .groupName("1990-06-04T09:00:00Z") // using date as group name for testing
+        .totalDurationSecs(64);
+    TemplateFormatterConfig config = TemplateFormatterConfig.builder()
+        .withTemplatePath("classpath:freemarker-template/test-template_time-zone.ftl")
+        .withTimezone(TimeZone.getTimeZone("Asia/Manila"))
+        .build();
+    TemplateFormatter template = new TemplateFormatter(config);
+
+    String result = template.format(timeGroup);
+
+    assertThat(result)
+        .as("custom formats should be used")
+        .isEqualTo("Jun 4, 1990 5:00:00 PM");
   }
 
   private TimeGroup prepareTimeGroupWithTimeRow() {

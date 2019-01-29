@@ -152,7 +152,7 @@ public class TemplateFormatterConfig {
       return this;
     }
 
-    public Builder withCutsomNumberFormats(Map<String, TemplateNumberFormatFactory> customNumberFormats) {
+    public Builder withCustomNumberFormats(Map<String, TemplateNumberFormatFactory> customNumberFormats) {
       this.customNumberFormats = customNumberFormats;
       return this;
     }
