@@ -81,8 +81,7 @@ class TemplateFormatterTest {
   @Test
   void format_check_timezone() {
     TimeGroup timeGroup = new TimeGroup()
-        .groupName("1990-06-04T09:00:00Z") // using date as group name for testing
-        .totalDurationSecs(64);
+        .groupName("1990-06-04T09:00:00Z"); // using date as group name for testing
     TemplateFormatterConfig config = TemplateFormatterConfig.builder()
         .withTemplatePath("classpath:freemarker-template/test-template_time-zone.ftl")
         .withTimezone(TimeZone.getTimeZone("Asia/Manila"))
@@ -92,7 +91,7 @@ class TemplateFormatterTest {
     String result = template.format(timeGroup);
 
     assertThat(result)
-        .as("custom formats should be used")
+        .as("should convert date to configured time zone")
         .isEqualTo("Jun 4, 1990 5:00:00 PM");
   }
 
