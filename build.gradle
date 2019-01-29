@@ -75,10 +75,10 @@ sourceSets {
 }
 
 ext.jacocoLimits = [
-        'instruction': 74,
-        'line'       : 74,
-        'method'     : 76,
-        'class'      : 90
+        'instruction': 75,
+        'line'       : 75,
+        'method'     : 78,
+        'class'      : 93
 ]
 
 dependencies {
