@@ -81,7 +81,7 @@ public class HealthCheck extends TimerTask {
     boolean healthy = checkServerHealth();
     if (healthy) {
       failureCount.set(0);
-      log.info("health-check-success");
+      log.debug("Health check successful");
     } else {
       // increment fail count, and if more than 3 successive errors, call shutdown function
       if (failureCount.incrementAndGet() >= MAX_SUCCESSIVE_FAILURES) {
@@ -98,7 +98,7 @@ public class HealthCheck extends TimerTask {
       final DateTime lastSuccessResult = lastRunSuccess.get();
       if (DateTime.now().minusMinutes(maxMinsSinceSuccess).isAfter(lastSuccessResult)) {
         log.info(
-            "unhealthy state where lastRunSuccess ({}) is not within the last {}mins (maxMinutesSinceSuccess)",
+            "Unhealthy state where lastRunSuccess ({}) is not within the last {}mins (maxMinutesSinceSuccess)",
             lastSuccessResult,
             maxMinsSinceSuccess
         );
@@ -123,7 +123,7 @@ public class HealthCheck extends TimerTask {
       return true;
     }
 
-    log.debug("calling local endpoint over http to check server is responding");
+    log.debug("Calling local endpoint over http to check server is responding");
     // call health endpoint to check responding & status of 200 re response
     String result = executor.execute(
         Request.Get(String.format("http://localhost:%d/ping", port))
