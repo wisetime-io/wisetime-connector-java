@@ -41,14 +41,20 @@ class RestRequestExecutorTest {
 
   @Test
   void mergeNamedParams_withSpace() {
-    assertThat(restExec.mergeNamedParams("foo", Lists.newArrayList()))
-        .isEqualTo("foo");
-
     assertThat(
         restExec.mergeNamedParams(
             "/:foo/goo",
             Lists.newArrayList(new BasicHeader("foo", "bar baz"))))
         .isEqualTo("/bar%20baz/goo");
+  }
+
+  @Test
+  void mergeNamedParams_withSlash() {
+    assertThat(
+        restExec.mergeNamedParams(
+            "/:foo/goo",
+            Lists.newArrayList(new BasicHeader("foo", "bar/baz"))))
+        .isEqualTo("/bar%2Fbaz/goo");
   }
 
   @Test
