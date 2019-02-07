@@ -97,7 +97,7 @@ public interface ApiClient {
   SubscribeResult postedTimeSubscribe(SubscribeRequest subscribeRequest) throws IOException;
 
   /**
-   * Removes a webhook on receiving posted time.
+   * Deletes a posted time webhook.
    *
    * @param unsubscribeRequest contains the webhook ID to be removed
    * @return {@link UnsubscribeResult} if webhook has been removed successfully
