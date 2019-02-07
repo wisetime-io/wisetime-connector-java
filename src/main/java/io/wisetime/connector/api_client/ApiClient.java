@@ -13,6 +13,8 @@ import io.wisetime.generated.connect.DeleteTagRequest;
 import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.TeamInfoResult;
+import io.wisetime.generated.connect.UnsubscribeRequest;
+import io.wisetime.generated.connect.UnsubscribeResult;
 import io.wisetime.generated.connect.UpsertTagRequest;
 
 /**
@@ -93,4 +95,13 @@ public interface ApiClient {
    * @throws IOException
    */
   SubscribeResult postedTimeSubscribe(SubscribeRequest subscribeRequest) throws IOException;
+
+  /**
+   * Removes a webhook on receiving posted time.
+   *
+   * @param unsubscribeRequest contains the webhook ID to be removed
+   * @return {@link UnsubscribeResult} if webhook has been removed successfully
+   * @throws IOException if request is unsuccessful
+   */
+  UnsubscribeResult postedTimeUnsubscribe(UnsubscribeRequest unsubscribeRequest) throws IOException;
 }

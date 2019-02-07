@@ -24,6 +24,8 @@ import io.wisetime.generated.connect.DeleteTagRequest;
 import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.TeamInfoResult;
+import io.wisetime.generated.connect.UnsubscribeRequest;
+import io.wisetime.generated.connect.UnsubscribeResult;
 import io.wisetime.generated.connect.UpsertTagRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -164,6 +166,17 @@ class DefaultApiClientIntegrationTest {
     subscribeRequest.callbackUrl("http://testurl");
     subscribeRequest.setCallerKey("sample-caller-key");
     SubscribeResult response = defaultApiClient.postedTimeSubscribe(subscribeRequest);
+    log.info(response.toString());
+  }
+
+  @Test
+  void postedTimeUnsubscribe() throws IOException {
+    if (defaultApiClient == null) {
+      return;
+    }
+    UnsubscribeRequest unsubscribeRequest = new UnsubscribeRequest();
+    unsubscribeRequest.setWebhookId ("enter webhookId");
+    UnsubscribeResult response = defaultApiClient.postedTimeUnsubscribe(unsubscribeRequest);
     log.info(response.toString());
   }
 }

@@ -18,7 +18,8 @@ public enum EndpointPath {
   TagAddKeyword("/tag/keyword", ConnectApiRequest.HttpMethod.POST),
   TagDeleteKeyword("/tag/keyword/delete", ConnectApiRequest.HttpMethod.POST),
   TeamInfo("/team/info", ConnectApiRequest.HttpMethod.GET),
-  PostedTimeSubscribe("/postedtime/subscribe", ConnectApiRequest.HttpMethod.POST);
+  PostedTimeSubscribe("/postedtime/subscribe", ConnectApiRequest.HttpMethod.POST),
+  PostedTimeUnsubscribe("/postedtime/unsubscribe", ConnectApiRequest.HttpMethod.POST);
 
   private final String actionPath;
   private ConnectApiRequest.HttpMethod httpMethod;

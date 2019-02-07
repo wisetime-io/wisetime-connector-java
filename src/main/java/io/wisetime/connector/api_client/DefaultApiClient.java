@@ -24,6 +24,8 @@ import io.wisetime.generated.connect.DeleteTagResponse;
 import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.TeamInfoResult;
+import io.wisetime.generated.connect.UnsubscribeRequest;
+import io.wisetime.generated.connect.UnsubscribeResult;
 import io.wisetime.generated.connect.UpsertTagRequest;
 import io.wisetime.generated.connect.UpsertTagResponse;
 
@@ -161,6 +163,15 @@ public class DefaultApiClient implements ApiClient {
         SubscribeResult.class,
         EndpointPath.PostedTimeSubscribe,
         subscribeRequest
+    );
+  }
+
+  @Override
+  public UnsubscribeResult postedTimeUnsubscribe(UnsubscribeRequest unsubscribeRequest) throws IOException {
+    return restRequestExecutor.executeTypedBodyRequest(
+        UnsubscribeResult.class,
+        EndpointPath.PostedTimeUnsubscribe,
+        unsubscribeRequest
     );
   }
 }
