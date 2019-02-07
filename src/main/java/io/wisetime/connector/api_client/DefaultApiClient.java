@@ -4,18 +4,12 @@
 
 package io.wisetime.connector.api_client;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
-
-import org.apache.http.message.BasicNameValuePair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
@@ -23,7 +17,9 @@ import java.util.concurrent.ForkJoinPool;
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.generated.connect.AddKeywordsRequest;
 import io.wisetime.generated.connect.AddKeywordsResponse;
+import io.wisetime.generated.connect.DeleteKeywordRequest;
 import io.wisetime.generated.connect.DeleteKeywordResponse;
+import io.wisetime.generated.connect.DeleteTagRequest;
 import io.wisetime.generated.connect.DeleteTagResponse;
 import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SubscribeResult;
@@ -97,34 +93,32 @@ public class DefaultApiClient implements ApiClient {
   }
 
   @Override
-  public void tagDelete(String tagName) throws IOException {
-    restRequestExecutor.executeTypedRequest(
+  public void tagDelete(DeleteTagRequest deleteTagRequest) throws IOException {
+    restRequestExecutor.executeTypedBodyRequest(
         DeleteTagResponse.class,
         EndpointPath.TagDelete,
-        Lists.newArrayList(new BasicNameValuePair("tagName", tagName))
+        deleteTagRequest
     );
   }
 
   @Override
-  public void tagAddKeywords(String tagName, Set<String> additionalKeywords) throws IOException {
+  public void tagAddKeywords(AddKeywordsRequest addKeywordsRequest) throws IOException {
     restRequestExecutor.executeTypedBodyRequest(
         AddKeywordsResponse.class,
         EndpointPath.TagAddKeyword,
-        Lists.newArrayList(new BasicNameValuePair("tagName", tagName)),
-        new AddKeywordsRequest().additionalKeywords(ImmutableList.copyOf(additionalKeywords))
+        addKeywordsRequest
     );
   }
 
   @Override
-  public void tagAddKeywordsBatch(Map<String, Set<String>> tagNamesAndAdditionalKeywords) throws IOException {
+  public void tagAddKeywordsBatch(List<AddKeywordsRequest> addKeywordsRequests) throws IOException {
 
-    final Callable<Optional<Exception>> parallelUntilError = () -> tagNamesAndAdditionalKeywords
-        .entrySet()
+    final Callable<Optional<Exception>> parallelUntilError = () -> addKeywordsRequests
         .parallelStream()
         // Wrap any exception with an Optional so we can short circuit the stream on error
         .map(tagKeywords -> {
           try {
-            tagAddKeywords(tagKeywords.getKey(), tagKeywords.getValue());
+            tagAddKeywords(tagKeywords);
             return Optional.<Exception>empty();
           } catch (Exception e) {
             return Optional.of(e);
@@ -149,14 +143,11 @@ public class DefaultApiClient implements ApiClient {
   }
 
   @Override
-  public void tagDeleteKeyword(String tagName, String keyword) throws IOException {
-    restRequestExecutor.executeTypedRequest(
+  public void tagDeleteKeyword(DeleteKeywordRequest deleteKeywordRequest) throws IOException {
+    restRequestExecutor.executeTypedBodyRequest(
         DeleteKeywordResponse.class,
         EndpointPath.TagDeleteKeyword,
-        Lists.newArrayList(
-            new BasicNameValuePair("tagName", tagName),
-            new BasicNameValuePair("keyword", keyword)
-        )
+        deleteKeywordRequest
     );
   }
 
