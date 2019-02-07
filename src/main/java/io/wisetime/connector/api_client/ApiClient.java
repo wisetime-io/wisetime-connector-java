@@ -6,12 +6,15 @@ package io.wisetime.connector.api_client;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
+import io.wisetime.generated.connect.AddKeywordsRequest;
+import io.wisetime.generated.connect.DeleteKeywordRequest;
+import io.wisetime.generated.connect.DeleteTagRequest;
 import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.TeamInfoResult;
+import io.wisetime.generated.connect.UnsubscribeRequest;
+import io.wisetime.generated.connect.UnsubscribeResult;
 import io.wisetime.generated.connect.UpsertTagRequest;
 
 /**
@@ -46,36 +49,34 @@ public interface ApiClient {
   /**
    * Delete an existing tag.
    *
-   * @param tagName the name of the tag to delete
+   * @param deleteTagRequest contains info about the tag to be deleted
    * @throws IOException
    */
-  void tagDelete(String tagName) throws IOException;
+  void tagDelete(DeleteTagRequest deleteTagRequest) throws IOException;
 
   /**
    * Add keywords to a tag. Existing keywords will not be overwritten.
    *
-   * @param tagName the tag to which to add the keywords
-   * @param additionalKeywords set of new keyword Strings to add to the tag
+   * @param addKeywordsRequest contains info about the keywords to be added to a tag
    * @throws IOException
    */
-  void tagAddKeywords(String tagName, Set<String> additionalKeywords) throws IOException;
+  void tagAddKeywords(AddKeywordsRequest addKeywordsRequest) throws IOException;
 
   /**
    * Add keywords to a batch of tags. Existing keywords will not be overwritten.
    *
-   * @param tagNamesAndAdditionalKeywords a map of tag names and set of keywords to add to each tag
+   * @param addKeywordsRequests request list keywords to be added to tag(s)
    * @throws IOException
    */
-  void tagAddKeywordsBatch(Map<String, Set<String>> tagNamesAndAdditionalKeywords) throws IOException;
+  void tagAddKeywordsBatch(List<AddKeywordsRequest> addKeywordsRequests) throws IOException;
 
   /**
    * Delete keyword from a tag.
    *
-   * @param tagName the tag whose keyword we want to delete
-   * @param keyword the keyword to be deleted
+   * @param deleteKeywordRequest contains info about the keyword to be deleted from a tag
    * @throws IOException
    */
-  void tagDeleteKeyword(String tagName, String keyword) throws IOException;
+  void tagDeleteKeyword(DeleteKeywordRequest deleteKeywordRequest) throws IOException;
 
   /**
    * Get the details for the team linked to the API key making the request.
@@ -94,4 +95,13 @@ public interface ApiClient {
    * @throws IOException
    */
   SubscribeResult postedTimeSubscribe(SubscribeRequest subscribeRequest) throws IOException;
+
+  /**
+   * Deletes a posted time webhook.
+   *
+   * @param unsubscribeRequest contains the webhook ID to be removed
+   * @return {@link UnsubscribeResult} if webhook has been removed successfully
+   * @throws IOException if request is unsuccessful
+   */
+  UnsubscribeResult postedTimeUnsubscribe(UnsubscribeRequest unsubscribeRequest) throws IOException;
 }

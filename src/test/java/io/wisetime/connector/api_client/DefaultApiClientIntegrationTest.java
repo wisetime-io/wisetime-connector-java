@@ -4,7 +4,7 @@
 
 package io.wisetime.connector.api_client;
 
-import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import org.junit.jupiter.api.BeforeAll;
@@ -18,9 +18,14 @@ import java.util.Optional;
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
+import io.wisetime.generated.connect.AddKeywordsRequest;
+import io.wisetime.generated.connect.DeleteKeywordRequest;
+import io.wisetime.generated.connect.DeleteTagRequest;
 import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.TeamInfoResult;
+import io.wisetime.generated.connect.UnsubscribeRequest;
+import io.wisetime.generated.connect.UnsubscribeResult;
 import io.wisetime.generated.connect.UpsertTagRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -88,12 +93,26 @@ class DefaultApiClientIntegrationTest {
   }
 
   @Test
+  void tagUpsert_hasSlash() throws IOException {
+    if (defaultApiClient == null) {
+      return;
+    }
+    UpsertTagRequest request = new UpsertTagRequest();
+    request.setName("tag/name");
+    request.setDescription("Tag from API with slash");
+    request.setPath("/");
+    request.setAdditionalKeywords(Lists.newArrayList("key/word"));
+    defaultApiClient.tagUpsert(request);
+  }
+
+  @Test
   void tagDelete() throws IOException {
     if (defaultApiClient == null) {
       return;
     }
-    defaultApiClient.tagDelete("Management");
-    defaultApiClient.tagDelete("Shared-1439");
+    defaultApiClient.tagDelete(new DeleteTagRequest().name("CreatedViaApi"));
+    defaultApiClient.tagDelete(new DeleteTagRequest().name("CreatedViaApi with space"));
+    defaultApiClient.tagDelete(new DeleteTagRequest().name("tag/name"));
   }
 
   @Test
@@ -101,7 +120,11 @@ class DefaultApiClientIntegrationTest {
     if (defaultApiClient == null) {
       return;
     }
-    defaultApiClient.tagAddKeywords("CreatedViaApi", ImmutableSet.of("keyword_from_API", "keyword with space"));
+    defaultApiClient.tagAddKeywords(
+        new AddKeywordsRequest()
+            .tagName("CreatedViaApi")
+            .additionalKeywords(ImmutableList.of("keyword_from_API" , "keyword with space"))
+    );
   }
 
   @Test
@@ -109,8 +132,29 @@ class DefaultApiClientIntegrationTest {
     if (defaultApiClient == null) {
       return;
     }
-    defaultApiClient.tagDeleteKeyword("CreatedViaApi", "keyword_from_API");
-    defaultApiClient.tagDeleteKeyword("CreatedViaApi", "keyword with space");
+    defaultApiClient.tagDeleteKeyword(new DeleteKeywordRequest().tagName("CreatedViaApi").keyword("keyword_from_API"));
+    defaultApiClient.tagDeleteKeyword(new DeleteKeywordRequest().tagName("CreatedViaApi").keyword("keyword with space"));
+  }
+
+  @Test
+  void tagAddKeywords_hasSlash() throws IOException {
+    if (defaultApiClient == null) {
+      return;
+    }
+    defaultApiClient.tagAddKeywords(
+        new AddKeywordsRequest()
+            .tagName("tag/name")
+            .additionalKeywords(ImmutableList.of("key/word 1" , "key/word 2"))
+    );
+  }
+
+  @Test
+  void tagDeleteKeyword_hasSlash() throws IOException {
+    if (defaultApiClient == null) {
+      return;
+    }
+    defaultApiClient.tagDeleteKeyword(new DeleteKeywordRequest().tagName("tag/name").keyword("key/word"));
+    defaultApiClient.tagDeleteKeyword(new DeleteKeywordRequest().tagName("tag/name").keyword("key/word 1"));
   }
 
   @Test
@@ -122,6 +166,17 @@ class DefaultApiClientIntegrationTest {
     subscribeRequest.callbackUrl("http://testurl");
     subscribeRequest.setCallerKey("sample-caller-key");
     SubscribeResult response = defaultApiClient.postedTimeSubscribe(subscribeRequest);
+    log.info(response.toString());
+  }
+
+  @Test
+  void postedTimeUnsubscribe() throws IOException {
+    if (defaultApiClient == null) {
+      return;
+    }
+    UnsubscribeRequest unsubscribeRequest = new UnsubscribeRequest();
+    unsubscribeRequest.setWebhookId ("enter webhookId");
+    UnsubscribeResult response = defaultApiClient.postedTimeUnsubscribe(unsubscribeRequest);
     log.info(response.toString());
   }
 }
