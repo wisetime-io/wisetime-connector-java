@@ -18,7 +18,7 @@ public class DurationCalculator {
 
   private TimeGroup timeGroup;
   private DurationSource durationSource = DurationSource.TIME_GROUP;
-  private boolean useExperienceRating = true;
+  private boolean useExperienceWeighting = true;
 
   /**
    * Create a DurationCalculator for a {@link TimeGroup}.
@@ -27,7 +27,7 @@ public class DurationCalculator {
    * <pre>
    * DurationCalculator.of(timeGroup)
    *     .useDurationFrom(DurationSource.TIME_GROUP)
-   *     .useExperienceRating();
+   *     .useExperienceWeighting();
    * </pre>
    *
    * @param timeGroup the TimeGroup whose durations we want to calculate
@@ -55,22 +55,44 @@ public class DurationCalculator {
   }
 
   /**
-   * Tell the calculator to use the user's experience rating in its calculations.
+   * Tell the calculator to use the user's experience weighting in its calculations.
    *
-   * @return the {@link DurationCalculator} configured to use the user's experience rating
+   * @return the {@link DurationCalculator} configured to use the user's experience weighting
    */
-  public DurationCalculator useExperienceRating() {
-    useExperienceRating = true;
+  public DurationCalculator useExperienceWeighting() {
+    useExperienceWeighting = true;
     return this;
   }
 
   /**
-   * Tell the calculator to disregard the user's experience rating in its calculations.
+   * Tell the calculator to use the user's experience weighting in its calculations.
    *
-   * @return the {@link DurationCalculator} configured to ignore the user's experience rating
+   * @return the {@link DurationCalculator} configured to use the user's experience weighting
    */
+  @Deprecated
+  public DurationCalculator useExperienceRating() {
+    useExperienceWeighting();
+    return this;
+  }
+
+  /**
+   * Tell the calculator to disregard the user's experience weighting in its calculations.
+   *
+   * @return the {@link DurationCalculator} configured to ignore the user's experience weighting
+   */
+  public DurationCalculator disregardExperienceWeighting() {
+    useExperienceWeighting = false;
+    return this;
+  }
+
+  /**
+   * Tell the calculator to disregard the user's experience weighting in its calculations.
+   *
+   * @return the {@link DurationCalculator} configured to ignore the user's experience weighting
+   */
+  @Deprecated
   public DurationCalculator disregardExperienceRating() {
-    useExperienceRating = false;
+    disregardExperienceWeighting();
     return this;
   }
 
@@ -81,7 +103,7 @@ public class DurationCalculator {
    */
   public Result calculate() {
     final double totalDuration = sourceTotalDuration
-        .andThen(applyExperienceRating)
+        .andThen(applyExperienceWeighting)
         .apply(durationSource);
 
     final double perTagDuration = applyDurationSplitStrategy.apply(totalDuration);
@@ -141,11 +163,11 @@ public class DurationCalculator {
   };
 
   /**
-   * If {@link #useExperienceRating} is set to {@code}true{@code}, a percentage based on the user's experience rating
+   * If {@link #useExperienceWeighting} is set to {@code}true{@code}, a percentage based on the user's experience weighting
    * is applied to the duration; otherwise return the full duration.
    */
-  private final Function<Double, Double> applyExperienceRating = duration -> {
-    if (useExperienceRating) {
+  private final Function<Double, Double> applyExperienceWeighting = duration -> {
+    if (useExperienceWeighting) {
       return duration * timeGroup.getUser().getExperienceWeightingPercent() / 100.0;
     }
     return duration;
