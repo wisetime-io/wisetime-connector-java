@@ -23,7 +23,7 @@ public class ActivityTimeCalculator {
   private static final DateTimeFormatter ACTIVITY_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
 
   /**
-   * The start time of a {@link TimeGroup} is the start of the segment hour of the earliest {@link TimeRow} in the group.
+   * The start time of a {@link TimeGroup} is the first observed time of the earliest {@link TimeRow} in the group.
    *
    * @param timeGroup the {@link TimeGroup} whose start time to calculate
    * @return start time without timezone information
