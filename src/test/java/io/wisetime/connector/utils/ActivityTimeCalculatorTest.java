@@ -35,7 +35,7 @@ class ActivityTimeCalculatorTest {
   }
 
   @Test
-  void timeGroupStartTime_check_by_minute() {
+  void timeGroupStartTime_different_firstObservedInHour() {
     final TimeRow row1 = fakeEntities.randomTimeRow().activityHour(2018110209).firstObservedInHour(3);
     final TimeRow row2 = fakeEntities.randomTimeRow().activityHour(2018110209).firstObservedInHour(30);
     final TimeGroup timeGroup = fakeEntities.randomTimeGroup().timeRows(Lists.newArrayList(row1, row2));
@@ -46,46 +46,13 @@ class ActivityTimeCalculatorTest {
   }
 
   @Test
-  void timeGroupStartTime_check_by_hour() {
-    final TimeRow row1 = fakeEntities.randomTimeRow().activityHour(2018110220).firstObservedInHour(30);
-    final TimeRow row2 = fakeEntities.randomTimeRow().activityHour(2018110202).firstObservedInHour(30);
+  void timeGroupStartTime_same_firstObservedInHour() {
+    final TimeRow row1 = fakeEntities.randomTimeRow().activityHour(2018110211).firstObservedInHour(3);
+    final TimeRow row2 = fakeEntities.randomTimeRow().activityHour(2018110209).firstObservedInHour(3);
     final TimeGroup timeGroup = fakeEntities.randomTimeGroup().timeRows(Lists.newArrayList(row1, row2));
 
     assertThat(startTime(timeGroup))
-        .as("should be able to check the earliest time row by hour")
-        .contains(LocalDateTime.of(2018, 11, 2, 2, 30));
-  }
-
-  @Test
-  void timeGroupStartTime_check_by_day_of_month() {
-    final TimeRow row1 = fakeEntities.randomTimeRow().activityHour(2018110109).firstObservedInHour(30);
-    final TimeRow row2 = fakeEntities.randomTimeRow().activityHour(2018111009).firstObservedInHour(30);
-    final TimeGroup timeGroup = fakeEntities.randomTimeGroup().timeRows(Lists.newArrayList(row1, row2));
-
-    assertThat(startTime(timeGroup))
-        .as("should be able to check the earliest time row by day of month")
-        .contains(LocalDateTime.of(2018, 11, 1, 9, 30));
-  }
-
-  @Test
-  void timeGroupStartTime_check_by_month() {
-    final TimeRow row1 = fakeEntities.randomTimeRow().activityHour(2018100109).firstObservedInHour(30);
-    final TimeRow row2 = fakeEntities.randomTimeRow().activityHour(2018110109).firstObservedInHour(30);
-    final TimeGroup timeGroup = fakeEntities.randomTimeGroup().timeRows(Lists.newArrayList(row1, row2));
-
-    assertThat(startTime(timeGroup))
-        .as("should be able to check the earliest time row by month")
-        .contains(LocalDateTime.of(2018, 10, 1, 9, 30));
-  }
-
-  @Test
-  void timeGroupStartTime_check_by_year() {
-    final TimeRow row1 = fakeEntities.randomTimeRow().activityHour(2018110109).firstObservedInHour(30);
-    final TimeRow row2 = fakeEntities.randomTimeRow().activityHour(2016110109).firstObservedInHour(30);
-    final TimeGroup timeGroup = fakeEntities.randomTimeGroup().timeRows(Lists.newArrayList(row1, row2));
-
-    assertThat(startTime(timeGroup))
-        .as("should be able to check the earliest time row by year")
-        .contains(LocalDateTime.of(2016, 11, 1, 9, 30));
+        .as("should be the activity time of the earliest time row from the time group")
+        .contains(LocalDateTime.of(2018, 11, 2, 9, 3));
   }
 }
