@@ -4,9 +4,10 @@
 
 package io.wisetime.connector.utils;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Comparator;
 import java.util.Optional;
 
 import io.wisetime.generated.connect.TimeGroup;
@@ -19,7 +20,7 @@ import io.wisetime.generated.connect.TimeRow;
  */
 public class ActivityTimeCalculator {
 
-  private static final DateTimeFormatter ACTIVITY_HOUR_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHH");
+  private static final DateTimeFormatter ACTIVITY_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyyMMddHHmm");
 
   /**
    * The start time of a {@link TimeGroup} is the start of the segment hour of the earliest {@link TimeRow} in the group.
@@ -31,8 +32,15 @@ public class ActivityTimeCalculator {
     return timeGroup
         .getTimeRows()
         .stream()
-        .min(Comparator.comparingInt(TimeRow::getActivityHour))
-        .map(TimeRow::getActivityHour)
-        .map(hour -> LocalDateTime.parse(String.valueOf(hour), ACTIVITY_HOUR_FORMATTER));
+        .map(ActivityTimeCalculator::getActivityTime)
+        .min(String.CASE_INSENSITIVE_ORDER)
+        .map(activityTime -> LocalDateTime.parse(activityTime, ACTIVITY_TIME_FORMATTER));
+  }
+
+  /**
+   * Returns the activity time of the time row in `yyyyMMddHHmm` format.
+   */
+  private static String getActivityTime(final TimeRow timeRow) {
+    return timeRow.getActivityHour() + StringUtils.leftPad(timeRow.getFirstObservedInHour().toString(), 2, '0');
   }
 }
