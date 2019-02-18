@@ -32,15 +32,18 @@ public class ActivityTimeCalculator {
     return timeGroup
         .getTimeRows()
         .stream()
-        .map(ActivityTimeCalculator::getActivityTime)
-        .min(String.CASE_INSENSITIVE_ORDER)
-        .map(activityTime -> LocalDateTime.parse(activityTime, ACTIVITY_TIME_FORMATTER));
+        .map(ActivityTimeCalculator::getFirstObservedTime)
+        .sorted()
+        .findFirst();
   }
 
   /**
    * Returns the activity time of the time row in `yyyyMMddHHmm` format.
    */
-  private static String getActivityTime(final TimeRow timeRow) {
-    return timeRow.getActivityHour() + StringUtils.leftPad(timeRow.getFirstObservedInHour().toString(), 2, '0');
+  private static LocalDateTime getFirstObservedTime(final TimeRow timeRow) {
+    return LocalDateTime.parse(
+        timeRow.getActivityHour() + StringUtils.leftPad(timeRow.getFirstObservedInHour().toString(), 2, '0'),
+        ACTIVITY_TIME_FORMATTER
+    );
   }
 }

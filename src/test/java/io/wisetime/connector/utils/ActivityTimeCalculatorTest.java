@@ -35,24 +35,24 @@ class ActivityTimeCalculatorTest {
   }
 
   @Test
-  void timeGroupStartTime_different_firstObservedInHour() {
+  void timeGroupStartTime_same_hour_different_firstObservedInHour() {
     final TimeRow row1 = fakeEntities.randomTimeRow().activityHour(2018110209).firstObservedInHour(3);
     final TimeRow row2 = fakeEntities.randomTimeRow().activityHour(2018110209).firstObservedInHour(30);
     final TimeGroup timeGroup = fakeEntities.randomTimeGroup().timeRows(Lists.newArrayList(row1, row2));
 
     assertThat(startTime(timeGroup))
-        .as("should be the activity time of the earliest time row from the time group")
+        .as("should be the time of the time row with the earlier first observed in hour")
         .contains(LocalDateTime.of(2018, 11, 2, 9, 3));
   }
 
   @Test
-  void timeGroupStartTime_same_firstObservedInHour() {
+  void timeGroupStartTime_different_hour_same_firstObservedInHour() {
     final TimeRow row1 = fakeEntities.randomTimeRow().activityHour(2018110211).firstObservedInHour(3);
     final TimeRow row2 = fakeEntities.randomTimeRow().activityHour(2018110209).firstObservedInHour(3);
     final TimeGroup timeGroup = fakeEntities.randomTimeGroup().timeRows(Lists.newArrayList(row1, row2));
 
     assertThat(startTime(timeGroup))
-        .as("should be the activity time of the earliest time row from the time group")
+        .as("should be the time of the time row with the earlier activity hour")
         .contains(LocalDateTime.of(2018, 11, 2, 9, 3));
   }
 }
