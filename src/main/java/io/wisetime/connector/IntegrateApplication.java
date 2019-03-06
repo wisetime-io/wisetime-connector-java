@@ -100,8 +100,9 @@ public class IntegrateApplication implements SparkApplication {
     final BiConsumer<String, Optional<Throwable>> logError = (m, t) -> {
       if (t.isPresent()) {
         log.error(m, t.get());
+      } else {
+        log.error(m);
       }
-      log.error(m);
     };
 
     if (postResult == PostResult.SUCCESS) {
