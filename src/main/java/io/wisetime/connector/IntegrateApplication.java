@@ -97,11 +97,11 @@ public class IntegrateApplication implements SparkApplication {
         postResult.getMessage().map(m -> ": " + m).orElse("")
     );
 
-    final BiConsumer<String, Optional<Throwable>> logError = (m, t) -> {
-      if (t.isPresent()) {
-        log.error(m, t.get());
+    final BiConsumer<String, Optional<Throwable>> logError = (description, throwable) -> {
+      if (throwable.isPresent()) {
+        log.error(description, throwable.get());
       } else {
-        log.error(m);
+        log.error(description);
       }
     };
 

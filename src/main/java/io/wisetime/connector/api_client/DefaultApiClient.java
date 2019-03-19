@@ -4,9 +4,6 @@
 
 package io.wisetime.connector.api_client;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -40,7 +37,6 @@ import static java.util.Optional.empty;
  */
 public class DefaultApiClient implements ApiClient {
 
-  private static final Logger log = LoggerFactory.getLogger(DefaultApiClient.class);
   private RestRequestExecutor restRequestExecutor;
   private ForkJoinPool forkJoinPool;
 
