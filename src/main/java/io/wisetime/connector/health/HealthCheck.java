@@ -32,39 +32,52 @@ import io.wisetime.connector.config.RuntimeConfig;
  * 3. Ping request to current connector instance was unsuccessful.
  *
  * @author thomas.haines@practiceinsight.io
+ * @author shane.xie@practiceinsight.io
  */
 public class HealthCheck extends TimerTask {
 
   private static final Logger log = LoggerFactory.getLogger(HealthCheck.class);
 
-  // visible for testing
+  // Visible for testing
   static final int MAX_SUCCESSIVE_FAILURES = 3;
   static final int MAX_MINS_SINCE_SUCCESS_DEFAULT = 60;
 
-  private final int port;
+  private final int webhookPort;
   private final Executor executor = Executor.newInstance();
   private final Supplier<DateTime> lastRunSuccess;
   private final Supplier<Boolean> connectorHealthCheck;
   private final AtomicInteger failureCount;
   private final int maxMinsSinceSuccess;
 
-  // modifiable for testing
+  // Modifiable for testing
   private int latencyTolerance;
   private Runnable shutdownFunction;
 
   /**
-   * @param port                 The port that server is running on in this VM.
+   * Create health check that doesn't check webhook.
+   *
    * @param lastRunSuccess       Provides the last time the tag upsert method was run.
    * @param connectorHealthCheck Optionally, the connector implementation can provide a health check via this function.
    */
-  public HealthCheck(int port, Supplier<DateTime> lastRunSuccess, Supplier<Boolean> connectorHealthCheck) {
-    this.port = port;
+  public HealthCheck(Supplier<DateTime> lastRunSuccess, Supplier<Boolean> connectorHealthCheck) {
+    this(0, lastRunSuccess, connectorHealthCheck);
+  }
+
+  /**
+   * Create health check that also checks a configured webhook.
+   *
+   * @param webhookPort          The webhookPort that webhook server is running on in this VM.
+   * @param lastRunSuccess       Provides the last time the tag upsert method was run.
+   * @param connectorHealthCheck Optionally, the connector implementation can provide a health check via this function.
+   */
+  public HealthCheck(int webhookPort, Supplier<DateTime> lastRunSuccess, Supplier<Boolean> connectorHealthCheck) {
+    this.webhookPort = webhookPort;
     this.lastRunSuccess = lastRunSuccess;
     this.connectorHealthCheck = connectorHealthCheck;
     this.failureCount = new AtomicInteger(0);
     this.shutdownFunction = () -> {
       try {
-        // allow time for logs to reach AWS before killing VM
+        // Allow time for logs to reach AWS before killing VM
         Thread.sleep(5000);
       } catch (InterruptedException e) {
         log.info(e.getMessage());
@@ -84,7 +97,7 @@ public class HealthCheck extends TimerTask {
       failureCount.set(0);
       log.debug("Health check successful");
     } else {
-      // increment fail count, and if more than 3 successive errors, call shutdown function
+      // Increment fail count, and if more than 3 successive errors, call shutdown function
       if (failureCount.incrementAndGet() >= MAX_SUCCESSIVE_FAILURES) {
         log.error("After {} successive errors, VM is assumed unhealthy, exiting", MAX_SUCCESSIVE_FAILURES);
         shutdownFunction.run();
@@ -105,29 +118,27 @@ public class HealthCheck extends TimerTask {
         );
         return false;
       }
-
       if (Boolean.FALSE.equals(connectorHealthCheck.get())) {
         log.info("connectorHealthCheck returned false");
         return false;
       }
+      if (webhookPort != 0) {
+        // Webhook port is configured and is non-ephemeral
+        return checkWebhookHealth();
+      }
+      return true;
 
-      return checkEndpointHealth();
     } catch (Throwable t) {
       log.error("Exception occurred checking health, returning unhealthy; msg='{}'", t.getMessage(), t);
       return false;
     }
   }
 
-  private boolean checkEndpointHealth() throws IOException {
-    if (port == 0) {
-      // running on ephemeral port, skip http check
-      return true;
-    }
-
-    log.debug("Calling local endpoint over http to check server is responding");
-    // call health endpoint to check responding & status of 200 re response
+  private boolean checkWebhookHealth() throws IOException {
+    log.debug("Calling local endpoint over HTTP to check whether server is responding");
+    // Call health endpoint to check responding & status of 200 re response
     String result = executor.execute(
-        Request.Get(String.format("http://localhost:%d/ping", port))
+        Request.Get(String.format("http://localhost:%d/ping", webhookPort))
             .connectTimeout(latencyTolerance)
             .socketTimeout(latencyTolerance))
         .returnContent().asString();
@@ -147,7 +158,7 @@ public class HealthCheck extends TimerTask {
     return this;
   }
 
-  // visible for testing
+  // Visible for testing
   int getFailureCount() {
     return failureCount.get();
   }
