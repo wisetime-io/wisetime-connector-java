@@ -8,8 +8,6 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
 import org.apache.http.message.BasicNameValuePair;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
@@ -21,6 +19,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
+import io.wisetime.connector.logging.MessagePublisher;
+import io.wisetime.connector.logging.WtEvent;
 import io.wisetime.generated.connect.AddKeywordsRequest;
 import io.wisetime.generated.connect.AddKeywordsResponse;
 import io.wisetime.generated.connect.DeleteKeywordResponse;
@@ -42,13 +42,14 @@ import static java.util.Optional.empty;
  */
 public class DefaultApiClient implements ApiClient {
 
-  private static final Logger log = LoggerFactory.getLogger(DefaultApiClient.class);
-  private RestRequestExecutor restRequestExecutor;
-  private ForkJoinPool forkJoinPool;
+  private final RestRequestExecutor restRequestExecutor;
+  private final ForkJoinPool forkJoinPool;
+  private final MessagePublisher messagePublisher;
 
-  public DefaultApiClient(RestRequestExecutor restRequestExecutor) {
+  public DefaultApiClient(RestRequestExecutor restRequestExecutor, MessagePublisher messagePublisher) {
     this.restRequestExecutor = restRequestExecutor;
-    forkJoinPool = new ForkJoinPool(10);
+    this.messagePublisher = messagePublisher;
+    this.forkJoinPool = new ForkJoinPool(10);
   }
 
   @Override
@@ -58,6 +59,7 @@ public class DefaultApiClient implements ApiClient {
         EndpointPath.TagUpsert,
         upsertTagRequest
     );
+    messagePublisher.publish(new WtEvent(WtEvent.Type.TAGS_UPSERTED, String.valueOf(1)));
   }
 
   /**
@@ -91,7 +93,9 @@ public class DefaultApiClient implements ApiClient {
     } catch (InterruptedException | ExecutionException e) {
       throw new IOException(e);
     }
-    if (error.isPresent()) {
+    if (!error.isPresent()) {
+      messagePublisher.publish(new WtEvent(WtEvent.Type.TAGS_UPSERTED, String.valueOf(upsertTagRequests.size())));
+    } else {
       throw new IOException("Failed to complete tag upsert batch. Stopped at error.", error.get());
     }
   }

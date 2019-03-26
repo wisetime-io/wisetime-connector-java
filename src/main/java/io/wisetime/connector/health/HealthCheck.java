@@ -18,6 +18,12 @@ import java.util.function.Supplier;
 import io.wisetime.connector.IntegrateApplication;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
+import io.wisetime.connector.logging.MessagePublisher;
+import io.wisetime.connector.logging.WtEvent;
+
+import static io.wisetime.connector.logging.WtEvent.Type.HEALTH_CHECK_FAILED;
+import static io.wisetime.connector.logging.WtEvent.Type.HEALTH_CHECK_MAX_SUCCESSIVE_FAILURES;
+import static io.wisetime.connector.logging.WtEvent.Type.HEALTH_CHECK_SUCCESS;
 
 /**
  * Task that will automatically stop application after 3 consecutive health check failures. Application considered to be
@@ -25,8 +31,7 @@ import io.wisetime.connector.config.RuntimeConfig;
  * <p>
  * 1. For {@link ConnectorConfigKey#HEALTH_MAX_MINS_SINCE_SUCCESS} minutes there was no successful time posting processing;
  * <p>
- * 2. {@link io.wisetime.connector.integrate.WiseTimeConnector#isConnectorHealthy()} returns false;
- * or
+ * 2. {@link io.wisetime.connector.integrate.WiseTimeConnector#isConnectorHealthy()} returns false; or
  * <p>
  * 3. Ping request to current connector instance was unsuccessful.
  *
@@ -46,6 +51,7 @@ public class HealthCheck extends TimerTask {
   private final Supplier<Boolean> connectorHealthCheck;
   private final AtomicInteger failureCount;
   private final int maxMinsSinceSuccess;
+  private final MessagePublisher messagePublisher;
 
   // modifiable for testing
   private int latencyTolerance;
@@ -56,19 +62,24 @@ public class HealthCheck extends TimerTask {
    * @param lastRunSuccess       Provides the last time the tag upsert method was run.
    * @param connectorHealthCheck Optionally, the connector implementation can provide a health check via this function.
    */
-  public HealthCheck(int port, Supplier<DateTime> lastRunSuccess, Supplier<Boolean> connectorHealthCheck) {
+  public HealthCheck(int port, Supplier<DateTime> lastRunSuccess, Supplier<Boolean> connectorHealthCheck,
+                     MessagePublisher messagePublisher, boolean exitOnMaxSuccessiveFailures) {
     this.port = port;
     this.lastRunSuccess = lastRunSuccess;
     this.connectorHealthCheck = connectorHealthCheck;
     this.failureCount = new AtomicInteger(0);
+    this.messagePublisher = messagePublisher;
     this.shutdownFunction = () -> {
+      messagePublisher.publish(new WtEvent(HEALTH_CHECK_MAX_SUCCESSIVE_FAILURES));
       try {
         // allow time for logs to reach AWS before killing VM
         Thread.sleep(5000);
       } catch (InterruptedException e) {
         log.info(e.getMessage());
       }
-      System.exit(-1);
+      if (exitOnMaxSuccessiveFailures) {
+        System.exit(-1);
+      }
     };
     this.latencyTolerance = 2000;
     this.maxMinsSinceSuccess = RuntimeConfig
@@ -81,9 +92,12 @@ public class HealthCheck extends TimerTask {
     boolean healthy = checkServerHealth();
     if (healthy) {
       failureCount.set(0);
-      log.info("health-check-success");
+      log.debug("Health check successful");
+      messagePublisher.publish(new WtEvent(HEALTH_CHECK_SUCCESS));
     } else {
-      // increment fail count, and if more than 3 successive errors, call shutdown function
+      messagePublisher.publish(new WtEvent(HEALTH_CHECK_FAILED));
+      // increment fail count, and if more than {@link HealthCheck#MAX_SUCCESSIVE_FAILURES} successive errors,
+      // call shutdown function
       if (failureCount.incrementAndGet() >= MAX_SUCCESSIVE_FAILURES) {
         log.error("After {} successive errors, VM is assumed unhealthy, exiting", MAX_SUCCESSIVE_FAILURES);
         shutdownFunction.run();
@@ -98,7 +112,7 @@ public class HealthCheck extends TimerTask {
       final DateTime lastSuccessResult = lastRunSuccess.get();
       if (DateTime.now().minusMinutes(maxMinsSinceSuccess).isAfter(lastSuccessResult)) {
         log.info(
-            "unhealthy state where lastRunSuccess ({}) is not within the last {}mins (maxMinutesSinceSuccess)",
+            "Unhealthy state where lastRunSuccess ({}) is not within the last {}mins (maxMinutesSinceSuccess)",
             lastSuccessResult,
             maxMinsSinceSuccess
         );
@@ -106,13 +120,18 @@ public class HealthCheck extends TimerTask {
       }
 
       if (Boolean.FALSE.equals(connectorHealthCheck.get())) {
-        log.info("connectorHealthCheck returned false");
+        log.info("Unhealthy state where connectorHealthCheck returned false");
         return false;
       }
 
-      return checkEndpointHealth();
+      boolean isEndpointRespondingInTime = checkEndpointHealth();
+      if (!isEndpointRespondingInTime) {
+        log.info("Unhealthy state where endpoint is not responding in time or with a valid result.");
+      }
+      return isEndpointRespondingInTime;
     } catch (Throwable t) {
-      log.error("Exception occurred checking health, returning unhealthy; msg='{}'", t.getMessage(), t);
+      log.error("Unhealthy state where exception occurred checking health, returning unhealthy; msg='{}'",
+          t.getMessage(), t);
       return false;
     }
   }
@@ -123,7 +142,7 @@ public class HealthCheck extends TimerTask {
       return true;
     }
 
-    log.debug("calling local endpoint over http to check server is responding");
+    log.debug("Calling local endpoint over http to check server is responding");
     // call health endpoint to check responding & status of 200 re response
     String result = executor.execute(
         Request.Get(String.format("http://localhost:%d/ping", port))

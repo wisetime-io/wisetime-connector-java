@@ -68,6 +68,19 @@ public class RuntimeConfig {
     return Optional.empty();
   }
 
+  private Optional<Boolean> getBoolean(String key) {
+    final String boolAsString = StringUtils.trimToEmpty(config.getString(key));
+    if (!boolAsString.isEmpty()) {
+      try {
+        return Optional.of(Boolean.valueOf(boolAsString));
+      } catch (Throwable t) {
+        System.err.println(String.format("Config value '%s' is an invalid boolean, ignoring", boolAsString));
+      }
+    }
+    // not provided or could not be parsed to boolean
+    return Optional.empty();
+  }
+
   /**
    * Get Integer config value for key
    *
@@ -86,6 +99,16 @@ public class RuntimeConfig {
    */
   public static Optional<String> getString(RuntimeConfigKey configKey) {
     return INSTANCE.getString(configKey.getConfigKey());
+  }
+
+  /**
+   * Get Boolean config value for key
+   *
+   * @param configKey the key for which to get the value
+   * @return the Boolean value, or an empty optional if there is no value configured for the key
+   */
+  public static Optional<Boolean> getBoolean(RuntimeConfigKey configKey) {
+    return INSTANCE.getBoolean(configKey.getConfigKey());
   }
 
   /**

@@ -12,6 +12,8 @@ import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.config.TolerantObjectMapper;
 import io.wisetime.connector.integrate.WiseTimeConnector;
 import io.wisetime.generated.connect.TimeGroup;
+import io.wisetime.connector.logging.MessagePublisher;
+import io.wisetime.connector.logging.WtEvent;
 import spark.ModelAndView;
 import spark.servlet.SparkApplication;
 import spark.template.thymeleaf.ThymeleafTemplateEngine;
@@ -31,9 +33,11 @@ public class IntegrateApplication implements SparkApplication {
   public static final String PING_RESPONSE = "pong";
   private final ObjectMapper om;
   private final WiseTimeConnector wiseTimeConnector;
+  private final MessagePublisher messagePublisher;
 
-  IntegrateApplication(WiseTimeConnector wiseTimeConnector) {
+  IntegrateApplication(WiseTimeConnector wiseTimeConnector, MessagePublisher messagePublisher) {
     this.wiseTimeConnector = wiseTimeConnector;
+    this.messagePublisher = messagePublisher;
     om = TolerantObjectMapper.create();
   }
 
@@ -68,6 +72,7 @@ public class IntegrateApplication implements SparkApplication {
       switch (postResult) {
         case SUCCESS:
           response.status(200);
+          messagePublisher.publish(new WtEvent(WtEvent.Type.TIME_GROUP_POSTED));
           return "Success";
         case PERMANENT_FAILURE:
           response.status(400);

@@ -12,6 +12,8 @@ import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
+import org.eclipse.jetty.server.handler.HandlerCollection;
+import org.eclipse.jetty.server.handler.ShutdownHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
 import org.slf4j.LoggerFactory;
@@ -19,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UncheckedIOException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -30,19 +33,28 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.turbo.TurboFilter;
 import ch.qos.logback.core.ConsoleAppender;
 import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.api_client.DefaultApiClient;
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
-import io.wisetime.connector.datastore.ConnectorStore;
+import io.wisetime.connector.datastore.SQLiteHelper;
 import io.wisetime.connector.datastore.FileStore;
 import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.integrate.ConnectorModule;
 import io.wisetime.connector.integrate.WiseTimeConnector;
+import io.wisetime.connector.logging.DisabledMessagePublisher;
+import io.wisetime.connector.logging.MessagePublisher;
+import io.wisetime.connector.logging.SQLiteMessagePublisher;
+import io.wisetime.connector.logging.WtEvent;
+import io.wisetime.connector.logging.WtTurboFilter;
 import io.wisetime.connector.server.IntegrateWebFilter;
 import io.wisetime.connector.server.TagRunner;
+
+import static io.wisetime.connector.config.ConnectorConfigKey.DATA_DIR;
+import static io.wisetime.connector.config.ConnectorConfigKey.LOCAL_DB_FILENAME;
 
 /**
  * Main entry point of WiseTime connector. Instance of service is created by {@link ServerBuilder}:
@@ -71,17 +83,24 @@ public class ServerRunner {
   private final WebAppContext webAppContext;
   private final WiseTimeConnector wiseTimeConnector;
   private final ConnectorModule connectorModule;
+  private final MessagePublisher messagePublisher;
+  private final boolean runningAsMainProcess;
 
+  @SuppressWarnings("ParameterNumber")
   private ServerRunner(Server server,
                        int port,
                        WebAppContext webAppContext,
                        WiseTimeConnector wiseTimeConnector,
-                       ConnectorModule connectorModule) {
+                       ConnectorModule connectorModule,
+                       MessagePublisher messagePublisher,
+                       boolean runningAsMainProcess) {
     this.server = server;
     this.port = port;
     this.webAppContext = webAppContext;
     this.wiseTimeConnector = wiseTimeConnector;
     this.connectorModule = connectorModule;
+    this.messagePublisher = messagePublisher;
+    this.runningAsMainProcess = runningAsMainProcess;
   }
 
   /**
@@ -90,6 +109,7 @@ public class ServerRunner {
   public static ServerBuilder createServerBuilder() {
     ServerBuilder builder = new ServerBuilder();
     RuntimeConfig.getString(ConnectorConfigKey.API_KEY).ifPresent(builder::withApiKey);
+    RuntimeConfig.getString(ConnectorConfigKey.JETTY_SERVER_SHUTDOWN_TOKEN).ifPresent(builder::withShutdownToken);
     return builder;
   }
 
@@ -113,8 +133,12 @@ public class ServerRunner {
     final HealthCheck healthRunner = new HealthCheck(
         getPort(),
         tagRunTask::getLastSuccessfulRun,
-        wiseTimeConnector::isConnectorHealthy
+        wiseTimeConnector::isConnectorHealthy,
+        messagePublisher,
+        runningAsMainProcess
     );
+
+    server.start();
 
     Timer healthCheckTimer = new Timer("health-check-timer");
     healthCheckTimer.scheduleAtFixedRate(healthRunner, TimeUnit.MINUTES.toMillis(1), TimeUnit.MINUTES.toMillis(3));
@@ -123,8 +147,27 @@ public class ServerRunner {
     Timer tagTimer = new Timer("tag-check-timer");
     tagTimer.scheduleAtFixedRate(tagRunTask, TimeUnit.SECONDS.toMillis(15), TimeUnit.MINUTES.toMillis(5));
 
-    server.start();
-    server.join();
+    messagePublisher.publish(new WtEvent(WtEvent.Type.SERVER_STARTED));
+
+    while (!Thread.currentThread().isInterrupted() && (server.isStarting() || server.isRunning())) {
+      try {
+        Thread.sleep(2000);
+      } catch (InterruptedException e) {
+        // ignore.
+      }
+    }
+    server.stop();
+    healthCheckTimer.cancel();
+    healthCheckTimer.purge();
+    tagTimer.cancel();
+    tagTimer.purge();
+    try {
+      // leaves time for the threads to stop
+      Thread.sleep(2000);
+    } catch (InterruptedException e) {
+      // ignore.
+    }
+    throw new InterruptedException();
   }
 
   //visible for testing
@@ -144,7 +187,6 @@ public class ServerRunner {
    * <p>
    * You have to set a connector by calling {@link #withWiseTimeConnector(WiseTimeConnector)}.
    */
-  @SuppressWarnings("UnusedReturnValue")
   public static class ServerBuilder {
 
     private int port = 8080;
@@ -153,16 +195,25 @@ public class ServerRunner {
     private WiseTimeConnector wiseTimeConnector;
     private ApiClient apiClient;
     private String apiKey;
+    private String shutdownToken;
 
     /**
      * Build {@link ServerRunner}. Make sure to set {@link WiseTimeConnector} and apiKey or apiClient before calling this
      * method.
      */
     public ServerRunner build() {
+      final Boolean runningAsMainProcess =
+          RuntimeConfig.getBoolean(ConnectorConfigKey.RUNNING_AS_MAIN_PROCESS).orElse(true);
+
+      final SQLiteHelper sqLiteHelper = new SQLiteHelper(getLocalDatabaseFile(persistentStorageOnly));
+      final MessagePublisher messagePublisher = runningAsMainProcess ?
+          new DisabledMessagePublisher() :
+          new SQLiteMessagePublisher(sqLiteHelper);
 
       if (!useSlf4JOnly) {
         final String defaultLogXml = "/logging/logback-default.xml";
-        configureStandardLogging(defaultLogXml);
+        final TurboFilter turboFilter = new WtTurboFilter(messagePublisher);
+        configureStandardLogging(defaultLogXml, turboFilter);
       }
 
       if (apiClient == null) {
@@ -171,7 +222,7 @@ public class ServerRunner {
               "an apiKey must be supplied via constructor or environment parameter to use the default apiClient");
         }
         RestRequestExecutor requestExecutor = new RestRequestExecutor(apiKey);
-        apiClient = new DefaultApiClient(requestExecutor);
+        apiClient = new DefaultApiClient(requestExecutor, messagePublisher);
       }
 
       if (wiseTimeConnector == null) {
@@ -179,7 +230,7 @@ public class ServerRunner {
             String.format("an implementation of '%s' interface must be supplied", WiseTimeConnector.class.getSimpleName()));
       }
 
-      IntegrateApplication sparkApp = new IntegrateApplication(wiseTimeConnector);
+      IntegrateApplication sparkApp = new IntegrateApplication(wiseTimeConnector, messagePublisher);
       Server server = new Server(getPort());
 
       WebAppContext webAppContext = createWebAppContext();
@@ -190,25 +241,22 @@ public class ServerRunner {
           null
       );
 
-      server.setHandler(webAppContext);
+      HandlerCollection handlerCollection = new HandlerCollection(false);
+      handlerCollection.addHandler(webAppContext);
+      if (!StringUtils.isBlank(shutdownToken)) {
+        handlerCollection.addHandler(new ShutdownHandler(shutdownToken, false, true));
+      }
+      server.setHandler(handlerCollection);
+
       addCustomizers(getPort(), server);
 
       ConnectorModule connectorModule = new ConnectorModule(
           apiClient,
-          createStore(persistentStorageOnly)
+          new FileStore(sqLiteHelper)
       );
 
-      return new ServerRunner(server, port, webAppContext, wiseTimeConnector, connectorModule);
-    }
-
-    private ConnectorStore createStore(boolean persistenceRequired) {
-      String persistentStoreDir = RuntimeConfig.getString(ConnectorConfigKey.DATA_DIR).orElse(null);
-      if (persistenceRequired && persistentStoreDir == null) {
-        throw new IllegalArgumentException(String.format(
-            "requirePersistentStore enabled for server -> a persistent directory must be provided using setting '%s'",
-            ConnectorConfigKey.DATA_DIR.getConfigKey()));
-      }
-      return new FileStore(persistentStoreDir);
+      return new ServerRunner(server, port, webAppContext, wiseTimeConnector, connectorModule, messagePublisher,
+          runningAsMainProcess);
     }
 
     /**
@@ -230,6 +278,16 @@ public class ServerRunner {
      */
     public ServerBuilder withApiKey(String apiKey) {
       this.apiKey = apiKey;
+      return this;
+    }
+
+    /**
+     * A shutdown token is required to shutdown the server externally.
+     *
+     * @param shutdownToken see {@link #withShutdownToken(String)}
+     */
+    public ServerBuilder withShutdownToken(String shutdownToken) {
+      this.shutdownToken = shutdownToken;
       return this;
     }
 
@@ -265,7 +323,7 @@ public class ServerRunner {
     }
 
     @SuppressWarnings("SameParameterValue")
-    void configureStandardLogging(String defaultLogXmlResource) {
+    void configureStandardLogging(String defaultLogXmlResource, TurboFilter filter) {
       Logger rootLogger = (Logger) LoggerFactory.getLogger("root");
       LoggerContext loggerContext = rootLogger.getLoggerContext();
       loggerContext.reset();
@@ -300,6 +358,8 @@ public class ServerRunner {
         LoggerFactory.getLogger(getClass())
             .error("invalid log config in cp {} msg={}", defaultLogXmlResource, joranException.getMessage(), joranException);
       }
+
+      loggerContext.addTurboFilter(filter);
     }
 
     static String createDynamicJoranConfigPath(String defaultLogXmlResource, String userPropertyPath) throws IOException {
@@ -364,6 +424,43 @@ public class ServerRunner {
     public ServerBuilder useSlf4JOnly(boolean useSlf4JOnly) {
       this.useSlf4JOnly = useSlf4JOnly;
       return this;
+    }
+
+    private static final String DEFAULT_LOCAL_DB_FILENAME = "wisetime.sqlite";
+    private static final String DEFAULT_TEMP_DIR_NAME = "wt-sqlite";
+
+    private File getLocalDatabaseFile(boolean persistentStorageOnly) {
+      final String persistentStoreDirPath = RuntimeConfig.getString(DATA_DIR).orElse(null);
+      if (persistentStorageOnly && StringUtils.isBlank(persistentStoreDirPath)) {
+        throw new IllegalArgumentException(String.format(
+            "requirePersistentStore enabled for server -> a persistent directory must be provided using setting '%s'",
+            ConnectorConfigKey.DATA_DIR.getConfigKey()));
+      }
+
+      final File persistentStoreDir = new File(StringUtils.isNotBlank(persistentStoreDirPath) ?
+          persistentStoreDirPath : createTempDir().getAbsolutePath());
+      if (!persistentStoreDir.exists() && !persistentStoreDir.mkdirs()) {
+        throw new IllegalArgumentException(String.format("Store directory does not exist: '%s'",
+            persistentStoreDir.getAbsolutePath()));
+      }
+
+      final String persistentStoreFilename = RuntimeConfig.getString(LOCAL_DB_FILENAME).orElse(DEFAULT_LOCAL_DB_FILENAME);
+      return new File(persistentStoreDir, persistentStoreFilename);
+    }
+
+    private File createTempDir() {
+      try {
+        File tempDir = Files.createTempDirectory(DEFAULT_TEMP_DIR_NAME).toFile();
+        if (!tempDir.exists()) {
+          boolean mkDirResult = tempDir.mkdirs();
+          if (mkDirResult) {
+            // log.debug("temp dir created at {}", tempDir.getAbsolutePath());
+          }
+        }
+        return tempDir;
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
+      }
     }
   }
 }

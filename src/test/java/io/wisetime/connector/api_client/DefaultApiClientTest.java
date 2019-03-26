@@ -18,6 +18,7 @@ import java.util.Set;
 import java.util.stream.IntStream;
 
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
+import io.wisetime.connector.logging.DisabledMessagePublisher;
 import io.wisetime.generated.connect.AddKeywordsRequest;
 import io.wisetime.generated.connect.AddKeywordsResponse;
 import io.wisetime.generated.connect.UpsertTagRequest;
@@ -42,7 +43,7 @@ public class DefaultApiClientTest {
   @BeforeEach
   void init() {
     requestExecutor = mock(RestRequestExecutor.class);
-    apiClient = new DefaultApiClient(requestExecutor);
+    apiClient = new DefaultApiClient(requestExecutor, new DisabledMessagePublisher());
   }
 
   @Test
@@ -71,6 +72,7 @@ public class DefaultApiClientTest {
 
     // We should notice that a request has failed way before we reach the end of the list
     // Allowance is made for requests sent in parallel before we notice an error
+    // TODO: fix not stable test (sometimes MoreThanAllowedActualInvocations)
     verify(requestExecutor, atMost(20)).executeTypedBodyRequest(
         any(),
         any(EndpointPath.TagUpsert.getClass()),
