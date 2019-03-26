@@ -42,7 +42,7 @@ import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.integrate.ConnectorModule;
 import io.wisetime.connector.integrate.WiseTimeConnector;
 import io.wisetime.connector.postedtime.webhook.WebhookApplication;
-import io.wisetime.connector.server.IntegrateWebFilter;
+import io.wisetime.connector.postedtime.webhook.IntegrateWebFilter;
 import io.wisetime.connector.tag.TagUpsertTask;
 
 /**

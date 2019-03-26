@@ -2,7 +2,7 @@
  * Copyright (c) 2018 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector.server;
+package io.wisetime.connector.postedtime.webhook;
 
 import javax.servlet.FilterConfig;
 
