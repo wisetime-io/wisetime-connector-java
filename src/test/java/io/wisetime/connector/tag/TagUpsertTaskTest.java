@@ -2,7 +2,7 @@
  * Copyright (c) 2018 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector.server;
+package io.wisetime.connector.tag;
 
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
@@ -14,19 +14,19 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author thomas.haines@practiceinsight.io
  */
-class TagRunnerTest {
+class TagUpsertTaskTest {
 
   @Test
   void testRun() throws Exception {
     final AtomicBoolean runCalled = new AtomicBoolean(false);
-    TagRunner tagRunner = new TagRunner(() -> runCalled.set(true));
+    TagUpsertTask tagRunner = new TagUpsertTask(() -> runCalled.set(true));
     testRun(runCalled, tagRunner);
 
     // check lock does not prevent second run
     testRun(runCalled, tagRunner);
   }
 
-  private void testRun(AtomicBoolean runCalled, TagRunner tagRunner) throws InterruptedException {
+  private void testRun(AtomicBoolean runCalled, TagUpsertTask tagRunner) throws InterruptedException {
     DateTime startRun = tagRunner.getLastSuccessfulRun();
     Thread.sleep(1);
     tagRunner.run();

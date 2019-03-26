@@ -2,7 +2,7 @@
  * Copyright (c) 2018 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector.server;
+package io.wisetime.connector.tag;
 
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
@@ -18,14 +18,14 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * @author thomas.haines@practiceinsight.io
  */
-public class TagRunner extends TimerTask {
+public class TagUpsertTask extends TimerTask {
 
-  private static final Logger log = LoggerFactory.getLogger(TagRunner.class);
+  private static final Logger log = LoggerFactory.getLogger(TagUpsertTask.class);
   private final Runnable tagRunner;
   private final AtomicBoolean runLock = new AtomicBoolean(false);
   private final AtomicReference<DateTime> lastSuccessfulRun;
 
-  public TagRunner(Runnable tagRunner) {
+  public TagUpsertTask(Runnable tagRunner) {
     this.tagRunner = tagRunner;
     this.lastSuccessfulRun = new AtomicReference<>(DateTime.now());
   }

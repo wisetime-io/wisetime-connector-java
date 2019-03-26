@@ -31,5 +31,4 @@ public class ConnectorModule {
   public ApiClient getApiClient() {
     return apiClient;
   }
-
 }

@@ -2,7 +2,7 @@
  * Copyright (c) 2018 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector;
+package io.wisetime.connector.postedtime.webhook;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -41,7 +41,7 @@ public class WebhookApplication implements SparkApplication {
   private final ObjectMapper om;
   private final WiseTimeConnector wiseTimeConnector;
 
-  WebhookApplication(WiseTimeConnector wiseTimeConnector) {
+  public WebhookApplication(WiseTimeConnector wiseTimeConnector) {
     this.wiseTimeConnector = wiseTimeConnector;
     om = TolerantObjectMapper.create();
   }

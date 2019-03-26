@@ -41,8 +41,9 @@ import io.wisetime.connector.datastore.FileStore;
 import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.integrate.ConnectorModule;
 import io.wisetime.connector.integrate.WiseTimeConnector;
+import io.wisetime.connector.postedtime.webhook.WebhookApplication;
 import io.wisetime.connector.server.IntegrateWebFilter;
-import io.wisetime.connector.server.TagRunner;
+import io.wisetime.connector.tag.TagUpsertTask;
 
 /**
  * Main entry point of WiseTime connector. Instance of service is created by {@link ServerBuilder}:
@@ -109,7 +110,7 @@ public class ServerRunner {
    */
   public void startServer() throws Exception {
     initWiseTimeConnector();
-    final TagRunner tagRunTask = new TagRunner(wiseTimeConnector::performTagUpdate);
+    final TagUpsertTask tagRunTask = new TagUpsertTask(wiseTimeConnector::performTagUpdate);
     final HealthCheck healthRunner = new HealthCheck(
         getPort(),
         tagRunTask::getLastSuccessfulRun,
