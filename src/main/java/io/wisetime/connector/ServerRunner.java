@@ -179,17 +179,14 @@ public class ServerRunner {
             String.format("an implementation of '%s' interface must be supplied", WiseTimeConnector.class.getSimpleName()));
       }
 
-      IntegrateApplication sparkApp = new IntegrateApplication(wiseTimeConnector);
+      WebhookApplication webhookApplication = new WebhookApplication(wiseTimeConnector);
       Server server = new Server(getPort());
-
       WebAppContext webAppContext = createWebAppContext();
-
       webAppContext.addFilter(
-          new FilterHolder(new IntegrateWebFilter(sparkApp)),
+          new FilterHolder(new IntegrateWebFilter(webhookApplication)),
           "/*",
           null
       );
-
       server.setHandler(webAppContext);
       addCustomizers(getPort(), server);
 

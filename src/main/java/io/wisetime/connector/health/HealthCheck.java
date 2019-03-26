@@ -15,7 +15,7 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
-import io.wisetime.connector.IntegrateApplication;
+import io.wisetime.connector.WebhookApplication;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
 
@@ -131,7 +131,7 @@ public class HealthCheck extends TimerTask {
             .socketTimeout(latencyTolerance))
         .returnContent().asString();
 
-    return IntegrateApplication.PING_RESPONSE.equals(result);
+    return WebhookApplication.PING_RESPONSE.equals(result);
   }
 
   // Visible for testing

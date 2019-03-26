@@ -29,19 +29,19 @@ import static spark.Spark.post;
 import static spark.Spark.staticFileLocation;
 
 /**
- * Spark web application that implements WiseTime posted time web hook.
+ * Spark web application that implements WiseTime posted time webhook.
  *
  * @author thomas.haines@practiceinsight.io
  * @see <a href="http://sparkjava.com">Spark</a> for more infromation about Spark framework.
  */
-public class IntegrateApplication implements SparkApplication {
+public class WebhookApplication implements SparkApplication {
 
-  private static final Logger log = LoggerFactory.getLogger(IntegrateApplication.class);
+  private static final Logger log = LoggerFactory.getLogger(WebhookApplication.class);
   public static final String PING_RESPONSE = "pong";
   private final ObjectMapper om;
   private final WiseTimeConnector wiseTimeConnector;
 
-  IntegrateApplication(WiseTimeConnector wiseTimeConnector) {
+  WebhookApplication(WiseTimeConnector wiseTimeConnector) {
     this.wiseTimeConnector = wiseTimeConnector;
     om = TolerantObjectMapper.create();
   }
