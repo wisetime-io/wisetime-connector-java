@@ -4,6 +4,7 @@
 
 package io.wisetime.connector.api_client;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -95,24 +96,23 @@ public class DefaultApiClientTest {
     when(requestExecutor.executeTypedBodyRequest(any(), any(), any(), any()))
         .thenReturn(new AddKeywordsResponse());
 
-    apiClient.tagAddKeywordsBatch(fakeTagNamesAndAdditionalKeywords(5));
+    apiClient.tagAddKeywordsBatch(fakeAddKeywordsRequests(5));
 
     verify(requestExecutor, times(5)).executeTypedBodyRequest(
         any(),
         any(EndpointPath.TagAddKeyword.getClass()),
-        any(List.class),
         any(AddKeywordsRequest.class)
     );
   }
 
   @Test
   void tagAddKeywordsBatch_stops_on_error() throws IOException {
-    when(requestExecutor.executeTypedBodyRequest(any(), any(), any(), any()))
+    when(requestExecutor.executeTypedBodyRequest(any(), any(), any()))
         .thenReturn(new AddKeywordsResponse())
         .thenThrow(new IOException());
 
     assertThatExceptionOfType(IOException.class).isThrownBy(() ->
-        apiClient.tagAddKeywordsBatch(fakeTagNamesAndAdditionalKeywords(1000))
+        apiClient.tagAddKeywordsBatch(fakeAddKeywordsRequests(1000))
     );
 
     // We should notice that a request has failed way before we reach the end of the list
@@ -120,18 +120,17 @@ public class DefaultApiClientTest {
     verify(requestExecutor, atMost(20)).executeTypedBodyRequest(
         any(),
         any(EndpointPath.TagAddKeyword.getClass()),
-        any(List.class),
         any(AddKeywordsRequest.class)
     );
   }
 
   @Test
   void tagAddKeywordsBatch_wraps_exceptions() throws IOException {
-    when(requestExecutor.executeTypedBodyRequest(any(), any(), any(), any()))
+    when(requestExecutor.executeTypedBodyRequest(any(), any(), any()))
         .thenThrow(new RuntimeException());
 
     assertThatExceptionOfType(IOException.class).isThrownBy(() ->
-        apiClient.tagAddKeywordsBatch(fakeTagNamesAndAdditionalKeywords(3))
+        apiClient.tagAddKeywordsBatch(fakeAddKeywordsRequests(3))
     );
   }
 
@@ -143,11 +142,15 @@ public class DefaultApiClientTest {
     return requests;
   }
 
-  private Map<String, Set<String>> fakeTagNamesAndAdditionalKeywords(final int numberOfTags) {
-    final Map<String, Set<String>> tagsAndKeywords = new HashMap<>();
+  private List<AddKeywordsRequest> fakeAddKeywordsRequests(final int numberOfTags) {
+    final List<AddKeywordsRequest> requests = new ArrayList<>();
     IntStream
         .range(1, numberOfTags + 1)
-        .forEach(i -> tagsAndKeywords.put(String.valueOf(i), ImmutableSet.of(String.valueOf(i))));
-    return tagsAndKeywords;
+        .forEach(i ->
+          requests.add(new AddKeywordsRequest()
+              .tagName(String.valueOf(i))
+              .additionalKeywords(ImmutableList.of(String.valueOf(i))))
+        );
+    return requests;
   }
 }

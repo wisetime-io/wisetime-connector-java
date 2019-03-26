@@ -36,7 +36,7 @@ class DurationCalculatorTest {
     assertThat(result.getTotalDuration())
         .isEqualTo(60)
         .as("Default calculator configuration should use the TimeGroup duration " +
-            "and apply the user's experience rating");
+            "and apply the user's experience weighting");
   }
 
   @Test
@@ -47,7 +47,7 @@ class DurationCalculatorTest {
 
     final DurationCalculator.Result result = DurationCalculator
         .of(timeGroup)
-        .disregardExperienceRating()
+        .disregardExperienceWeighting()
         .useDurationFrom(DurationSource.TIME_GROUP)
         .calculate();
 
@@ -68,7 +68,7 @@ class DurationCalculatorTest {
 
     final DurationCalculator.Result result = DurationCalculator
         .of(timeGroup)
-        .disregardExperienceRating()
+        .disregardExperienceWeighting()
         .useDurationFrom(DurationSource.SUM_TIME_ROWS)
         .calculate();
 
@@ -78,7 +78,7 @@ class DurationCalculatorTest {
   }
 
   @Test
-  void config_useExperienceRating() {
+  void config_useExperienceWeighting() {
     final User user = fakeEntities.randomUser().experienceWeightingPercent(10);
 
     final TimeGroup timeGroup = fakeEntities
@@ -88,17 +88,17 @@ class DurationCalculatorTest {
 
     final DurationCalculator.Result result = DurationCalculator
         .of(timeGroup)
-        .useExperienceRating()
+        .useExperienceWeighting()
         .useDurationFrom(DurationSource.TIME_GROUP)
         .calculate();
 
     assertThat(result.getTotalDuration())
         .isEqualTo(11)
-        .as("The user's experience rating should be taken into account, and result rounded correctly");
+        .as("The user's experience weighting should be taken into account, and result rounded correctly");
   }
 
   @Test
-  void config_disregardExperienceRating() {
+  void config_disregardExperienceWeighting() {
     final User user = fakeEntities.randomUser().experienceWeightingPercent(50);
 
     final TimeGroup timeGroup = fakeEntities
@@ -108,13 +108,13 @@ class DurationCalculatorTest {
 
     final DurationCalculator.Result result = DurationCalculator
         .of(timeGroup)
-        .disregardExperienceRating()
+        .disregardExperienceWeighting()
         .useDurationFrom(DurationSource.TIME_GROUP)
         .calculate();
 
     assertThat(result.getTotalDuration())
         .isEqualTo(120)
-        .as("The user's experience rating should be ignored");
+        .as("The user's experience weighting should be ignored");
   }
 
   @Test
@@ -127,7 +127,7 @@ class DurationCalculatorTest {
 
     final DurationCalculator.Result result = DurationCalculator
         .of(timeGroup)
-        .disregardExperienceRating()
+        .disregardExperienceWeighting()
         .useDurationFrom(DurationSource.TIME_GROUP)
         .calculate();
 
@@ -146,7 +146,7 @@ class DurationCalculatorTest {
 
     final DurationCalculator.Result result = DurationCalculator
         .of(timeGroup)
-        .disregardExperienceRating()
+        .disregardExperienceWeighting()
         .useDurationFrom(DurationSource.TIME_GROUP)
         .calculate();
 
