@@ -25,7 +25,7 @@ class TemplateFormatterTest {
 
     assertThat(result)
         .as("check template formatter result")
-        .isEqualTo("groupName [16m 40s]\r\ndescription");
+        .isEqualTo("groupName [16m 40s]\ndescription");
   }
 
   private TimeGroup prepareTimeGroup() {
@@ -48,7 +48,7 @@ class TemplateFormatterTest {
 
     assertThat(result)
         .as("check template formatter result")
-        .isEqualTo("groupName [16m 40s]\r\r\ndescription\r\r\n\r\r\n  15:00 - Application - Window Title");
+        .isEqualTo("groupName [16m 40s]\r\ndescription\r\n\r\n  15:00 - Application - Window Title");
   }
 
   private TimeGroup prepareTimeGroupWithTimeRow() {
