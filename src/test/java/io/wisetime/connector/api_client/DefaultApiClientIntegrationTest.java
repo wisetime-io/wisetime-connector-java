@@ -19,6 +19,9 @@ import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
 import io.wisetime.connector.logging.DisabledMessagePublisher;
+import io.wisetime.generated.connect.AddKeywordsRequest;
+import io.wisetime.generated.connect.DeleteKeywordRequest;
+import io.wisetime.generated.connect.DeleteTagRequest;
 import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.TeamInfoResult;
@@ -121,7 +124,7 @@ class DefaultApiClientIntegrationTest {
     defaultApiClient.tagAddKeywords(
         new AddKeywordsRequest()
             .tagName("CreatedViaApi")
-            .additionalKeywords(ImmutableList.of("keyword_from_API" , "keyword with space"))
+            .additionalKeywords(ImmutableList.of("keyword_from_API", "keyword with space"))
     );
   }
 
@@ -142,7 +145,7 @@ class DefaultApiClientIntegrationTest {
     defaultApiClient.tagAddKeywords(
         new AddKeywordsRequest()
             .tagName("tag/name")
-            .additionalKeywords(ImmutableList.of("key/word 1" , "key/word 2"))
+            .additionalKeywords(ImmutableList.of("key/word 1", "key/word 2"))
     );
   }
 
@@ -173,7 +176,7 @@ class DefaultApiClientIntegrationTest {
       return;
     }
     UnsubscribeRequest unsubscribeRequest = new UnsubscribeRequest();
-    unsubscribeRequest.setWebhookId ("enter webhookId");
+    unsubscribeRequest.setWebhookId("enter webhookId");
     UnsubscribeResult response = defaultApiClient.postedTimeUnsubscribe(unsubscribeRequest);
     log.info(response.toString());
   }

@@ -4,8 +4,6 @@
 
 package io.wisetime.connector.logging;
 
-import com.github.javafaker.Faker;
-
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,8 +25,6 @@ import static org.mockito.Mockito.verify;
  * @author galya.bogdanova@staff.wisetime.io
  */
 class WtTurboFilterTest {
-
-  private static final Faker faker = Faker.instance();
 
   private static SQLiteMessagePublisher sqLiteMessagePublisherMock;
   private static WtTurboFilter wtTurboFilter;

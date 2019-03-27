@@ -22,6 +22,8 @@ import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.connector.logging.DisabledMessagePublisher;
 import io.wisetime.generated.connect.AddKeywordsRequest;
 import io.wisetime.generated.connect.AddKeywordsResponse;
+import io.wisetime.generated.connect.DeleteTagRequest;
+import io.wisetime.generated.connect.DeleteTagResponse;
 import io.wisetime.generated.connect.UpsertTagRequest;
 import io.wisetime.generated.connect.UpsertTagResponse;
 
@@ -131,6 +133,20 @@ public class DefaultApiClientTest {
 
     assertThatExceptionOfType(IOException.class).isThrownBy(() ->
         apiClient.tagAddKeywordsBatch(fakeAddKeywordsRequests(3))
+    );
+  }
+
+  @Test
+  void tagDelete_completes_on_no_error() throws IOException {
+    when(requestExecutor.executeTypedBodyRequest(any(), any(), any()))
+        .thenReturn(new DeleteTagResponse());
+
+    apiClient.tagDelete(new DeleteTagRequest().name("name"));
+
+    verify(requestExecutor).executeTypedBodyRequest(
+        any(),
+        any(EndpointPath.TagDelete.getClass()),
+        any(DeleteTagRequest.class)
     );
   }
 
