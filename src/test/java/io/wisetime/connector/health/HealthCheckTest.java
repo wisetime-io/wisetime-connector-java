@@ -18,6 +18,7 @@ import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 import io.wisetime.connector.ServerStartTest;
+import io.wisetime.connector.logging.DisabledMessagePublisher;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -114,7 +115,7 @@ class HealthCheckTest {
   }
 
   private HealthCheck createHealthCheck(Supplier<DateTime> lastRunSuccess, Supplier<Boolean> connectorHealthCheck) {
-    return new HealthCheck(serverPort, lastRunSuccess, connectorHealthCheck)
+    return new HealthCheck(serverPort, lastRunSuccess, connectorHealthCheck, new DisabledMessagePublisher(), true)
         .setLowLatencyTolerance()
         .setShutdownFunction(() -> shutdownCalled.set(true));
   }
