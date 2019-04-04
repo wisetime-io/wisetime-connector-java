@@ -189,13 +189,14 @@ public class ServerRunner {
    */
   public static class ServerBuilder {
 
-    private int port = 8080;
     private boolean useSlf4JOnly = false;
     private boolean persistentStorageOnly = false;
     private WiseTimeConnector wiseTimeConnector;
     private ApiClient apiClient;
     private String apiKey;
     private String shutdownToken;
+
+    private static final int DEFAULT_WEBHOOK_PORT = 8080;
 
     /**
      * Build {@link ServerRunner}. Make sure to set {@link WiseTimeConnector} and apiKey or apiClient before calling this
@@ -231,7 +232,10 @@ public class ServerRunner {
       }
 
       IntegrateApplication sparkApp = new IntegrateApplication(wiseTimeConnector, messagePublisher);
-      Server server = new Server(getPort());
+
+      final int port = RuntimeConfig.getInt(ConnectorConfigKey.WEBHOOK_PORT).orElse(DEFAULT_WEBHOOK_PORT);
+
+      Server server = new Server(port);
 
       WebAppContext webAppContext = createWebAppContext();
 
@@ -248,7 +252,7 @@ public class ServerRunner {
       }
       server.setHandler(handlerCollection);
 
-      addCustomizers(getPort(), server);
+      addCustomizers(port, server);
 
       ConnectorModule connectorModule = new ConnectorModule(
           apiClient,
@@ -407,18 +411,6 @@ public class ServerRunner {
       // `http-forwarded` module as a customizer
       httpConfig.addCustomizer(new org.eclipse.jetty.server.ForwardedRequestCustomizer());
       return httpConfig;
-    }
-
-    public int getPort() {
-      return port;
-    }
-
-    /**
-     * Set custom server port. Default is 8080.
-     */
-    public ServerBuilder withPort(int port) {
-      this.port = port;
-      return this;
     }
 
     public ServerBuilder useSlf4JOnly(boolean useSlf4JOnly) {

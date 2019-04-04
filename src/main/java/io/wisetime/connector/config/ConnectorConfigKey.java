@@ -41,15 +41,19 @@ public enum ConnectorConfigKey implements RuntimeConfigKey {
    */
   HEALTH_MAX_MINS_SINCE_SUCCESS("HEALTH_MAX_MINS_SINCE_SUCCESS"),
   /**
-   * Flags if the core library runs as a stand-alone application or a sub-process.
-   * Affects the HealthCheck. If true, it exits the environment on max successive failures reached.
-   * Affects logging to the local DB. If true, no logging is saved in the local DB.
+   * Flags if the core library runs as a stand-alone application or a sub-process. Affects the HealthCheck. If true, it exits
+   * the environment on max successive failures reached. Affects logging to the local DB. If true, no logging is saved in the
+   * local DB.
    */
   RUNNING_AS_MAIN_PROCESS("RUNNING_AS_MAIN_PROCESS"),
   /**
    * Default is https://wisetime.io/connect/api.
    */
-  API_BASE_URL("API_BASE_URL");
+  API_BASE_URL("API_BASE_URL"),
+  /**
+   * Default port is 8080
+   */
+  WEBHOOK_PORT("WEBHOOK_PORT");
 
   private final String configKey;
 
