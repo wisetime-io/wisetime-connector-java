@@ -17,7 +17,7 @@ The WiseTime Connector Library is available on Maven Central. You can include it
 #### Gradle
 
 ```groovy
-compile 'io.wisetime:wisetime-connector:1.1.3'
+compile 'io.wisetime:wisetime-connector:1.3.3'
 ```
 
 #### Maven
@@ -85,9 +85,6 @@ public class ConnectorLauncher {
    */
   public static void main(final String... args) throws Exception {
     
-    // WEBHOOK_PORT is an optional config. Default to 8080 if not set
-    System.setProperty(WEBHOOK_PORT.getConfigKey(), "8080");
-    
     ServerRunner.createServerBuilder()
         .withWiseTimeConnector(new HelloConnector())
         .build()
@@ -96,7 +93,7 @@ public class ConnectorLauncher {
 }
 ```
 
-The connector will launch a web server at port 8080. The server implements the [Posted Time Webhook](https://wisetime.io/docs/connect/posted-time-webhook/) that WiseTime will call whenever a user posts time to the team.
+The connector will launch a web server at port 8080 by default. The server implements the [Posted Time Webhook] (https://wisetime.io/docs/connect/posted-time-webhook/) that WiseTime will call whenever a user posts time to the team.
 
 ## Sample Project
 
