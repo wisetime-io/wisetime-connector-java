@@ -84,9 +84,12 @@ public class ConnectorLauncher {
    * Application entry point
    */
   public static void main(final String... args) throws Exception {
+    
+    // WEBHOOK_PORT is an optional config. Default to 8080 if not set
+    System.setProperty(WEBHOOK_PORT.getConfigKey(), "8080");
+    
     ServerRunner.createServerBuilder()
         .withWiseTimeConnector(new HelloConnector())
-        .withPort(8080)
         .build()
         .startServer();
   }

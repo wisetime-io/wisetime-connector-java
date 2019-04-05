@@ -22,6 +22,7 @@ import io.wisetime.connector.test_util.SparkTestUtil;
 import io.wisetime.connector.test_util.TemporaryFolder;
 import io.wisetime.connector.test_util.TemporaryFolderExtension;
 
+import static io.wisetime.connector.config.ConnectorConfigKey.WEBHOOK_PORT;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
@@ -58,10 +59,10 @@ public class ServerStartTest {
   public static Server createTestServer() throws Exception {
     WiseTimeConnector mockConnector = mock(WiseTimeConnector.class);
     ApiClient mockApiClient = mock(ApiClient.class);
+    System.setProperty(WEBHOOK_PORT.getConfigKey(), "0");
     ServerRunner runner = ServerRunner.createServerBuilder()
         .withWiseTimeConnector(mockConnector)
         .withApiClient(mockApiClient)
-        .withPort(0)
         .useSlf4JOnly(true)
         .build();
     long startTime = System.currentTimeMillis();
