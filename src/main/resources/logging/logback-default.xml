@@ -20,7 +20,7 @@
         <propertiesFilePath>runTimePropertyPath</propertiesFilePath>
     </appender>
 
-    <root level="ALL" additivity="false">
+    <root level="INFO" additivity="false">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="AWS_CLOUD"/>
     </root>
