@@ -5,17 +5,14 @@
 package io.wisetime.connector.health;
 
 import org.apache.http.client.fluent.Executor;
-import org.apache.http.client.fluent.Request;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
-import io.wisetime.connector.webhook.WebhookApplication;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
 import io.wisetime.connector.logging.MessagePublisher;

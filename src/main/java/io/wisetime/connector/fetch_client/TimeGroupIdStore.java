@@ -29,7 +29,8 @@ public class TimeGroupIdStore {
 
   public boolean alreadySeen(String timeGroupId) {
     return sqLiteHelper.query()
-        .select("SELECT received_timestamp FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() + " WHERE time_group_id=? AND received_timestamp > ?")
+        .select("SELECT received_timestamp FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
+            " WHERE time_group_id=? AND received_timestamp > ?")
         .params(timeGroupId, System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(30))
         .firstResult(rs -> rs.getLong(1))
         .isPresent();
@@ -39,12 +40,14 @@ public class TimeGroupIdStore {
     final Query query = sqLiteHelper.query();
     query.transaction().inNoResult(() -> {
       long timeStamp = System.currentTimeMillis();
-      UpdateResult result = query.update("UPDATE " + TABLE_TIME_GROUPS_RECEIVED.getName() + " SET received_timestamp=? WHERE time_group_id=?")
+      UpdateResult result = query.update("UPDATE " + TABLE_TIME_GROUPS_RECEIVED.getName() +
+          " SET received_timestamp=? WHERE time_group_id=?")
           .params(timeStamp, timeGroupId)
           .run();
       if (result.affectedRows() == 0) {
         // new key value
-        query.update("INSERT INTO " + TABLE_TIME_GROUPS_RECEIVED.getName() + " (time_group_id,received_timestamp) VALUES (?,?)")
+        query.update("INSERT INTO " + TABLE_TIME_GROUPS_RECEIVED.getName() +
+            " (time_group_id,received_timestamp) VALUES (?,?)")
             .params(timeGroupId, timeStamp)
             .run();
       }

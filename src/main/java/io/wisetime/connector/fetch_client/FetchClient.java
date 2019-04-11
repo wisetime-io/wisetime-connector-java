@@ -8,7 +8,6 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
@@ -86,6 +85,9 @@ public class FetchClient implements Runnable, TimePosterRunner {
                           .fetchClientId(fetchClientId)
                           .message(result.getMessage().orElse("Unexpected error while posting time")));
                       break;
+                    default:
+                      // do nothing
+                      log.debug("TRANSIENT_FAILURE for time group");
                   }
                 } catch (Exception e) {
                   log.error("Error while updating posted time status.", e);
