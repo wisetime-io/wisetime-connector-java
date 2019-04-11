@@ -13,6 +13,8 @@ import io.wisetime.generated.connect.DeleteTagRequest;
 import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.TeamInfoResult;
+import io.wisetime.generated.connect.TimeGroup;
+import io.wisetime.generated.connect.TimeGroupStatus;
 import io.wisetime.generated.connect.UnsubscribeRequest;
 import io.wisetime.generated.connect.UnsubscribeResult;
 import io.wisetime.generated.connect.UpsertTagRequest;
@@ -104,4 +106,22 @@ public interface ApiClient {
    * @throws IOException if request is unsuccessful
    */
   UnsubscribeResult postedTimeUnsubscribe(UnsubscribeRequest unsubscribeRequest) throws IOException;
+
+  /**
+   * Fetches a posted time group.
+   *
+   * @param fetchClientId the id of the fetch client
+   * @param limit the maximum amount of time groups received by call. Valid values: 1-25
+   * @return a list of time groups. Or empty list if time out is reached.
+   * @throws IOException if request is unsuccessful
+   */
+  List<TimeGroup> fetchTimeGroups(String fetchClientId, int limit) throws IOException;
+
+  /**
+   * Marks a time groups as either successfully posted or failed by id.
+   *
+   * @param timeGroupStatus contains the time group id, the actual status of the time group and an error message
+   * @throws IOException if the request was unsuccessful
+   */
+  void updatePostedTimeStatus(TimeGroupStatus timeGroupStatus) throws IOException;
 }

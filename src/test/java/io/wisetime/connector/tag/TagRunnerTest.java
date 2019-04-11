@@ -2,12 +2,14 @@
  * Copyright (c) 2018 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector.server;
+package io.wisetime.connector.tag;
 
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicBoolean;
+
+import io.wisetime.connector.tag.TagRunner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

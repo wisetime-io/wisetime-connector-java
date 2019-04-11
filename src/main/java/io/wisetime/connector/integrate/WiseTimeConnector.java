@@ -30,12 +30,12 @@ public interface WiseTimeConnector {
   void performTagUpdate();
 
   /**
-   * Called via the defined webhook when a user posts time to the given team.
+   * Called via the defined webhook or via the listening fetch client when a user posts time to the given team.
    * <p>
    * If a RunTimeException is thrown, this will be treated as a transient error, the operation will be retried after a
    * delay.
    *
-   * @param request        The full request that the server received.
+   * @param request        The full request that the server received or null if the fetch client is used.
    * @param userPostedTime For convenience, the json body of the request is provided as a Java object model representation.
    * @return The result of the post operation.
    *
