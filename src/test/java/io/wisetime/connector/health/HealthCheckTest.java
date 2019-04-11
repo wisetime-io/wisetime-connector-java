@@ -86,7 +86,6 @@ class HealthCheckTest {
     return createHealthCheck(lastRunSuccess, () -> Boolean.TRUE, () -> Boolean.TRUE);
   }
 
-
   private HealthCheck createHealthCheck(Supplier<DateTime> lastRunSuccess, Supplier<Boolean> connectorHealthCheck,
                                         Supplier<Boolean> timePosterHealthCheck) {
     return new HealthCheck(lastRunSuccess, timePosterHealthCheck, connectorHealthCheck)

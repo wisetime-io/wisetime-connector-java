@@ -41,7 +41,6 @@ public class WebhookApplication implements SparkApplication {
   private final ObjectMapper om;
   private final WiseTimeConnector wiseTimeConnector;
 
-
   public WebhookApplication(WiseTimeConnector wiseTimeConnector) {
     this.wiseTimeConnector = wiseTimeConnector;
     om = TolerantObjectMapper.create();

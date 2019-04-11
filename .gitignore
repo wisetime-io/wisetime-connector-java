@@ -19,7 +19,6 @@ out/
 **/.DS_Store
 **/*.db
 result.xml
-<<<<<<< HEAD
 .gcache
 **/*.env
 test-*.yaml

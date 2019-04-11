@@ -27,6 +27,7 @@ import io.wisetime.generated.connect.TimeGroupStatus;
 public class FetchClient implements Runnable, TimePosterRunner {
 
   private static final String IN_PROGRESS = "IN_PROGRESS";
+
   private static final int MAX_MINS_SINCE_SUCCESS = 10;
 
   private static final Logger log = LoggerFactory.getLogger(FetchClient.class);
