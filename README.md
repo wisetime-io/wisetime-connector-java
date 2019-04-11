@@ -75,7 +75,7 @@ public class HelloConnector implements WiseTimeConnector {
 
 ### Start the Connector
 
-Then, use your connector implementation when starting the server.
+Then, use your connector implementation when starting the connector.
 
 ```java
 public class ConnectorLauncher {
@@ -85,15 +85,18 @@ public class ConnectorLauncher {
    */
   public static void main(final String... args) throws Exception {
     
-    ServerRunner.createServerBuilder()
+    ConnectorRunner.createConnectorBuilder()
+        .useWebhook() // or useFetchClient("yourFetchClientId")
         .withWiseTimeConnector(new HelloConnector())
         .build()
-        .startServer();
+        .start();
   }
 }
 ```
 
-The connector will launch a web server at port 8080 by default. The server implements the [Posted Time Webhook] (https://wisetime.io/docs/connect/posted-time-webhook/) that WiseTime will call whenever a user posts time to the team.
+The connector will launch a web server at port 8080 when calling useWebhook(). The server implements the [Posted Time Webhook] (https://wisetime.io/docs/connect/posted-time-webhook/) that WiseTime will call whenever a user posts time to the team.
+
+When using useFetchClient(fetchClientId). The connector will use long polling to retrieve time posted to the team from WiseTime.
 
 ## Sample Project
 

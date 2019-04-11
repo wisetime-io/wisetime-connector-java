@@ -15,7 +15,7 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
-import io.wisetime.connector.IntegrateApplication;
+import io.wisetime.connector.webhook.WebhookApplication;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
 import io.wisetime.connector.logging.MessagePublisher;
@@ -45,9 +45,9 @@ public class HealthCheck extends TimerTask {
   static final int MAX_SUCCESSIVE_FAILURES = 3;
   static final int MAX_MINS_SINCE_SUCCESS_DEFAULT = 60;
 
-  private final int port;
   private final Executor executor = Executor.newInstance();
   private final Supplier<DateTime> lastRunSuccess;
+  private final Supplier<Boolean> timePosterHealthCheck;
   private final Supplier<Boolean> connectorHealthCheck;
   private final AtomicInteger failureCount;
   private final int maxMinsSinceSuccess;
@@ -62,9 +62,10 @@ public class HealthCheck extends TimerTask {
    * @param lastRunSuccess       Provides the last time the tag upsert method was run.
    * @param connectorHealthCheck Optionally, the connector implementation can provide a health check via this function.
    */
-  public HealthCheck(int port, Supplier<DateTime> lastRunSuccess, Supplier<Boolean> connectorHealthCheck,
-                     MessagePublisher messagePublisher, boolean exitOnMaxSuccessiveFailures) {
-    this.port = port;
+  public HealthCheck(Supplier<DateTime> lastRunSuccess, Supplier<Boolean> timePosterHealthCheck,
+                     Supplier<Boolean> connectorHealthCheck, MessagePublisher messagePublisher,
+                     boolean exitOnMaxSuccessiveFailures) {
+    this.timePosterHealthCheck = timePosterHealthCheck;
     this.lastRunSuccess = lastRunSuccess;
     this.connectorHealthCheck = connectorHealthCheck;
     this.failureCount = new AtomicInteger(0);
@@ -119,16 +120,17 @@ public class HealthCheck extends TimerTask {
         return false;
       }
 
+      if (Boolean.FALSE.equals(timePosterHealthCheck.get())) {
+        log.info("Unhealthy state where timePosterHealthCheck returned false");
+        return false;
+      }
+
       if (Boolean.FALSE.equals(connectorHealthCheck.get())) {
         log.info("Unhealthy state where connectorHealthCheck returned false");
         return false;
       }
-
-      boolean isEndpointRespondingInTime = checkEndpointHealth();
-      if (!isEndpointRespondingInTime) {
-        log.info("Unhealthy state where endpoint is not responding in time or with a valid result.");
-      }
-      return isEndpointRespondingInTime;
+      // All checks passed
+      return true;
     } catch (Throwable t) {
       log.error("Unhealthy state where exception occurred checking health, returning unhealthy; msg='{}'",
           t.getMessage(), t);
@@ -136,7 +138,7 @@ public class HealthCheck extends TimerTask {
     }
   }
 
-  private boolean checkEndpointHealth() throws IOException {
+  /*private boolean checkEndpointHealth() throws IOException {
     if (port == 0) {
       // running on ephemeral port, skip http check
       return true;
@@ -150,8 +152,8 @@ public class HealthCheck extends TimerTask {
             .socketTimeout(latencyTolerance))
         .returnContent().asString();
 
-    return IntegrateApplication.PING_RESPONSE.equals(result);
-  }
+    return WebhookApplication.PING_RESPONSE.equals(result);
+  }*/
 
   // Visible for testing
   HealthCheck setShutdownFunction(Runnable shutdownFunction) {

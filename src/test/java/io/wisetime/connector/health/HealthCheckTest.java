@@ -4,20 +4,14 @@
 
 package io.wisetime.connector.health;
 
-import org.eclipse.jetty.server.Server;
 import org.joda.time.DateTime;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
-import io.wisetime.connector.ServerStartTest;
 import io.wisetime.connector.logging.DisabledMessagePublisher;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -26,29 +20,12 @@ import static org.assertj.core.api.Assertions.assertThat;
  * @author thomas.haines@practiceinsight.io
  */
 class HealthCheckTest {
-  private static final Logger log = LoggerFactory.getLogger(HealthCheckTest.class);
 
-  private static Server testServer;
-  private static int serverPort = 0;
   private AtomicBoolean shutdownCalled;
-
-  @BeforeAll
-  static void setupServer() throws Exception {
-    testServer = ServerStartTest.createTestServer();
-    serverPort = ServerStartTest.getPort(testServer);
-  }
 
   @BeforeEach
   void setup() {
     shutdownCalled = new AtomicBoolean(false);
-  }
-
-  @AfterAll
-  static void tearDown() throws Exception {
-    if (testServer != null && testServer.isRunning()) {
-      testServer.stop();
-      log.info("server shutdown success");
-    }
   }
 
   @Test
@@ -63,11 +40,9 @@ class HealthCheckTest {
   }
 
   @Test
-  void testServerDown() throws Exception {
-    // stop server
-    testServer.stop();
+  void testServerDown() {
+    final HealthCheck healthCheck = createHealthCheck(DateTime::now, () -> Boolean.TRUE, () -> Boolean.FALSE);
 
-    final HealthCheck healthCheck = createHealthCheck(DateTime::now);
     healthCheck.run();
     assertThat(healthCheck.getFailureCount())
         .as("expect server is without failure")
@@ -76,7 +51,7 @@ class HealthCheckTest {
 
   @Test
   void testConnectorUnhealthy_thenShutdown() {
-    final HealthCheck healthCheck = createHealthCheck(DateTime::now, () -> Boolean.FALSE);
+    final HealthCheck healthCheck = createHealthCheck(DateTime::now, () -> Boolean.FALSE, () -> Boolean.TRUE);
 
     IntStream.range(1, HealthCheck.MAX_SUCCESSIVE_FAILURES + 1).forEach(runCount -> {
       healthCheck.run();
@@ -111,11 +86,13 @@ class HealthCheckTest {
   }
 
   private HealthCheck createHealthCheck(Supplier<DateTime> lastRunSuccess) {
-    return createHealthCheck(lastRunSuccess, () -> Boolean.TRUE);
+    return createHealthCheck(lastRunSuccess, () -> Boolean.TRUE, () -> Boolean.TRUE);
   }
 
-  private HealthCheck createHealthCheck(Supplier<DateTime> lastRunSuccess, Supplier<Boolean> connectorHealthCheck) {
-    return new HealthCheck(serverPort, lastRunSuccess, connectorHealthCheck, new DisabledMessagePublisher(), true)
+  private HealthCheck createHealthCheck(Supplier<DateTime> lastRunSuccess, Supplier<Boolean> connectorHealthCheck,
+                                        Supplier<Boolean> timePosterHealthCheck) {
+    return new HealthCheck(lastRunSuccess, timePosterHealthCheck, connectorHealthCheck,
+        new DisabledMessagePublisher(), true)
         .setLowLatencyTolerance()
         .setShutdownFunction(() -> shutdownCalled.set(true));
   }

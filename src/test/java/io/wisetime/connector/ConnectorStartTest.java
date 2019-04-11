@@ -21,6 +21,7 @@ import io.wisetime.connector.integrate.WiseTimeConnector;
 import io.wisetime.connector.test_util.SparkTestUtil;
 import io.wisetime.connector.test_util.TemporaryFolder;
 import io.wisetime.connector.test_util.TemporaryFolderExtension;
+import io.wisetime.connector.webhook.WebhookServerRunner;
 
 import static io.wisetime.connector.config.ConnectorConfigKey.WEBHOOK_PORT;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -31,8 +32,8 @@ import static org.mockito.Mockito.mock;
  */
 @ExtendWith(TemporaryFolderExtension.class)
 @SuppressWarnings("WeakerAccess")
-public class ServerStartTest {
-  private static final Logger log = LoggerFactory.getLogger(ServerStartTest.class);
+public class ConnectorStartTest {
+  private static final Logger log = LoggerFactory.getLogger(ConnectorStartTest.class);
 
   static TemporaryFolder testExtension;
 
@@ -60,7 +61,8 @@ public class ServerStartTest {
     WiseTimeConnector mockConnector = mock(WiseTimeConnector.class);
     ApiClient mockApiClient = mock(ApiClient.class);
     System.setProperty(WEBHOOK_PORT.getConfigKey(), "0");
-    ServerRunner runner = ServerRunner.createServerBuilder()
+    ConnectorRunner runner = ConnectorRunner.createConnectorBuilder()
+        .useWebhook()
         .withWiseTimeConnector(mockConnector)
         .withApiClient(mockApiClient)
         .useSlf4JOnly(true)
@@ -68,7 +70,7 @@ public class ServerStartTest {
     long startTime = System.currentTimeMillis();
 
     startServerRunner(runner);
-    Server server = runner.getServer();
+    Server server = ((WebhookServerRunner)runner.getTimePosterRunner()).getServer();
     SparkTestUtil testUtil = new SparkTestUtil(getPort(server));
 
     RetryPolicy retryPolicy = new RetryPolicy()
@@ -85,9 +87,9 @@ public class ServerStartTest {
   /**
    * Start server runner for tests. Server start is not blocking, not timer tasks scheduled.
    */
-  private static void startServerRunner(ServerRunner serverRunner) throws Exception {
+  private static void startServerRunner(ConnectorRunner serverRunner) throws Exception {
     serverRunner.initWiseTimeConnector();
-    serverRunner.getServer().start();
+    serverRunner.getTimePosterRunner().start();
   }
 
   private static void getHome(SparkTestUtil testUtil) throws Exception {

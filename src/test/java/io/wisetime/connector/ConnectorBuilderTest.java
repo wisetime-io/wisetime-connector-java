@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets;
 
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
-import io.wisetime.connector.ServerRunner.ServerBuilder;
+import io.wisetime.connector.ConnectorRunner.ConnectorBuilder;
 import io.wisetime.connector.logging.DisabledMessagePublisher;
 import io.wisetime.connector.logging.WtTurboFilter;
 
@@ -23,11 +23,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 /**
  * @author thomas.haines@practiceinsight.io
  */
-class ServerBuilderTest {
+class ConnectorBuilderTest {
 
   @Test
   void createDynamicJoranConfigPath() throws IOException {
-    String path = ServerBuilder.createDynamicJoranConfigPath("/logging/logback-default.xml", "");
+    String path = ConnectorBuilder.createDynamicJoranConfigPath("/logging/logback-default.xml", "");
 
     String result = FileUtils.readFileToString(new File(path), StandardCharsets.UTF_8);
 
@@ -38,7 +38,7 @@ class ServerBuilderTest {
 
   @Test
   void createDynamicJoranConfigWithPath() throws IOException {
-    String path = ServerBuilder.createDynamicJoranConfigPath("/logging/logback-default.xml", "myPath");
+    String path = ConnectorBuilder.createDynamicJoranConfigPath("/logging/logback-default.xml", "myPath");
 
     String result = FileUtils.readFileToString(new File(path), StandardCharsets.UTF_8);
 
@@ -49,7 +49,7 @@ class ServerBuilderTest {
 
   @Test
   void addWtTurboFilterToLoggerContext() {
-    final ServerBuilder serverBuilder = new ServerBuilder();
+    final ConnectorBuilder serverBuilder = new ConnectorBuilder();
     serverBuilder.configureStandardLogging("invalidLogXmlResource", new WtTurboFilter(new DisabledMessagePublisher()));
 
     Logger rootLogger = (Logger) LoggerFactory.getLogger("root");

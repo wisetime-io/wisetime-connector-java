@@ -15,8 +15,8 @@ class FolderWatchParam {
   @CommandLine.Option(names = {"--apiKey", "--key", "-k"}, description = "api key when using the default api client")
   String apiKey = "";
 
-  @CommandLine.Option(names = {"--callerKey"}, description = "caller key to verify the origin of posted time requests")
-  String callerKey = "";
+  @CommandLine.Option(names = {"--fetchClientId"}, description = "fetch client id provided after activating in WiseTime")
+  String fetchClientId = "";
 
   @CommandLine.Option(names = {"--watchDir", "-d", "--dir"}, required = true,
       description = "folder to watch for new files (which are uploaded as tags)")
@@ -45,8 +45,8 @@ class FolderWatchParam {
     return watchFolder;
   }
 
-  String getCallerKey() {
-    return callerKey;
+  String getFetchClientId() {
+    return fetchClientId;
   }
 
   public boolean isTemplateUseWinClr() {

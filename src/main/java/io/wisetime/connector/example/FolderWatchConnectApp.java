@@ -9,8 +9,8 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.File;
 import java.util.concurrent.Callable;
 
-import io.wisetime.connector.ServerRunner;
-import io.wisetime.connector.ServerRunner.ServerBuilder;
+import io.wisetime.connector.ConnectorRunner;
+import io.wisetime.connector.ConnectorRunner.ConnectorBuilder;
 import io.wisetime.connector.template.TemplateFormatter;
 import io.wisetime.connector.template.TemplateFormatterConfig;
 import picocli.CommandLine;
@@ -30,7 +30,7 @@ public class FolderWatchConnectApp extends FolderWatchParam implements Callable<
 
   @Override
   public Void call() throws Exception {
-    ServerBuilder serverBuilder = ServerRunner.createServerBuilder();
+    ConnectorBuilder serverBuilder = ConnectorRunner.createConnectorBuilder();
 
     if (!StringUtils.isBlank(getApiKey())) {
       serverBuilder.withApiKey(getApiKey().trim());
@@ -40,8 +40,8 @@ public class FolderWatchConnectApp extends FolderWatchParam implements Callable<
       paramFailure("apiKey is required when default api client is used");
     }
 
-    if (StringUtils.isBlank(getCallerKey())) {
-      paramFailure("caller key is required");
+    if (StringUtils.isBlank(getFetchClientId())) {
+      paramFailure("fetchClientId is required");
     }
 
     final File watchDir = new File(getWatchFolder());
@@ -58,15 +58,15 @@ public class FolderWatchConnectApp extends FolderWatchParam implements Callable<
     // our basic connector implementation for this example
     final FolderBasedConnector folderConnector = new FolderBasedConnector(
         watchDir,
-        getCallerKey(),
         new TemplateFormatter(templateConfig));
 
-    ServerRunner runner = serverBuilder
+    ConnectorRunner runner = serverBuilder
+        .useFetchClient(getFetchClientId())
         .withWiseTimeConnector(folderConnector)
         .build();
 
     // blocking call
-    runner.startServer();
+    runner.start();
 
     return null;
   }
