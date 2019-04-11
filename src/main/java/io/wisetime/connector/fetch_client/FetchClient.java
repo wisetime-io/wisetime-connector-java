@@ -85,6 +85,9 @@ public class FetchClient implements Runnable, TimePosterRunner {
                           .fetchClientId(fetchClientId)
                           .message(result.getMessage().orElse("Unexpected error while posting time")));
                       break;
+                    default:
+                      // do nothing
+                      log.debug("TRANSIENT_FAILURE for time group");
                   }
                 } catch (Exception e) {
                   log.error("Error while updating posted time status.", e);
