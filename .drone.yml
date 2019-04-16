@@ -7,7 +7,7 @@ steps:
     image: alpine:latest
     commands:
       - mkdir -p /tmp/gradle/wrapper
-      - mkdir -p /tmp/gradle/cache/modules-2
+      - mkdir -p "/tmp/gradle/${DRONE_REPO_NAME}/cache/modules-2"
     volumes:
       - name: host-tmp
         path: /tmp
@@ -63,7 +63,7 @@ volumes:
       path: /tmp/gradle/wrapper
   - name: gradle-modules-2
     host:
-      path: /tmp/gradle/cache/modules-2
+      path: /tmp/gradle/${DRONE_REPO_NAME}/cache/modules-2
 
 trigger:
   event:
