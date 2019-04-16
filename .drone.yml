@@ -54,6 +54,20 @@ steps:
         include:
           - master
 
+  - name: cascade-to-bamboo
+    image: openjdk:8-jdk
+    environment:
+      BAMBOO_USER:
+        from_secret: bamboo-user
+      BAMBOO_PASS:
+        from_secret: bamboo-pass
+    commands:
+      - ./bin/cascade.sh
+    when:
+      branch:
+        include:
+          - master
+
 volumes:
   - name: host-tmp
     host:
@@ -82,7 +96,7 @@ steps:
       GITHUB_SSH_KEY_B64:
         from_secret: github-ssh-key-b64
     commands:
-      - ./mirror.sh
+      - ./bin/mirror.sh
     when:
       branch:
         include:
@@ -112,3 +126,17 @@ name: github-ssh-key-b64
 get:
   path: drone/publish/github/core-log
   name: gh-connector-java-key-b64
+
+---
+kind: secret
+name: bamboo-user
+get:
+  path: drone/trigger/bamboo
+  name: bamboo-user
+
+---
+kind: secret
+name: bamboo-pass
+get:
+  path: drone/trigger/bamboo
+  name: bamboo-pass
