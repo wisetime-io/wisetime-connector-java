@@ -18,3 +18,4 @@ out/
 **/*.iws
 **/.DS_Store
 **/*.db
+result.xml
