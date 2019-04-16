@@ -55,7 +55,7 @@ steps:
           - master
 
   - name: cascade-to-bamboo
-    image: openjdk:8-jdk
+    image: buildpack-deps:stretch-curl
     environment:
       BAMBOO_USER:
         from_secret: bamboo-user
