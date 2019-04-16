@@ -9,7 +9,7 @@ publishing {
     }
     publications {
         mavenJava(MavenPublication) {
-            artifactId 'wisetime-inprotech-connector'
+            artifactId project.name
             // version is set via plugin
             from components.java
         }
