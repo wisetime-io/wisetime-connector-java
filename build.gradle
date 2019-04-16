@@ -38,12 +38,6 @@ apply from: "$rootDir/gradle/conf/checkstyle.gradle"
 apply from: "$rootDir/gradle/conf/jacoco.gradle"
 group = 'io.wisetime'
 
-if (getGradle().getStartParameter().getTaskRequests().toString().contains("closeAndReleaseRepository")) {
-    apply from: "$rootDir/gradle/publish_maven_central.gradle"
-} else if (getGradle().getStartParameter().getTaskRequests().toString().contains("publish")) {
-    apply from: "$rootDir/gradle/publish_s3_repo.gradle"
-}
-
 archivesBaseName = 'wisetime-connector'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
@@ -85,12 +79,16 @@ sourceSets {
     }
 }
 
-ext.jacocoLimits = [
-        'instruction': 72,
-        'line'       : 72,
-        'method'     : 75,
-        'class'      : 90
-]
+if (getGradle().getStartParameter().getTaskRequests().toString().contains("closeAndReleaseRepository")) {
+    apply from: "$rootDir/gradle/publish_maven_central.gradle"
+} else if (getGradle().getStartParameter().getTaskRequests().toString().contains("publish")) {
+    apply from: "$rootDir/gradle/publish_s3_repo.gradle"
+}
+
+if (getGradle().getStartParameter().getTaskRequests().toString().contains("dependencyUpdates")) {
+    // add exclusions for reporting on updates and vulnerabilities
+    apply from: "$rootDir/gradle/dependencyUpdates.gradle"
+}
 
 dependencies {
     // spark-core 2.8.0 includes jetty runtime 9.4.12.v20180830
@@ -174,6 +172,13 @@ configurations.all {
         failOnVersionConflict()
     }
 }
+
+ext.jacocoLimits = [
+        'instruction': 72,
+        'line'       : 72,
+        'method'     : 75,
+        'class'      : 90
+]
 
 tasks.withType(Checkstyle) {
     source = sourceSets.main.allJava.matching {
