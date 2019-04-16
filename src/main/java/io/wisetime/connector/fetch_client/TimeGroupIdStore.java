@@ -7,6 +7,7 @@ package io.wisetime.connector.fetch_client;
 import org.codejargon.fluentjdbc.api.query.Query;
 import org.codejargon.fluentjdbc.api.query.UpdateResult;
 
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import io.wisetime.connector.datastore.SQLiteHelper;
@@ -27,28 +28,27 @@ public class TimeGroupIdStore {
     sqLiteHelper.createTable(TABLE_TIME_GROUPS_RECEIVED);
   }
 
-  public boolean alreadySeen(String timeGroupId) {
+  public Optional<String> alreadySeen(String timeGroupId) {
     return sqLiteHelper.query()
-        .select("SELECT received_timestamp FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
+        .select("SELECT post_result FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
             " WHERE time_group_id=? AND received_timestamp > ?")
         .params(timeGroupId, System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(30))
-        .firstResult(rs -> rs.getLong(1))
-        .isPresent();
+        .firstResult(rs -> rs.getString(1));
   }
 
-  public void putTimeGroupId(String timeGroupId) {
+  public void putTimeGroupId(String timeGroupId, String postResult) {
     final Query query = sqLiteHelper.query();
     query.transaction().inNoResult(() -> {
       long timeStamp = System.currentTimeMillis();
       UpdateResult result = query.update("UPDATE " + TABLE_TIME_GROUPS_RECEIVED.getName() +
-          " SET received_timestamp=? WHERE time_group_id=?")
-          .params(timeStamp, timeGroupId)
+          " SET received_timestamp=?, post_result=? WHERE time_group_id=?")
+          .params(timeStamp, postResult, timeGroupId)
           .run();
       if (result.affectedRows() == 0) {
         // new key value
         query.update("INSERT INTO " + TABLE_TIME_GROUPS_RECEIVED.getName() +
-            " (time_group_id,received_timestamp) VALUES (?,?)")
-            .params(timeGroupId, timeStamp)
+            " (time_group_id, post_result, received_timestamp) VALUES (?,?,?)")
+            .params(timeGroupId, postResult, timeStamp)
             .run();
       }
     });

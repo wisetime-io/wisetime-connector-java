@@ -45,8 +45,9 @@ public class HealthCheck extends TimerTask {
   private Runnable shutdownFunction;
 
   /**
-   * @param lastRunSuccess       Provides the last time the tag upsert method was run.
-   * @param connectorHealthCheck Optionally, the connector implementation can provide a health check via this function.
+   * @param timePosterHealthCheck Provides the health state of the used time post method
+   * @param lastRunSuccess        Provides the last time the tag upsert method was run.
+   * @param connectorHealthCheck  Optionally, the connector implementation can provide a health check via this function.
    */
   public HealthCheck(Supplier<DateTime> lastRunSuccess, Supplier<Boolean> timePosterHealthCheck,
                      Supplier<Boolean> connectorHealthCheck) {

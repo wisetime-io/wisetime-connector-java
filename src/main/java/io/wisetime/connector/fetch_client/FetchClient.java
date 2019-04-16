@@ -8,6 +8,7 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
@@ -16,6 +17,7 @@ import io.wisetime.connector.TimePosterRunner;
 import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.integrate.WiseTimeConnector;
+import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeGroupStatus;
 
 /**
@@ -25,26 +27,21 @@ import io.wisetime.generated.connect.TimeGroupStatus;
  */
 public class FetchClient implements Runnable, TimePosterRunner {
 
+  private static final String IN_PROGRESS = "IN_PROGRESS";
   private static final int MAX_MINS_SINCE_SUCCESS = 10;
 
   private static final Logger log = LoggerFactory.getLogger(FetchClient.class);
 
   private ApiClient apiClient;
-
   private TimeGroupIdStore timeGroupIdStore;
-
   private String fetchClientId;
-
   private int limit;
-
   private WiseTimeConnector connector;
-
   private ExecutorService postTimeExecutor;
-
   private final AtomicReference<DateTime> lastSuccessfulRun;
-
   private ExecutorService fetchClientExecutor;
 
+  @SuppressWarnings("ParameterNumber")
   public FetchClient(ApiClient apiClient,
                      WiseTimeConnector connector,
                      TimeGroupIdStore timeGroupIdStore,
@@ -65,37 +62,11 @@ public class FetchClient implements Runnable, TimePosterRunner {
       try {
         apiClient.fetchTimeGroups(fetchClientId, limit).forEach(timeGroup ->
             postTimeExecutor.submit(() -> {
-              if (!timeGroupIdStore.alreadySeen(timeGroup.getGroupId())) {
-                timeGroupIdStore.putTimeGroupId(timeGroup.getGroupId());
+              if (!timeGroupAlreadyProcessed(timeGroup)) {
+                timeGroupIdStore.putTimeGroupId(timeGroup.getGroupId(), IN_PROGRESS);
                 PostResult result = connector.postTime(null, timeGroup);
-                try {
-                  // TRANSIENT_FAILURE doesn't need to be handled.
-                  // simply sending no update is considered a transient failure after a certain timeout
-                  switch (result) {
-                    case SUCCESS:
-                      apiClient.updatePostedTimeStatus(new TimeGroupStatus()
-                          .status(TimeGroupStatus.StatusEnum.SUCCESS)
-                          .timeGroupId(timeGroup.getGroupId())
-                          .fetchClientId(fetchClientId));
-                      break;
-                    case PERMANENT_FAILURE:
-                      apiClient.updatePostedTimeStatus(new TimeGroupStatus()
-                          .status(TimeGroupStatus.StatusEnum.FAILURE)
-                          .timeGroupId(timeGroup.getGroupId())
-                          .fetchClientId(fetchClientId)
-                          .message(result.getMessage().orElse("Unexpected error while posting time")));
-                      break;
-                    default:
-                      // do nothing
-                      log.debug("TRANSIENT_FAILURE for time group");
-                  }
-                } catch (Exception e) {
-                  log.error("Error while updating posted time status.", e);
-                }
-                // At this point we either accepted or failed the time group.
-                // In case of success WiseTime will never send it again
-                // In case of Failure: we want to be able to process it again
-                timeGroupIdStore.deleteTimeGroupId(timeGroup.getGroupId());
+                timeGroupIdStore.putTimeGroupId(timeGroup.getGroupId(), result.name());
+                updateTimeGroupStatus(timeGroup, result);
               }
             })
         );
@@ -103,6 +74,51 @@ public class FetchClient implements Runnable, TimePosterRunner {
       } catch (Exception e) {
         log.error("Error while fetching new time group for fetch client id: " + fetchClientId, e);
       }
+    }
+  }
+
+  private boolean timeGroupAlreadyProcessed(TimeGroup timeGroup) {
+    Optional<String> timeGroupStatus = timeGroupIdStore.alreadySeen(timeGroup.getGroupId());
+    if (!timeGroupStatus.isPresent()) {
+      return false;
+    }
+    if (IN_PROGRESS.equals(timeGroupStatus.get())) {
+      return true;
+    }
+    PostResult postResult = PostResult.valueOf(timeGroupStatus.get());
+    if (postResult == PostResult.SUCCESS || postResult == PostResult.PERMANENT_FAILURE) {
+      // Successfully or permanently failed processed group -> try updating status again
+      updateTimeGroupStatus(timeGroup, postResult);
+      return true;
+    }
+    // recorded transient failure state: process time group
+    return false;
+  }
+
+  private void updateTimeGroupStatus(TimeGroup timeGroup, PostResult result) {
+    try {
+      // TRANSIENT_FAILURE doesn't need to be handled.
+      // simply sending no update is considered a transient failure after a certain timeout
+      switch (result) {
+        case SUCCESS:
+          apiClient.updatePostedTimeStatus(new TimeGroupStatus()
+              .status(TimeGroupStatus.StatusEnum.SUCCESS)
+              .timeGroupId(timeGroup.getGroupId())
+              .fetchClientId(fetchClientId));
+          break;
+        case PERMANENT_FAILURE:
+          apiClient.updatePostedTimeStatus(new TimeGroupStatus()
+              .status(TimeGroupStatus.StatusEnum.FAILURE)
+              .timeGroupId(timeGroup.getGroupId())
+              .fetchClientId(fetchClientId)
+              .message(result.getMessage().orElse("Unexpected error while posting time")));
+          break;
+        default:
+          // do nothing
+          log.debug("TRANSIENT_FAILURE for time group");
+      }
+    } catch (Exception e) {
+      log.error("Error while updating posted time status.", e);
     }
   }
 

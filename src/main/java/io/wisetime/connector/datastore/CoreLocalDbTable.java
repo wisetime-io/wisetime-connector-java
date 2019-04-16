@@ -22,5 +22,6 @@ public final class CoreLocalDbTable {
 
   public static final LocalDbTable TABLE_TIME_GROUPS_RECEIVED = new LocalDbTable("time_groups_received",
       "time_group_id TEXT PRIMARY KEY, " +
-          "received_timestamp INTEGER NOT NULL");
+          "received_timestamp INTEGER NOT NULL, " +
+          "post_result TEXT NOT NULL");
 }

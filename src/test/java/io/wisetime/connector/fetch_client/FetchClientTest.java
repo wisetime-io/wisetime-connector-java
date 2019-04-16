@@ -8,6 +8,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
+import java.util.Optional;
+
 import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.integrate.WiseTimeConnector;
@@ -48,7 +50,8 @@ class FetchClientTest {
     wiseTimeConnectorMock = mock(WiseTimeConnector.class);
     timeGroupIdStoreMock = mock(TimeGroupIdStore.class);
     fetchClientId = faker.numerify("fc######");
-    fetchClient = new FetchClient(apiClientMock, wiseTimeConnectorMock, timeGroupIdStoreMock, fetchClientId, 25);
+    fetchClient = new FetchClient(apiClientMock, wiseTimeConnectorMock, timeGroupIdStoreMock,
+        fetchClientId, 25);
   }
 
   @Test
@@ -64,7 +67,7 @@ class FetchClientTest {
   @Test
   void successfulTimeGroup() throws Exception {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();
-    when(timeGroupIdStoreMock.alreadySeen(timeGroup.getGroupId())).thenReturn(false);
+    when(timeGroupIdStoreMock.alreadySeen(timeGroup.getGroupId())).thenReturn(Optional.empty());
     when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.SUCCESS);
     when(apiClientMock.fetchTimeGroups(eq(fetchClientId), anyInt()))
         .thenReturn(ImmutableList.of(timeGroup))
@@ -74,7 +77,6 @@ class FetchClientTest {
     fetchClient.stop();
     ArgumentCaptor<TimeGroupStatus> statusCaptor = ArgumentCaptor.forClass(TimeGroupStatus.class);
     verify(apiClientMock, times(1)).updatePostedTimeStatus(statusCaptor.capture());
-    verify(timeGroupIdStoreMock, times(1)).deleteTimeGroupId(eq(timeGroup.getGroupId()));
 
     assertThat(statusCaptor.getValue().getStatus()).isEqualTo(TimeGroupStatus.StatusEnum.SUCCESS);
   }
@@ -82,7 +84,7 @@ class FetchClientTest {
   @Test
   void failedTimeGroup() throws Exception {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();
-    when(timeGroupIdStoreMock.alreadySeen(timeGroup.getGroupId())).thenReturn(false);
+    when(timeGroupIdStoreMock.alreadySeen(timeGroup.getGroupId())).thenReturn(Optional.empty());
     when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.PERMANENT_FAILURE);
     when(apiClientMock.fetchTimeGroups(eq(fetchClientId), anyInt()))
         .thenReturn(ImmutableList.of(timeGroup))
@@ -92,7 +94,6 @@ class FetchClientTest {
     fetchClient.stop();
     ArgumentCaptor<TimeGroupStatus> statusCaptor = ArgumentCaptor.forClass(TimeGroupStatus.class);
     verify(apiClientMock, times(1)).updatePostedTimeStatus(statusCaptor.capture());
-    verify(timeGroupIdStoreMock, times(1)).deleteTimeGroupId(eq(timeGroup.getGroupId()));
 
     assertThat(statusCaptor.getValue().getStatus()).isEqualTo(TimeGroupStatus.StatusEnum.FAILURE);
   }
@@ -100,7 +101,7 @@ class FetchClientTest {
   @Test
   void transientlyFailedTimeGroup() throws Exception {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();
-    when(timeGroupIdStoreMock.alreadySeen(timeGroup.getGroupId())).thenReturn(false);
+    when(timeGroupIdStoreMock.alreadySeen(timeGroup.getGroupId())).thenReturn(Optional.empty());
     when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.TRANSIENT_FAILURE);
     when(apiClientMock.fetchTimeGroups(eq(fetchClientId), anyInt()))
         .thenReturn(ImmutableList.of(timeGroup))
@@ -110,13 +111,12 @@ class FetchClientTest {
     fetchClient.stop();
 
     verify(apiClientMock, never()).updatePostedTimeStatus(any());
-    verify(timeGroupIdStoreMock, times(1)).deleteTimeGroupId(eq(timeGroup.getGroupId()));
   }
 
   @Test
   void alreadySeenTimeGroup() throws Exception {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();
-    when(timeGroupIdStoreMock.alreadySeen(timeGroup.getGroupId())).thenReturn(true);
+    when(timeGroupIdStoreMock.alreadySeen(timeGroup.getGroupId())).thenReturn(Optional.of("SUCCESS"));
     when(apiClientMock.fetchTimeGroups(eq(fetchClientId), anyInt()))
         .thenReturn(ImmutableList.of(timeGroup))
         .thenReturn(ImmutableList.of());
@@ -125,6 +125,6 @@ class FetchClientTest {
     fetchClient.stop();
 
     verify(wiseTimeConnectorMock, never()).postTime(isNull(), any());
-    verify(apiClientMock, never()).updatePostedTimeStatus(any());
+    verify(apiClientMock, times(1)).updatePostedTimeStatus(any());
   }
 }
