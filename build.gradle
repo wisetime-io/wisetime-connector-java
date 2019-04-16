@@ -10,7 +10,7 @@ buildscript {
     }
     dependencies {
         classpath "org.openapitools:openapi-generator-gradle-plugin:3.3.4"
-        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.12.0"
+        classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.20.0"
     }
 }
 
@@ -18,28 +18,33 @@ plugins {
     id 'java'
     id 'maven'
     id 'maven-publish'
-    id 'signing'
     id 'application'
     id 'com.google.cloud.tools.jib' version '0.10.0'
     id 'com.github.kt3k.coveralls' version '2.8.2'
-    id 'io.codearte.nexus-staging' version '0.12.0'
+    id "com.github.ben-manes.versions" version '0.21.0'
+    id "fr.brouillard.oss.gradle.jgitver" version "0.8.0"
+
+}
+
+repositories {
+    maven {
+        // Google Maven Central mirror
+        url 'https://maven-central.storage-download.googleapis.com/repos/central/data'
+    }
 }
 
 apply plugin: 'org.openapi.generator'
 apply from: "$rootDir/gradle/conf/checkstyle.gradle"
 apply from: "$rootDir/gradle/conf/jacoco.gradle"
-
 group = 'io.wisetime'
+
 archivesBaseName = 'wisetime-connector'
-if (version == 'unspecified') {
-    version = '1.1-SNAPSHOT'
-}
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 mainClassName = 'io.wisetime.connector.example.FolderWatchConnectApp'
 
-repositories {
-    mavenCentral()
+jgitver {
+    autoIncrementPatch false
 }
 
 openApiGenerate {
@@ -74,12 +79,16 @@ sourceSets {
     }
 }
 
-ext.jacocoLimits = [
-        'instruction': 72,
-        'line'       : 72,
-        'method'     : 75,
-        'class'      : 90
-]
+if (getGradle().getStartParameter().getTaskRequests().toString().contains("closeAndReleaseRepository")) {
+    apply from: "$rootDir/gradle/publish_maven_central.gradle"
+} else if (getGradle().getStartParameter().getTaskRequests().toString().contains("publish")) {
+    apply from: "$rootDir/gradle/publish_s3_repo.gradle"
+}
+
+if (getGradle().getStartParameter().getTaskRequests().toString().contains("dependencyUpdates")) {
+    // add exclusions for reporting on updates and vulnerabilities
+    apply from: "$rootDir/gradle/dependencyUpdates.gradle"
+}
 
 dependencies {
     // spark-core 2.8.0 includes jetty runtime 9.4.12.v20180830
@@ -164,6 +173,13 @@ configurations.all {
     }
 }
 
+ext.jacocoLimits = [
+        'instruction': 72,
+        'line'       : 72,
+        'method'     : 75,
+        'class'      : 90
+]
+
 tasks.withType(Checkstyle) {
     source = sourceSets.main.allJava.matching {
         exclude '**/generated/**/*'
@@ -180,72 +196,7 @@ task javadocJar(type: Jar) {
     classifier = 'javadoc'
 }
 
-// publishing to maven central
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifactId = 'wisetime-connector'
-            from components.java
-            artifact sourcesJar
-            artifact javadocJar
-            pom {
-                name = 'WiseTime Connector'
-                description = 'WiseTime Connector Library'
-                url = 'https://wisetime.io/docs/connect/'
-                licenses {
-                    license {
-                        name = 'The Apache License, Version 2.0'
-                        url = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-                    }
-                }
-                developers {
-                    developer {
-                        id = 'wisetime'
-                        name = 'WiseTime Team'
-                        email = 'contact@wisetime.io'
-                    }
-                }
-                scm {
-                    connection = 'scm:git:https://github.com/wisetime-io/wisetime-connector-java.git'
-                    developerConnection = 'scm:git:https://github.com/wisetime-io/wisetime-connector-java.git'
-                    url = 'https://github.com/wisetime-io/wisetime-connector-java'
-                }
-            }
-        }
-    }
-    repositories {
-        maven {
-            def releasesRepoUrl = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
-            def snapshotsRepoUrl = 'https://oss.sonatype.org/content/repositories/snapshots/'
-            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
-            credentials {
-                username project.hasProperty('ossrhUsername') ? ossrhUsername : ""
-                password project.hasProperty('ossrhPassword') ? ossrhPassword : ""
-            }
-        }
-    }
-}
 
-signing {
-    sign publishing.publications.mavenJava
-}
-
-javadoc {
-    exclude 'io/wisetime/generated'
-    exclude 'io/wisetime/connector/api_client/support'
-    exclude 'io/wisetime/connector/example'
-    exclude 'io/wisetime/connector/template/format'
-    exclude 'io/wisetime/connector/template/loader'
-    exclude 'io/wisetime/connector/testutils'
-    if (JavaVersion.current().isJava9Compatible()) {
-        options.addBooleanOption('html5', true)
-    }
-}
-
-nexusStaging {
-    username = project.hasProperty('ossrhUsername') ? ossrhUsername : ""
-    password = project.hasProperty('ossrhPassword') ? ossrhPassword : ""
-}
 
 clean {
     delete "${projectDir}/out"

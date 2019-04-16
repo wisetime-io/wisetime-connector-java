@@ -1,0 +1,114 @@
+---
+kind: pipeline
+name: test-and-publish
+
+steps:
+  - name: check-cache-dir
+    image: alpine:latest
+    commands:
+      - mkdir -p /tmp/gradle/wrapper
+      - mkdir -p /tmp/gradle/cache/modules-2
+    volumes:
+      - name: host-tmp
+        path: /tmp
+
+  - name: fetch-tags
+    image: docker:git
+    commands:
+      - git fetch --tags
+    when:
+      branch:
+        - master
+
+  - name: unit-test
+    image: openjdk:8-jdk
+    environment:
+      GRADLE_USER_HOME: /gradle/
+      GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false
+    volumes:
+      - name: gradle-wrapper
+        path: /gradle/wrapper
+      - name: gradle-modules-2
+        path: /gradle/caches/modules-2
+    commands:
+      - ./gradlew test check
+
+  - name: publish-to-s3
+    image: openjdk:8-jdk
+    environment:
+      GRADLE_USER_HOME: /gradle/
+      GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false
+      AWS_ACCESS_KEY_ID:
+        from_secret: aws-publish-id
+      AWS_SECRET_ACCESS_KEY:
+        from_secret: aws-publish-secret
+    volumes:
+      - name: gradle-wrapper
+        path: /gradle/wrapper
+      - name: gradle-modules-2
+        path: /gradle/caches/modules-2
+    commands:
+      - ./gradlew --info publish
+    when:
+      branch:
+        include:
+          - master
+
+volumes:
+  - name: host-tmp
+    host:
+      path: /tmp
+  - name: gradle-wrapper
+    host:
+      path: /tmp/gradle/wrapper
+  - name: gradle-modules-2
+    host:
+      path: /tmp/gradle/cache/modules-2
+
+trigger:
+  event:
+    - push
+
+---
+kind: pipeline
+name: mirror-to-github
+depends_on:
+  - test-and-publish
+
+steps:
+  - name: github-push
+    image: alpine/git
+    environment:
+      GITHUB_SSH_KEY_B64:
+        from_secret: github-ssh-key-b64
+    commands:
+      - ./mirror.sh
+    when:
+      branch:
+        include:
+          - master
+
+trigger:
+  event:
+    - push
+
+---
+kind: secret
+name: aws-publish-id
+get:
+  path: drone/publish/s3
+  name: aws-publish-id
+
+---
+kind: secret
+name: aws-publish-secret
+get:
+  path: drone/publish/s3
+  name: aws-publish-secret
+
+---
+kind: secret
+name: github-ssh-key-b64
+get:
+  path: drone/publish/github/core-log
+  name: gh-connector-java-key-b64

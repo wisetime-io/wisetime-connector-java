@@ -1,0 +1,17 @@
+publishing {
+    repositories {
+        maven {
+            url 's3://artifacts.wisetime.com/mvn2/releases'
+            authentication {
+                awsIm(AwsImAuthentication)
+            }
+        }
+    }
+    publications {
+        mavenJava(MavenPublication) {
+            artifactId project.name
+            // version is set via plugin
+            from components.java
+        }
+    }
+}
