@@ -32,9 +32,9 @@ import io.wisetime.connector.fetch_client.TimeGroupIdStore;
 import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.integrate.ConnectorModule;
 import io.wisetime.connector.integrate.WiseTimeConnector;
+import io.wisetime.connector.webhook.WebhookFilter;
 import io.wisetime.connector.tag.TagRunner;
 import io.wisetime.connector.webhook.WebhookApplication;
-import io.wisetime.connector.webhook.WebhookFilter;
 import io.wisetime.connector.webhook.WebhookServerRunner;
 
 /**
@@ -188,15 +188,6 @@ public class ConnectorRunner {
         apiClient = new DefaultApiClient(requestExecutor);
       }
 
-      if (useFetchClient == null) {
-        throw new IllegalStateException("Please use either useFetchClient or useWebhook before calling build");
-      }
-
-      if (useFetchClient && StringUtils.isBlank(fetchClientId)) {
-        throw new IllegalArgumentException("fetch client id can't be null or empty, " +
-            "if connector is configured to use the fetch client");
-      }
-
       if (wiseTimeConnector == null) {
         throw new IllegalArgumentException(
             String.format("an implementation of '%s' interface must be supplied", WiseTimeConnector.class.getSimpleName()));
@@ -209,23 +200,31 @@ public class ConnectorRunner {
 
       int port = 0;
       WebAppContext webAppContext = null;
-      TimePosterRunner timePosterRunner;
-      if (useFetchClient) {
-        TimeGroupIdStore timeGroupIdStore = new TimeGroupIdStore(sqLiteHelper);
+      // if useFetchClient is null, no time posting mechanism was specified, therefore running in tag upload mode only
+      TimePosterRunner timePosterRunner = new DefaultTimePosterRunner();
+      if (useFetchClient != null) {
+        if (useFetchClient && StringUtils.isBlank(fetchClientId)) {
+          throw new IllegalArgumentException("fetch client id can't be null or empty, " +
+              "if connector is configured to use the fetch client");
+        }
 
-        FetchClientSpec spec = new FetchClientSpec(apiClient, wiseTimeConnector, timeGroupIdStore,
-            fetchClientId, fetchClientFetchLimit);
-        timePosterRunner = new FetchClient(spec);
-      } else {
-        port = RuntimeConfig.getInt(ConnectorConfigKey.WEBHOOK_PORT).orElse(DEFAULT_WEBHOOK_PORT);
+        if (useFetchClient) {
+          TimeGroupIdStore timeGroupIdStore = new TimeGroupIdStore(sqLiteHelper);
 
-        Server server = new Server(port);
+          FetchClientSpec spec = new FetchClientSpec(apiClient, wiseTimeConnector, timeGroupIdStore,
+              fetchClientId, fetchClientFetchLimit);
+          timePosterRunner = new FetchClient(spec);
+        } else {
+          port = RuntimeConfig.getInt(ConnectorConfigKey.WEBHOOK_PORT).orElse(DEFAULT_WEBHOOK_PORT);
 
-        webAppContext = createWebAppContext();
+          Server server = new Server(port);
 
-        initializeWebhookServer(port, server, webAppContext);
+          webAppContext = createWebAppContext();
 
-        timePosterRunner = new WebhookServerRunner(server, port);
+          initializeWebhookServer(port, server, webAppContext);
+
+          timePosterRunner = new WebhookServerRunner(server, port);
+        }
       }
       return new ConnectorRunner(timePosterRunner, port, webAppContext, wiseTimeConnector, connectorModule);
     }

@@ -70,7 +70,6 @@ public class FetchClient implements Runnable, TimePosterRunner {
             }
           });
         }
-
         lastSuccessfulRun.set(DateTime.now());
       } catch (Exception e) {
         log.error("Error while fetching new time group for fetch client id: " + clientSpec.getFetchClientId(), e);

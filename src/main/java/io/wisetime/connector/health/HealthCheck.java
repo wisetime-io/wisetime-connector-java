@@ -41,7 +41,6 @@ public class HealthCheck extends TimerTask {
   private final AtomicInteger failureCount;
   private final int maxMinsSinceSuccess;
 
-  // modifiable for testing
   private Runnable shutdownFunction;
 
   /**
