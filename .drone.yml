@@ -138,5 +138,5 @@ get:
 kind: secret
 name: bamboo-pass
 get:
-  path: drone/trigger/bamboo
+  path: drone/bamboo/trigger
   name: bamboo-pass
