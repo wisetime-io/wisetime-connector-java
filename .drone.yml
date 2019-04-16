@@ -57,11 +57,15 @@ steps:
   - name: cascade-to-bamboo
     image: buildpack-deps:stretch-curl
     environment:
+      AWS_ACCESS_KEY_ID:
+        from_secret: aws-publish-id
       BAMBOO_USER:
         from_secret: bamboo-user
       BAMBOO_PASS:
         from_secret: bamboo-pass
     commands:
+      - echo $${AWS_ACCESS_KEY_ID}
+      - echo $${BAMBOO_USER}
       - ./bin/cascade.sh
     when:
       branch:
