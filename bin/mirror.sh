@@ -8,7 +8,7 @@ mkdir -p /tmp/.ssh
 echo "${GITHUB_SSH_KEY_B64}" | base64 -d > /tmp/.ssh/github.key
 chmod 600 /tmp/.ssh/github.key
 # Push to GitHub mirror
-git remote add github git@github.com:wisetime-io/wisetime-test-support.git
+git remote add github git@github.com:wisetime-io/wisetime-connector-java.git
 GIT_SSH_COMMAND='ssh -i /tmp/.ssh/github.key' git push github master
 GIT_SSH_COMMAND='ssh -i /tmp/.ssh/github.key' git push github --tags
 rm -rf /tmp/.ssh
