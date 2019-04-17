@@ -7,10 +7,18 @@ buildscript {
         maven {
             url 'https://storage.googleapis.com/wise-repo/repos/plugins/'
         }
+        maven {
+            // WT published releases
+            url 'https://s3.eu-central-1.amazonaws.com/artifacts.wisetime.com/mvn2/plugins'
+            content {
+                includeGroup "io.wisetime"
+            }
+        }
     }
     dependencies {
         classpath "org.openapitools:openapi-generator-gradle-plugin:3.3.4"
         classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.20.0"
+        classpath "io.wisetime:validate-version:0.2.3"
     }
 }
 
@@ -88,6 +96,11 @@ if (getGradle().getStartParameter().getTaskRequests().toString().contains("close
 if (getGradle().getStartParameter().getTaskRequests().toString().contains("dependencyUpdates")) {
     // add exclusions for reporting on updates and vulnerabilities
     apply from: "$rootDir/gradle/dependencyUpdates.gradle"
+}
+
+if (getGradle().getStartParameter().getTaskRequests().toString().contains("versionCheck")) {
+    // add exclusions for reporting on updates and vulnerabilities
+    apply from: "$rootDir/gradle/versionPluginConfig.gradle"
 }
 
 dependencies {

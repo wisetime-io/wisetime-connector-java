@@ -20,6 +20,23 @@ steps:
       branch:
         - master
 
+  - name: check-versions
+    image: openjdk:8-jdk
+    environment:
+      GRADLE_USER_HOME: /gradle/
+      GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false
+    volumes:
+      - name: gradle-wrapper
+        path: /gradle/wrapper
+      - name: gradle-modules-2
+        path: /gradle/caches/modules-2
+    commands:
+      - ./gradlew versionCheck
+    when:
+      branch:
+        exclude:
+          - master
+
   - name: unit-test
     image: openjdk:8-jdk
     environment:
@@ -83,6 +100,7 @@ volumes:
 trigger:
   event:
     - push
+    - tag
 
 ---
 kind: pipeline
@@ -106,6 +124,7 @@ steps:
 trigger:
   event:
     - push
+    - tag
 
 ---
 kind: secret
