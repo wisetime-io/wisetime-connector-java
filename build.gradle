@@ -99,7 +99,6 @@ if (getGradle().getStartParameter().getTaskRequests().toString().contains("depen
 }
 
 if (getGradle().getStartParameter().getTaskRequests().toString().contains("versionCheck")) {
-    // add exclusions for reporting on updates and vulnerabilities
     apply from: "$rootDir/gradle/versionPluginConfig.gradle"
 }
 
