@@ -74,6 +74,8 @@ task buildModel(dependsOn: tasks.openApiGenerate) {
     }
 }
 
+tasks.versionCheck.dependsOn dependencyUpdates
+
 compileJava.dependsOn buildModel
 tasks.jib.dependsOn compileJava
 
