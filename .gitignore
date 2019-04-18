@@ -24,5 +24,4 @@ result.xml
 **/*.env
 test-*.yaml
 .tags
-=======
->>>>>>> WT-6759 initial fetch client implementation
+**/*.orig
