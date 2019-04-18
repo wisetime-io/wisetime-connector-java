@@ -7,10 +7,18 @@ buildscript {
         maven {
             url 'https://storage.googleapis.com/wise-repo/repos/plugins/'
         }
+        maven {
+            // WT published releases
+            url 'https://s3.eu-central-1.amazonaws.com/artifacts.wisetime.com/mvn2/plugins'
+            content {
+                includeGroup "io.wisetime"
+            }
+        }
     }
     dependencies {
         classpath "org.openapitools:openapi-generator-gradle-plugin:3.3.4"
         classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.20.0"
+        classpath "io.wisetime:validate-version:0.2.3"
     }
 }
 
@@ -79,18 +87,24 @@ sourceSets {
     }
 }
 
-if (getGradle().getStartParameter().getTaskRequests().toString().contains("closeAndReleaseRepository")) {
+def taskRequestString = getGradle().getStartParameter().getTaskRequests().toString()
+if (taskRequestString.contains("closeAndReleaseRepository")) {
     apply from: "$rootDir/gradle/publish_maven_central.gradle"
-} else if (getGradle().getStartParameter().getTaskRequests().toString().contains("publish")) {
+} else if (taskRequestString.contains("publish")) {
     apply from: "$rootDir/gradle/publish_s3_repo.gradle"
 }
 
-if (getGradle().getStartParameter().getTaskRequests().toString().contains("dependencyUpdates")) {
+if (taskRequestString.contains("dependencyUpdates") || taskRequestString.contains("versionCheck")) {
     // add exclusions for reporting on updates and vulnerabilities
-    apply from: "$rootDir/gradle/dependencyUpdates.gradle"
+    apply from: "$rootDir/gradle/versionPluginConfig.gradle"
 }
 
 dependencies {
+    compile('io.wisetime:wise-log-aws:3.1.0') {
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+        exclude group: 'com.fasterxml.jackson.dataformat', module: 'jackson-dataformat-cbor'
+    }
+
     // spark-core 2.8.0 includes jetty runtime 9.4.12.v20180830
     compile 'com.sparkjava:spark-core:2.9.0'
 
@@ -105,10 +119,6 @@ dependencies {
     compile 'org.apache.commons:commons-lang3:3.9'
     compile 'net.jodah:failsafe:1.1.0'
 
-    compile ('io.wisetime:wise-log-aws:3.1.0') {
-        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
-        exclude group: 'com.fasterxml.jackson.dataformat', module: 'jackson-dataformat-cbor'
-    }
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.7'
     compile 'com.fasterxml.jackson.core:jackson-core:2.9.7'
     compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.7'
@@ -123,7 +133,7 @@ dependencies {
     compile 'org.codejargon:fluentjdbc:1.8.3'
 
     compile 'org.apache.httpcomponents:httpcore:4.4.10'
-    compile ('org.apache.httpcomponents:fluent-hc:4.5.6') {
+    compile('org.apache.httpcomponents:fluent-hc:4.5.6') {
         exclude group: 'commons-codec', module: 'commons-codec'
     }
     compile 'commons-codec:commons-codec:1.12'
@@ -139,7 +149,7 @@ dependencies {
     compile 'io.swagger:swagger-annotations:1.5.3'
     compile 'javax.validation:validation-api:2.0.1.Final'
 
-    testCompile ('com.github.javafaker:javafaker:0.17.2') {
+    testCompile('com.github.javafaker:javafaker:0.17.2') {
         exclude group: 'org.apache.commons', module: 'commons-lang3'
     }
 
@@ -149,7 +159,7 @@ dependencies {
     testCompile 'org.mockito:mockito-core:2.22.0'
     testCompile 'org.objenesis:objenesis:2.6'
     testCompile 'org.assertj:assertj-core:3.12.2'
-    testCompile ('io.github.benas:random-beans:3.9.0') {
+    testCompile('io.github.benas:random-beans:3.9.0') {
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
         exclude group: 'org.objenesis', module: 'objenesis'
     }
@@ -185,7 +195,6 @@ task javadocJar(type: Jar) {
     from javadoc
     classifier = 'javadoc'
 }
-
 
 
 clean {
