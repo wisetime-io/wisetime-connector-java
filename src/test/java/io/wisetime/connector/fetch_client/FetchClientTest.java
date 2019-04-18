@@ -50,8 +50,8 @@ class FetchClientTest {
     wiseTimeConnectorMock = mock(WiseTimeConnector.class);
     timeGroupIdStoreMock = mock(TimeGroupIdStore.class);
     fetchClientId = faker.numerify("fc######");
-    fetchClient = new FetchClient(apiClientMock, wiseTimeConnectorMock, timeGroupIdStoreMock,
-        fetchClientId, 25);
+    fetchClient = new FetchClient(new FetchClientSpec(apiClientMock, wiseTimeConnectorMock, timeGroupIdStoreMock,
+        fetchClientId, 25));
   }
 
   @Test

@@ -44,11 +44,12 @@ public class TimeGroupIdStore {
           " SET received_timestamp=?, post_result=? WHERE time_group_id=?")
           .params(timeStamp, postResult, timeGroupId)
           .run();
+
       if (result.affectedRows() == 0) {
         // new key value
         query.update("INSERT INTO " + TABLE_TIME_GROUPS_RECEIVED.getName() +
-            " (time_group_id, post_result, received_timestamp) VALUES (?,?,?)")
-            .params(timeGroupId, postResult, timeStamp)
+            " (time_group_id, post_result, received_timestamp, created_ts) VALUES (?,?,?,?)")
+            .params(timeGroupId, postResult, timeStamp, System.currentTimeMillis())
             .run();
       }
     });

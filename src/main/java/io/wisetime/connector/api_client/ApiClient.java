@@ -27,6 +27,7 @@ import io.wisetime.generated.connect.UpsertTagRequest;
  *
  * @author thomas.haines@practiceinsight.io
  */
+@SuppressWarnings("JavaDoc")
 public interface ApiClient {
 
   /**

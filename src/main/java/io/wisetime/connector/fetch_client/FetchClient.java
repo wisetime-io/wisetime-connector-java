@@ -8,15 +8,14 @@ import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
 import io.wisetime.connector.TimePosterRunner;
-import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.api_client.PostResult;
-import io.wisetime.connector.integrate.WiseTimeConnector;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeGroupStatus;
 
@@ -32,53 +31,54 @@ public class FetchClient implements Runnable, TimePosterRunner {
 
   private static final Logger log = LoggerFactory.getLogger(FetchClient.class);
 
-  private ApiClient apiClient;
-  private TimeGroupIdStore timeGroupIdStore;
-  private String fetchClientId;
-  private int limit;
-  private WiseTimeConnector connector;
-  private ExecutorService postTimeExecutor;
-  private final AtomicReference<DateTime> lastSuccessfulRun;
-  private ExecutorService fetchClientExecutor;
+  private final AtomicReference<DateTime> lastSuccessfulRun = new AtomicReference<>(DateTime.now());
 
-  @SuppressWarnings("ParameterNumber")
-  public FetchClient(ApiClient apiClient,
-                     WiseTimeConnector connector,
-                     TimeGroupIdStore timeGroupIdStore,
-                     String fetchClientId,
-                     int limit) {
-    this.apiClient = apiClient;
-    this.connector = connector;
-    this.timeGroupIdStore = timeGroupIdStore;
-    this.fetchClientId = fetchClientId;
-    this.limit = limit;
-    this.postTimeExecutor = Executors.newFixedThreadPool(limit);
-    this.lastSuccessfulRun = new AtomicReference<>(DateTime.now());
+  private final FetchClientSpec clientSpec;
+  private final ExecutorService postTimeExecutor;
+
+  private ExecutorService fetchClientExecutor = null;
+
+  public FetchClient(FetchClientSpec clientSpec) {
+    this.clientSpec = clientSpec;
+    /*
+       The thread pool processes each time row that is returned from the batch fetch.
+       Up to a maximum of three concurrent posts are permitted.
+     */
+    final int threadPoolSize = Math.min(clientSpec.getLimit(), 3);
+    this.postTimeExecutor = Executors.newFixedThreadPool(threadPoolSize);
   }
 
   @Override
   public void run() {
     while (!Thread.currentThread().isInterrupted()) {
       try {
-        apiClient.fetchTimeGroups(fetchClientId, limit).forEach(timeGroup ->
-            postTimeExecutor.submit(() -> {
-              if (!timeGroupAlreadyProcessed(timeGroup)) {
-                timeGroupIdStore.putTimeGroupId(timeGroup.getGroupId(), IN_PROGRESS);
-                PostResult result = connector.postTime(null, timeGroup);
-                timeGroupIdStore.putTimeGroupId(timeGroup.getGroupId(), result.name());
-                updateTimeGroupStatus(timeGroup, result);
-              }
-            })
-        );
+        final List<TimeGroup> fetchedTimeGroups = clientSpec.getApiClient().fetchTimeGroups(
+            clientSpec.getFetchClientId(),
+            clientSpec.getLimit());
+
+        for (TimeGroup timeGroup : fetchedTimeGroups) {
+          // save the rows to the DB synchronously
+          clientSpec.getTimeGroupIdStore().putTimeGroupId(timeGroup.getGroupId(), IN_PROGRESS);
+
+          // trigger async process to post to external system
+          postTimeExecutor.submit(() -> {
+            if (!timeGroupAlreadyProcessed(timeGroup)) {
+              PostResult result = clientSpec.getConnector().postTime(null, timeGroup);
+              clientSpec.getTimeGroupIdStore().putTimeGroupId(timeGroup.getGroupId(), result.name());
+              updateTimeGroupStatus(timeGroup, result);
+            }
+          });
+        }
+
         lastSuccessfulRun.set(DateTime.now());
       } catch (Exception e) {
-        log.error("Error while fetching new time group for fetch client id: " + fetchClientId, e);
+        log.error("Error while fetching new time group for fetch client id: " + clientSpec.getFetchClientId(), e);
       }
     }
   }
 
   private boolean timeGroupAlreadyProcessed(TimeGroup timeGroup) {
-    Optional<String> timeGroupStatus = timeGroupIdStore.alreadySeen(timeGroup.getGroupId());
+    Optional<String> timeGroupStatus = clientSpec.getTimeGroupIdStore().alreadySeen(timeGroup.getGroupId());
     if (!timeGroupStatus.isPresent()) {
       return false;
     }
@@ -101,16 +101,16 @@ public class FetchClient implements Runnable, TimePosterRunner {
       // simply sending no update is considered a transient failure after a certain timeout
       switch (result) {
         case SUCCESS:
-          apiClient.updatePostedTimeStatus(new TimeGroupStatus()
+          clientSpec.getApiClient().updatePostedTimeStatus(new TimeGroupStatus()
               .status(TimeGroupStatus.StatusEnum.SUCCESS)
               .timeGroupId(timeGroup.getGroupId())
-              .fetchClientId(fetchClientId));
+              .fetchClientId(clientSpec.getFetchClientId()));
           break;
         case PERMANENT_FAILURE:
-          apiClient.updatePostedTimeStatus(new TimeGroupStatus()
+          clientSpec.getApiClient().updatePostedTimeStatus(new TimeGroupStatus()
               .status(TimeGroupStatus.StatusEnum.FAILURE)
               .timeGroupId(timeGroup.getGroupId())
-              .fetchClientId(fetchClientId)
+              .fetchClientId(clientSpec.getFetchClientId())
               .message(result.getMessage().orElse("Unexpected error while posting time")));
           break;
         default:

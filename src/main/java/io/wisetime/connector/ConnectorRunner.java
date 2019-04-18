@@ -26,11 +26,12 @@ import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
 import io.wisetime.connector.datastore.FileStore;
 import io.wisetime.connector.datastore.SQLiteHelper;
+import io.wisetime.connector.fetch_client.FetchClient;
+import io.wisetime.connector.fetch_client.FetchClientSpec;
+import io.wisetime.connector.fetch_client.TimeGroupIdStore;
 import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.integrate.ConnectorModule;
 import io.wisetime.connector.integrate.WiseTimeConnector;
-import io.wisetime.connector.fetch_client.FetchClient;
-import io.wisetime.connector.fetch_client.TimeGroupIdStore;
 import io.wisetime.connector.webhook.WebhookFilter;
 import io.wisetime.connector.tag.TagRunner;
 import io.wisetime.connector.webhook.WebhookApplication;
@@ -203,8 +204,9 @@ public class ConnectorRunner {
         if (useFetchClient) {
           TimeGroupIdStore timeGroupIdStore = new TimeGroupIdStore(sqLiteHelper);
 
-          timePosterRunner = new FetchClient(apiClient, wiseTimeConnector, timeGroupIdStore,
+          FetchClientSpec spec = new FetchClientSpec(apiClient, wiseTimeConnector, timeGroupIdStore,
               fetchClientId, fetchClientFetchLimit);
+          timePosterRunner = new FetchClient(spec);
         } else {
           port = RuntimeConfig.getInt(ConnectorConfigKey.WEBHOOK_PORT).orElse(DEFAULT_WEBHOOK_PORT);
 
