@@ -3,33 +3,29 @@ kind: pipeline
 name: test-and-publish
 
 steps:
-  - name: check-cache-dir
-    image: alpine:latest
-    commands:
-      - mkdir -p /tmp/gradle/wrapper
-      - mkdir -p "/tmp/gradle/${DRONE_REPO_NAME}/cache/modules-2"
-    volumes:
-      - name: host-tmp
-        path: /tmp
-
   - name: fetch-tags
     image: docker:git
     commands:
       - git fetch --tags
-    when:
-      branch:
-        - master
+
+  - name: restore-cache
+    image: drillster/drone-volume-cache
+    settings:
+      restore: true
+      mount:
+        - .gcache/wrapper
+        - .gcache/caches/modules-2
+      ttl: 21
+      cache_key: [ DRONE_REPO_OWNER, DRONE_REPO_NAME ]
+    volumes:
+      - name: host-cache
+        path: /cache
 
   - name: check-versions
     image: openjdk:8-jdk
     environment:
-      GRADLE_USER_HOME: /gradle/
+      GRADLE_USER_HOME: .gcache
       GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false
-    volumes:
-      - name: gradle-wrapper
-        path: /gradle/wrapper
-      - name: gradle-modules-2
-        path: /gradle/caches/modules-2
     commands:
       - ./gradlew versionCheck
     when:
@@ -40,30 +36,33 @@ steps:
   - name: unit-test
     image: openjdk:8-jdk
     environment:
-      GRADLE_USER_HOME: /gradle/
+      GRADLE_USER_HOME: .gcache
       GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false
-    volumes:
-      - name: gradle-wrapper
-        path: /gradle/wrapper
-      - name: gradle-modules-2
-        path: /gradle/caches/modules-2
     commands:
+      - echo $${DRONE_MACHINE}
       - ./gradlew test check
+
+  - name: save-cache
+    image: drillster/drone-volume-cache
+    settings:
+      rebuild: true
+      mount:
+        - .gcache/wrapper
+        - .gcache/caches/modules-2
+      cache_key: [ DRONE_REPO_OWNER, DRONE_REPO_NAME ]
+    volumes:
+      - name: host-cache
+        path: /cache
 
   - name: publish-to-s3
     image: openjdk:8-jdk
     environment:
-      GRADLE_USER_HOME: /gradle/
+      GRADLE_USER_HOME: .gcache
       GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false
       AWS_ACCESS_KEY_ID:
         from_secret: aws-publish-id
       AWS_SECRET_ACCESS_KEY:
         from_secret: aws-publish-secret
-    volumes:
-      - name: gradle-wrapper
-        path: /gradle/wrapper
-      - name: gradle-modules-2
-        path: /gradle/caches/modules-2
     commands:
       - ./gradlew --info publish
     when:
@@ -72,7 +71,7 @@ steps:
           - master
 
   - name: cascade-to-bamboo
-    image: buildpack-deps:stretch-curl
+    image: quay.io/wisetime/alpine-git-bash
     environment:
       BAMBOO_USER:
         from_secret: bamboo-user
@@ -87,15 +86,10 @@ steps:
           - master
 
 volumes:
-  - name: host-tmp
+  - name: host-cache
     host:
-      path: /tmp
-  - name: gradle-wrapper
-    host:
-      path: /tmp/gradle/wrapper
-  - name: gradle-modules-2
-    host:
-      path: /tmp/gradle/${DRONE_REPO_NAME}/cache/modules-2
+      # expects agent to have /tmp/cache directory created
+      path: /tmp/cache
 
 trigger:
   event:
@@ -110,7 +104,7 @@ depends_on:
 
 steps:
   - name: github-push
-    image: alpine/git
+    image: quay.io/wisetime/alpine-git-bash
     environment:
       GITHUB_SSH_KEY_B64:
         from_secret: github-ssh-key-b64

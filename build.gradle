@@ -103,6 +103,11 @@ if (getGradle().getStartParameter().getTaskRequests().toString().contains("versi
 }
 
 dependencies {
+    compile ('io.wisetime:wise-log-aws:2.8') {
+        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
+        exclude group: 'com.fasterxml.jackson.dataformat', module: 'jackson-dataformat-cbor'
+    }
+
     // spark-core 2.8.0 includes jetty runtime 9.4.12.v20180830
     compile 'com.sparkjava:spark-core:2.9.0'
 
@@ -117,10 +122,6 @@ dependencies {
     compile 'org.apache.commons:commons-lang3:3.9'
     compile 'net.jodah:failsafe:1.1.0'
 
-    compile ('io.wisetime:wise-log-aws:3.1.0') {
-        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
-        exclude group: 'com.fasterxml.jackson.dataformat', module: 'jackson-dataformat-cbor'
-    }
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.7'
     compile 'com.fasterxml.jackson.core:jackson-core:2.9.7'
     compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.7'

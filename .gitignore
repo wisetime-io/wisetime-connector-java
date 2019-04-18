@@ -19,3 +19,7 @@ out/
 **/.DS_Store
 **/*.db
 result.xml
+.gcache
+**/*.env
+test-*.yaml
+.tags
