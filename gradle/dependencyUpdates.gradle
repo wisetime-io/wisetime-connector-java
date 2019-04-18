@@ -1,6 +1,6 @@
 dependencyUpdates.resolutionStrategy {
     componentSelection { rules ->
-        rules.all { ComponentSelection selection ->
+        rules.all { selection ->
             boolean rejected = ['alpha', 'jre11', 'beta', 'rc', 'cr', 'm', 'preview', 'b', 'ea'].any { qualifier ->
                 selection.candidate.version ==~ /(?i).*[.-]$qualifier[.\d-+]*/
             }
@@ -10,7 +10,6 @@ dependencyUpdates.resolutionStrategy {
         }
     }
 }
-
 
 tasks.dependencyUpdates {
     checkForGradleUpdate = false

@@ -92,20 +92,17 @@ if (getGradle().getStartParameter().getTaskRequests().toString().contains("depen
 
 dependencies {
     // spark-core 2.8.0 includes jetty runtime 9.4.12.v20180830
-    compile('com.sparkjava:spark-core:2.8.0') {
-        exclude group: 'org.slf4j', module: 'slf4j-api'
-    }
+    compile 'com.sparkjava:spark-core:2.9.0'
+
     compile('com.sparkjava:spark-template-thymeleaf:2.7.1') {
         exclude group: 'com.sparkjava', module: 'spark-core'
         exclude group: 'org.thymeleaf', module: 'thymeleaf'
         exclude group: 'org.slf4j', module: 'slf4j-api'
     }
-    compile ('org.thymeleaf:thymeleaf:3.0.5.RELEASE') {
-        exclude group: 'org.slf4j', module: 'slf4j-api'
-    }
+    compile 'org.thymeleaf:thymeleaf:3.0.5.RELEASE'
 
     compile 'org.apache.commons:commons-configuration2:2.4'
-    compile 'org.apache.commons:commons-lang3:3.8.1'
+    compile 'org.apache.commons:commons-lang3:3.9'
     compile 'net.jodah:failsafe:1.1.0'
 
     compile ('io.wisetime:wise-log-aws:3.1.0') {
@@ -118,22 +115,22 @@ dependencies {
 
     compile 'info.picocli:picocli:3.7.0'
     compile 'org.apache.commons:commons-collections4:4.2'
-    compile 'com.google.guava:guava:25.1-jre'
+    compile 'com.google.guava:guava:27.1-jre'
     compile 'commons-io:commons-io:2.6'
     compile 'commons-beanutils:commons-beanutils:1.9.3'
 
-    compile 'org.xerial:sqlite-jdbc:3.23.1'
+    compile 'org.xerial:sqlite-jdbc:3.27.2.1'
     compile 'org.codejargon:fluentjdbc:1.8.3'
 
     compile 'org.apache.httpcomponents:httpcore:4.4.10'
     compile ('org.apache.httpcomponents:fluent-hc:4.5.6') {
         exclude group: 'commons-codec', module: 'commons-codec'
     }
-    compile 'commons-codec:commons-codec:1.11'
+    compile 'commons-codec:commons-codec:1.12'
 
     compile 'ch.qos.logback:logback-core:1.2.3'
     compile 'ch.qos.logback:logback-classic:1.2.3'
-    compile 'org.slf4j:slf4j-api:1.7.25'
+    compile 'org.slf4j:slf4j-api:1.7.26'
 
     // required by activity text template engine
     compile 'org.freemarker:freemarker:2.3.28'
@@ -142,17 +139,17 @@ dependencies {
     compile 'io.swagger:swagger-annotations:1.5.3'
     compile 'javax.validation:validation-api:2.0.1.Final'
 
-    testCompile ('com.github.javafaker:javafaker:0.16') {
+    testCompile ('com.github.javafaker:javafaker:0.17.2') {
         exclude group: 'org.apache.commons', module: 'commons-lang3'
     }
 
-    testCompile 'org.junit.jupiter:junit-jupiter-api:5.3.2'
-    testCompile 'org.junit.jupiter:junit-jupiter-params:5.3.2'
-    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.3.2'
+    testCompile 'org.junit.jupiter:junit-jupiter-api:5.4.2'
+    testCompile 'org.junit.jupiter:junit-jupiter-params:5.4.2'
+    testRuntime 'org.junit.jupiter:junit-jupiter-engine:5.4.2'
     testCompile 'org.mockito:mockito-core:2.22.0'
     testCompile 'org.objenesis:objenesis:2.6'
-    testCompile 'org.assertj:assertj-core:3.11.1'
-    testCompile ('io.github.benas:random-beans:3.7.0') {
+    testCompile 'org.assertj:assertj-core:3.12.2'
+    testCompile ('io.github.benas:random-beans:3.9.0') {
         exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
         exclude group: 'org.objenesis', module: 'objenesis'
     }
@@ -163,13 +160,6 @@ test {
     testLogging {
         // "passed", "skipped", "failed"
         events 'skipped', 'failed'
-    }
-}
-
-configurations.all {
-    resolutionStrategy {
-        // fail eagerly on version conflict of transitive dependencies
-        failOnVersionConflict()
     }
 }
 
