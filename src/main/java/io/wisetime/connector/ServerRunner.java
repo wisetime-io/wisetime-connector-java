@@ -4,9 +4,6 @@
 
 package io.wisetime.connector;
 
-import com.amazonaws.util.IOUtils;
-
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -16,45 +13,24 @@ import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.ShutdownHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
-import ch.qos.logback.classic.Logger;
-import ch.qos.logback.classic.LoggerContext;
-import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
-import ch.qos.logback.classic.joran.JoranConfigurator;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.classic.turbo.TurboFilter;
-import ch.qos.logback.core.ConsoleAppender;
 import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.api_client.DefaultApiClient;
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
-import io.wisetime.connector.datastore.SQLiteHelper;
 import io.wisetime.connector.datastore.FileStore;
+import io.wisetime.connector.datastore.SQLiteHelper;
 import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.integrate.ConnectorModule;
 import io.wisetime.connector.integrate.WiseTimeConnector;
-import io.wisetime.connector.logging.DisabledMessagePublisher;
-import io.wisetime.connector.logging.MessagePublisher;
-import io.wisetime.connector.logging.SQLiteMessagePublisher;
-import io.wisetime.connector.logging.WtEvent;
-import io.wisetime.connector.logging.WtTurboFilter;
 import io.wisetime.connector.server.IntegrateWebFilter;
 import io.wisetime.connector.server.TagRunner;
-
-import static io.wisetime.connector.config.ConnectorConfigKey.DATA_DIR;
-import static io.wisetime.connector.config.ConnectorConfigKey.LOCAL_DB_FILENAME;
 
 /**
  * Main entry point of WiseTime connector. Instance of service is created by {@link ServerBuilder}:
@@ -83,24 +59,18 @@ public class ServerRunner {
   private final WebAppContext webAppContext;
   private final WiseTimeConnector wiseTimeConnector;
   private final ConnectorModule connectorModule;
-  private final MessagePublisher messagePublisher;
-  private final boolean runningAsMainProcess;
 
   @SuppressWarnings("ParameterNumber")
   private ServerRunner(Server server,
                        int port,
                        WebAppContext webAppContext,
                        WiseTimeConnector wiseTimeConnector,
-                       ConnectorModule connectorModule,
-                       MessagePublisher messagePublisher,
-                       boolean runningAsMainProcess) {
+                       ConnectorModule connectorModule) {
     this.server = server;
     this.port = port;
     this.webAppContext = webAppContext;
     this.wiseTimeConnector = wiseTimeConnector;
     this.connectorModule = connectorModule;
-    this.messagePublisher = messagePublisher;
-    this.runningAsMainProcess = runningAsMainProcess;
   }
 
   /**
@@ -133,12 +103,7 @@ public class ServerRunner {
     final HealthCheck healthRunner = new HealthCheck(
         getPort(),
         tagRunTask::getLastSuccessfulRun,
-        wiseTimeConnector::isConnectorHealthy,
-        messagePublisher,
-        runningAsMainProcess
-    );
-
-    server.start();
+        wiseTimeConnector::isConnectorHealthy);
 
     Timer healthCheckTimer = new Timer("health-check-timer");
     healthCheckTimer.scheduleAtFixedRate(healthRunner, TimeUnit.MINUTES.toMillis(1), TimeUnit.MINUTES.toMillis(3));
@@ -147,27 +112,13 @@ public class ServerRunner {
     Timer tagTimer = new Timer("tag-check-timer");
     tagTimer.scheduleAtFixedRate(tagRunTask, TimeUnit.SECONDS.toMillis(15), TimeUnit.MINUTES.toMillis(5));
 
-    messagePublisher.publish(new WtEvent(WtEvent.Type.SERVER_STARTED));
+    server.start();
+    server.join();
 
-    while (!Thread.currentThread().isInterrupted() && (server.isStarting() || server.isRunning())) {
-      try {
-        Thread.sleep(2000);
-      } catch (InterruptedException e) {
-        // ignore.
-      }
-    }
-    server.stop();
     healthCheckTimer.cancel();
     healthCheckTimer.purge();
     tagTimer.cancel();
     tagTimer.purge();
-    try {
-      // leaves time for the threads to stop
-      Thread.sleep(2000);
-    } catch (InterruptedException e) {
-      // ignore.
-    }
-    throw new InterruptedException();
   }
 
   //visible for testing
@@ -189,7 +140,6 @@ public class ServerRunner {
    */
   public static class ServerBuilder {
 
-    private boolean useSlf4JOnly = false;
     private boolean persistentStorageOnly = false;
     private WiseTimeConnector wiseTimeConnector;
     private ApiClient apiClient;
@@ -203,19 +153,6 @@ public class ServerRunner {
      * method.
      */
     public ServerRunner build() {
-      final Boolean runningAsMainProcess =
-          RuntimeConfig.getBoolean(ConnectorConfigKey.RUNNING_AS_MAIN_PROCESS).orElse(true);
-
-      final SQLiteHelper sqLiteHelper = new SQLiteHelper(getLocalDatabaseFile(persistentStorageOnly));
-      final MessagePublisher messagePublisher = runningAsMainProcess ?
-          new DisabledMessagePublisher() :
-          new SQLiteMessagePublisher(sqLiteHelper);
-
-      if (!useSlf4JOnly) {
-        final String defaultLogXml = "/logging/logback-default.xml";
-        final TurboFilter turboFilter = new WtTurboFilter(messagePublisher);
-        configureStandardLogging(defaultLogXml, turboFilter);
-      }
 
       if (apiClient == null) {
         if (StringUtils.isEmpty(apiKey)) {
@@ -223,7 +160,7 @@ public class ServerRunner {
               "an apiKey must be supplied via constructor or environment parameter to use the default apiClient");
         }
         RestRequestExecutor requestExecutor = new RestRequestExecutor(apiKey);
-        apiClient = new DefaultApiClient(requestExecutor, messagePublisher);
+        apiClient = new DefaultApiClient(requestExecutor);
       }
 
       if (wiseTimeConnector == null) {
@@ -231,7 +168,7 @@ public class ServerRunner {
             String.format("an implementation of '%s' interface must be supplied", WiseTimeConnector.class.getSimpleName()));
       }
 
-      IntegrateApplication sparkApp = new IntegrateApplication(wiseTimeConnector, messagePublisher);
+      IntegrateApplication sparkApp = new IntegrateApplication(wiseTimeConnector);
 
       final int port = RuntimeConfig.getInt(ConnectorConfigKey.WEBHOOK_PORT).orElse(DEFAULT_WEBHOOK_PORT);
 
@@ -247,20 +184,20 @@ public class ServerRunner {
 
       HandlerCollection handlerCollection = new HandlerCollection(false);
       handlerCollection.addHandler(webAppContext);
-      if (!StringUtils.isBlank(shutdownToken)) {
+      if (StringUtils.isNotBlank(shutdownToken)) {
         handlerCollection.addHandler(new ShutdownHandler(shutdownToken, false, true));
       }
       server.setHandler(handlerCollection);
 
       addCustomizers(port, server);
 
+      final SQLiteHelper sqLiteHelper = new SQLiteHelper(persistentStorageOnly);
       ConnectorModule connectorModule = new ConnectorModule(
           apiClient,
           new FileStore(sqLiteHelper)
       );
 
-      return new ServerRunner(server, port, webAppContext, wiseTimeConnector, connectorModule, messagePublisher,
-          runningAsMainProcess);
+      return new ServerRunner(server, port, webAppContext, wiseTimeConnector, connectorModule);
     }
 
     /**
@@ -326,56 +263,6 @@ public class ServerRunner {
       return this;
     }
 
-    @SuppressWarnings("SameParameterValue")
-    void configureStandardLogging(String defaultLogXmlResource, TurboFilter filter) {
-      Logger rootLogger = (Logger) LoggerFactory.getLogger("root");
-      LoggerContext loggerContext = rootLogger.getLoggerContext();
-      loggerContext.reset();
-
-      try {
-        final JoranConfigurator configurator = new JoranConfigurator();
-        configurator.setContext(loggerContext);
-
-
-        final String userPropertyPath = RuntimeConfig
-            .getString(ConnectorConfigKey.CONNECTOR_PROPERTIES_FILE)
-            .orElse("");
-
-        configurator.doConfigure(
-            ServerBuilder.createDynamicJoranConfigPath(defaultLogXmlResource, userPropertyPath)
-        );
-
-      } catch (Throwable joranException) {
-        // as we have removed all appenders then failed to add to context revert to console to get message to console output
-        loggerContext.reset();
-        PatternLayoutEncoder encoder = new PatternLayoutEncoder();
-        encoder.setContext(loggerContext);
-        encoder.setPattern("%-5level [%thread]: %message%n");
-        encoder.start();
-
-        ConsoleAppender<ILoggingEvent> consoleAppender = new ConsoleAppender<>();
-        consoleAppender.setContext(loggerContext);
-        consoleAppender.setEncoder(encoder);
-        consoleAppender.start();
-
-        rootLogger.addAppender(consoleAppender);
-        LoggerFactory.getLogger(getClass())
-            .error("invalid log config in cp {} msg={}", defaultLogXmlResource, joranException.getMessage(), joranException);
-      }
-
-      loggerContext.addTurboFilter(filter);
-    }
-
-    static String createDynamicJoranConfigPath(String defaultLogXmlResource, String userPropertyPath) throws IOException {
-      final File diskCopyLogbackXml = Files.createTempFile("logback", ".xml").toFile();
-      try (InputStream stream = ServerRunner.class.getResourceAsStream(defaultLogXmlResource)) {
-        final String xmlJoran = IOUtils.toString(stream)
-            .replace("runTimePropertyPath", userPropertyPath);
-        FileUtils.writeStringToFile(diskCopyLogbackXml, xmlJoran, StandardCharsets.UTF_8);
-        return diskCopyLogbackXml.getAbsolutePath();
-      }
-    }
-
     private WebAppContext createWebAppContext() {
       WebAppContext webAppContext = new WebAppContext();
       // load from standard class-loader instead of searching for WEB-INF/lib loader as we are running embedded
@@ -411,48 +298,6 @@ public class ServerRunner {
       // `http-forwarded` module as a customizer
       httpConfig.addCustomizer(new org.eclipse.jetty.server.ForwardedRequestCustomizer());
       return httpConfig;
-    }
-
-    public ServerBuilder useSlf4JOnly(boolean useSlf4JOnly) {
-      this.useSlf4JOnly = useSlf4JOnly;
-      return this;
-    }
-
-    private static final String DEFAULT_LOCAL_DB_FILENAME = "wisetime.sqlite";
-    private static final String DEFAULT_TEMP_DIR_NAME = "wt-sqlite";
-
-    private File getLocalDatabaseFile(boolean persistentStorageOnly) {
-      final String persistentStoreDirPath = RuntimeConfig.getString(DATA_DIR).orElse(null);
-      if (persistentStorageOnly && StringUtils.isBlank(persistentStoreDirPath)) {
-        throw new IllegalArgumentException(String.format(
-            "requirePersistentStore enabled for server -> a persistent directory must be provided using setting '%s'",
-            ConnectorConfigKey.DATA_DIR.getConfigKey()));
-      }
-
-      final File persistentStoreDir = new File(StringUtils.isNotBlank(persistentStoreDirPath) ?
-          persistentStoreDirPath : createTempDir().getAbsolutePath());
-      if (!persistentStoreDir.exists() && !persistentStoreDir.mkdirs()) {
-        throw new IllegalArgumentException(String.format("Store directory does not exist: '%s'",
-            persistentStoreDir.getAbsolutePath()));
-      }
-
-      final String persistentStoreFilename = RuntimeConfig.getString(LOCAL_DB_FILENAME).orElse(DEFAULT_LOCAL_DB_FILENAME);
-      return new File(persistentStoreDir, persistentStoreFilename);
-    }
-
-    private File createTempDir() {
-      try {
-        File tempDir = Files.createTempDirectory(DEFAULT_TEMP_DIR_NAME).toFile();
-        if (!tempDir.exists()) {
-          boolean mkDirResult = tempDir.mkdirs();
-          if (mkDirResult) {
-            // log.debug("temp dir created at {}", tempDir.getAbsolutePath());
-          }
-        }
-        return tempDir;
-      } catch (IOException e) {
-        throw new UncheckedIOException(e);
-      }
     }
   }
 }

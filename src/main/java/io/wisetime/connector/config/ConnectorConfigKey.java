@@ -25,10 +25,6 @@ public enum ConnectorConfigKey implements RuntimeConfigKey {
    */
   DATA_DIR("DATA_DIR"),
   /**
-   * Name of the local SQLite database file. If not set - default value will be used.
-   */
-  LOCAL_DB_FILENAME("LOCAL_DB_FILENAME"),
-  /**
    * The token necessary for a shutdown command to work with the embedded Jetty server.
    */
   JETTY_SERVER_SHUTDOWN_TOKEN("JETTY_SERVER_SHUTDOWN_TOKEN"),
@@ -40,12 +36,6 @@ public enum ConnectorConfigKey implements RuntimeConfigKey {
    * Timeout since last successful time posting. Used for health checks. Default is 60.
    */
   HEALTH_MAX_MINS_SINCE_SUCCESS("HEALTH_MAX_MINS_SINCE_SUCCESS"),
-  /**
-   * Flags if the core library runs as a stand-alone application or a sub-process. Affects the HealthCheck. If true, it exits
-   * the environment on max successive failures reached. Affects logging to the local DB. If true, no logging is saved in the
-   * local DB.
-   */
-  RUNNING_AS_MAIN_PROCESS("RUNNING_AS_MAIN_PROCESS"),
   /**
    * Default is https://wisetime.io/connect/api.
    */

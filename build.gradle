@@ -127,7 +127,6 @@ dependencies {
     compile 'org.apache.commons:commons-collections4:4.2'
     compile 'com.google.guava:guava:27.1-jre'
     compile 'commons-io:commons-io:2.6'
-    compile 'commons-beanutils:commons-beanutils:1.9.3'
 
     compile 'org.xerial:sqlite-jdbc:3.27.2.1'
     compile 'org.codejargon:fluentjdbc:1.8.3'
@@ -176,7 +175,7 @@ test {
 ext.jacocoLimits = [
         'instruction': 72,
         'line'       : 72,
-        'method'     : 75,
+        'method'     : 74,
         'class'      : 90
 ]
 

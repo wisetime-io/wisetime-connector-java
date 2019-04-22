@@ -12,8 +12,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ForkJoinPool;
 
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
-import io.wisetime.connector.logging.MessagePublisher;
-import io.wisetime.connector.logging.WtEvent;
 import io.wisetime.generated.connect.AddKeywordsRequest;
 import io.wisetime.generated.connect.AddKeywordsResponse;
 import io.wisetime.generated.connect.DeleteKeywordRequest;
@@ -40,11 +38,9 @@ public class DefaultApiClient implements ApiClient {
 
   private final RestRequestExecutor restRequestExecutor;
   private final ForkJoinPool forkJoinPool;
-  private final MessagePublisher messagePublisher;
 
-  public DefaultApiClient(RestRequestExecutor restRequestExecutor, MessagePublisher messagePublisher) {
+  public DefaultApiClient(RestRequestExecutor restRequestExecutor) {
     this.restRequestExecutor = restRequestExecutor;
-    this.messagePublisher = messagePublisher;
     this.forkJoinPool = new ForkJoinPool(10);
   }
 
@@ -55,7 +51,6 @@ public class DefaultApiClient implements ApiClient {
         EndpointPath.TagUpsert,
         upsertTagRequest
     );
-    messagePublisher.publish(new WtEvent(WtEvent.Type.TAGS_UPSERTED, String.valueOf(1)));
   }
 
   /**
@@ -77,7 +72,7 @@ public class DefaultApiClient implements ApiClient {
           }
         })
         .filter(Optional::isPresent)
-        .findFirst()
+        .findAny()
         .orElse(empty());
 
     Optional<Exception> error;
@@ -89,9 +84,7 @@ public class DefaultApiClient implements ApiClient {
     } catch (InterruptedException | ExecutionException e) {
       throw new IOException(e);
     }
-    if (!error.isPresent()) {
-      messagePublisher.publish(new WtEvent(WtEvent.Type.TAGS_UPSERTED, String.valueOf(upsertTagRequests.size())));
-    } else {
+    if (error.isPresent()) {
       throw new IOException("Failed to complete tag upsert batch. Stopped at error.", error.get());
     }
   }
