@@ -16,6 +16,19 @@ public enum ConnectorConfigKey implements RuntimeConfigKey {
    */
   API_KEY("API_KEY"),
   /**
+   * The id of the provided fetch connection. If set the fetch implementation will be used to get posted time.
+   */
+  FETCH_CLIENT_ID("FETCH_CLIENT_ID"),
+  /**
+   * The maximum amount of time groups to be fetched with each API call. Can only be set if FETCH_CLIENT_ID is provided
+   */
+  FETCH_CLIENT_LIMIT("FETCH_CLIENT_LIMIT"),
+  /**
+   * If set the webhook implementation to get posted time will be used. The content of the environment variable will be
+   * ignored, it's just a flag to signalize that webhooks should be used.
+   */
+  USE_WEBHOOKS("USE_WEBHOOKS"),
+  /**
    * The caller key that WiseTime should provide with post time webhook calls. The connector does not authenticate webhook
    * calls if not set
    */

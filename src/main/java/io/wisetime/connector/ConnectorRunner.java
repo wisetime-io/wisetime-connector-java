@@ -85,6 +85,11 @@ public class ConnectorRunner {
   public static ConnectorBuilder createConnectorBuilder() {
     ConnectorBuilder builder = new ConnectorBuilder();
     RuntimeConfig.getString(ConnectorConfigKey.API_KEY).ifPresent(builder::withApiKey);
+    RuntimeConfig.getString(ConnectorConfigKey.FETCH_CLIENT_ID).ifPresent(builder::useFetchClient);
+    RuntimeConfig.getString(ConnectorConfigKey.FETCH_CLIENT_LIMIT).map(Integer::parseInt)
+        .ifPresent(builder::withFetchClientLimit);
+    // Value is ignored, we just need a flag to enable webhooks
+    RuntimeConfig.getString(ConnectorConfigKey.USE_WEBHOOKS).ifPresent(webhook -> builder.useWebhook());
     RuntimeConfig.getString(ConnectorConfigKey.JETTY_SERVER_SHUTDOWN_TOKEN).ifPresent(builder::withShutdownToken);
     return builder;
   }
@@ -201,7 +206,7 @@ public class ConnectorRunner {
       int port = 0;
       WebAppContext webAppContext = null;
       // if useFetchClient is null, no time posting mechanism was specified, therefore running in tag upload mode only
-      TimePosterRunner timePosterRunner = new DefaultTimePosterRunner();
+      TimePosterRunner timePosterRunner = new NoOpTimePosterRunner();
       if (useFetchClient != null) {
         if (useFetchClient && StringUtils.isBlank(fetchClientId)) {
           throw new IllegalArgumentException("fetch client id can't be null or empty, " +
