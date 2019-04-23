@@ -16,6 +16,7 @@ import org.eclipse.jetty.webapp.WebAppContext;
 
 import java.io.File;
 import java.net.URL;
+import java.util.Optional;
 import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
@@ -85,11 +86,16 @@ public class ConnectorRunner {
   public static ConnectorBuilder createConnectorBuilder() {
     ConnectorBuilder builder = new ConnectorBuilder();
     RuntimeConfig.getString(ConnectorConfigKey.API_KEY).ifPresent(builder::withApiKey);
-    RuntimeConfig.getString(ConnectorConfigKey.FETCH_CLIENT_ID).ifPresent(builder::useFetchClient);
+    Optional<String> fetchClientId = RuntimeConfig.getString(ConnectorConfigKey.FETCH_CLIENT_ID);
+    Optional<String> useWebhooks = RuntimeConfig.getString(ConnectorConfigKey.USE_WEBHOOKS);
+    if (fetchClientId.isPresent() && useWebhooks.isPresent()) {
+      throw new IllegalStateException("Only one of FETCH_CLIENT_ID or USE_WEBHOOKS environment variables should be set");
+    }
+    fetchClientId.ifPresent(builder::useFetchClient);
     RuntimeConfig.getString(ConnectorConfigKey.FETCH_CLIENT_LIMIT).map(Integer::parseInt)
         .ifPresent(builder::withFetchClientLimit);
     // Value is ignored, we just need a flag to enable webhooks
-    RuntimeConfig.getString(ConnectorConfigKey.USE_WEBHOOKS).ifPresent(webhook -> builder.useWebhook());
+    useWebhooks.ifPresent(webhook -> builder.useWebhook());
     RuntimeConfig.getString(ConnectorConfigKey.JETTY_SERVER_SHUTDOWN_TOKEN).ifPresent(builder::withShutdownToken);
     return builder;
   }
