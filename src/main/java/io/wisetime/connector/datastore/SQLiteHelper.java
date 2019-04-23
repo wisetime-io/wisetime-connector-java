@@ -60,9 +60,8 @@ public class SQLiteHelper {
     try {
       File tempDir = Files.createTempDirectory(DEFAULT_TEMP_DIR_NAME).toFile();
       if (!tempDir.exists()) {
-        boolean mkDirResult = tempDir.mkdirs();
-        if (mkDirResult) {
-          // log.debug("temp dir created at {}", tempDir.getAbsolutePath());
+        if (!tempDir.mkdirs()) {
+          throw new IllegalStateException("Failed to create data directory: " + tempDir);
         }
       }
       return tempDir;
