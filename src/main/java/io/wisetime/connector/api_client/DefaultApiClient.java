@@ -122,7 +122,7 @@ public class DefaultApiClient implements ApiClient {
           }
         })
         .filter(Optional::isPresent)
-        .findFirst()
+        .findAny()
         .orElse(empty());
 
     Optional<Exception> error;
