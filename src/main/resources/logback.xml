@@ -2,6 +2,12 @@
 <configuration>
     <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
 
+    <include resource="logback-extra.xml" optional="true"/>
+
+    <define name="awsPropertiesFile" class="io.wisetime.connector.logging.RuntimeConfigPropertyDefiner">
+        <key>CONNECTOR_PROPERTIES_FILE</key>
+    </define>
+
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <!-- ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
         <encoder>
@@ -17,7 +23,7 @@
         </filter>
         <moduleName>wise-connector</moduleName>
         <logGroup>wise-prod</logGroup>
-        <propertiesFilePath>runTimePropertyPath</propertiesFilePath>
+        <propertiesFilePath>${awsPropertiesFile}</propertiesFilePath>
     </appender>
 
     <root level="INFO" additivity="false">

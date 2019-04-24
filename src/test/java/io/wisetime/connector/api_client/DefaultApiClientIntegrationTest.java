@@ -18,7 +18,6 @@ import java.util.Optional;
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
-import io.wisetime.connector.logging.DisabledMessagePublisher;
 import io.wisetime.generated.connect.AddKeywordsRequest;
 import io.wisetime.generated.connect.DeleteKeywordRequest;
 import io.wisetime.generated.connect.DeleteTagRequest;
@@ -53,7 +52,7 @@ class DefaultApiClientIntegrationTest {
       return;
     }
     RestRequestExecutor requestExecutor = new RestRequestExecutor(apiKey.get());
-    defaultApiClient = new DefaultApiClient(requestExecutor, new DisabledMessagePublisher());
+    defaultApiClient = new DefaultApiClient(requestExecutor);
   }
 
   @Test

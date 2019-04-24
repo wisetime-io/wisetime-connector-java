@@ -5,21 +5,16 @@
 package io.wisetime.connector.api_client;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableSet;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.stream.IntStream;
 
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
-import io.wisetime.connector.logging.DisabledMessagePublisher;
 import io.wisetime.generated.connect.AddKeywordsRequest;
 import io.wisetime.generated.connect.AddKeywordsResponse;
 import io.wisetime.generated.connect.DeleteTagRequest;
@@ -28,6 +23,7 @@ import io.wisetime.generated.connect.UpsertTagRequest;
 import io.wisetime.generated.connect.UpsertTagResponse;
 
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.mock;
@@ -46,7 +42,7 @@ public class DefaultApiClientTest {
   @BeforeEach
   void init() {
     requestExecutor = mock(RestRequestExecutor.class);
-    apiClient = new DefaultApiClient(requestExecutor, new DisabledMessagePublisher());
+    apiClient = new DefaultApiClient(requestExecutor);
   }
 
   @Test
@@ -65,17 +61,20 @@ public class DefaultApiClientTest {
 
   @Test
   void tagUpsertBatch_stops_on_error() throws IOException {
+    IOException expectedException = new IOException("Expected exception");
+    //mockito answer is not synchronised. it is not guaranteed that only 1 return will be UpsertTagResponse on thread race
     when(requestExecutor.executeTypedBodyRequest(any(), any(), any()))
         .thenReturn(new UpsertTagResponse())
-        .thenThrow(new IOException());
+        .thenThrow(expectedException);
 
-    assertThatExceptionOfType(IOException.class).isThrownBy(() ->
-        apiClient.tagUpsertBatch(fakeUpsertTagRequests(1000))
-    );
+    assertThatThrownBy(() -> apiClient.tagUpsertBatch(fakeUpsertTagRequests(1000)))
+        .as("we expecting first requests pass and than expected exception to be thrown")
+        .hasMessage("Failed to complete tag upsert batch. Stopped at error.")
+        .hasCause(expectedException);
 
     // We should notice that a request has failed way before we reach the end of the list
     // Allowance is made for requests sent in parallel before we notice an error
-    // TODO: fix not stable test (sometimes MoreThanAllowedActualInvocations)
+    // number of requests should always be less than 2*pool_size
     verify(requestExecutor, atMost(20)).executeTypedBodyRequest(
         any(),
         any(EndpointPath.TagUpsert.getClass()),
@@ -109,16 +108,20 @@ public class DefaultApiClientTest {
 
   @Test
   void tagAddKeywordsBatch_stops_on_error() throws IOException {
+    //mockito answer is not synchronised. it is not guaranteed that only 1 return will be UpsertTagResponse on thread race
+    IOException expectedException = new IOException();
     when(requestExecutor.executeTypedBodyRequest(any(), any(), any()))
         .thenReturn(new AddKeywordsResponse())
-        .thenThrow(new IOException());
+        .thenThrow(expectedException);
 
-    assertThatExceptionOfType(IOException.class).isThrownBy(() ->
-        apiClient.tagAddKeywordsBatch(fakeAddKeywordsRequests(1000))
-    );
+    assertThatThrownBy(() -> apiClient.tagAddKeywordsBatch(fakeAddKeywordsRequests(1000)))
+        .as("we expecting first requests pass and than expected exception to be thrown")
+        .hasMessage("Failed to complete tag keywords upsert batch. Stopped at error.")
+        .hasCause(expectedException);
 
     // We should notice that a request has failed way before we reach the end of the list
     // Allowance is made for requests sent in parallel before we notice an error
+    // number of requests should always be less than 2*pool_size
     verify(requestExecutor, atMost(20)).executeTypedBodyRequest(
         any(),
         any(EndpointPath.TagAddKeyword.getClass()),
@@ -163,9 +166,9 @@ public class DefaultApiClientTest {
     IntStream
         .range(1, numberOfTags + 1)
         .forEach(i ->
-          requests.add(new AddKeywordsRequest()
-              .tagName(String.valueOf(i))
-              .additionalKeywords(ImmutableList.of(String.valueOf(i))))
+            requests.add(new AddKeywordsRequest()
+                .tagName(String.valueOf(i))
+                .additionalKeywords(ImmutableList.of(String.valueOf(i))))
         );
     return requests;
   }

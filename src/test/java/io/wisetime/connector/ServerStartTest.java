@@ -14,6 +14,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import io.wisetime.connector.api_client.ApiClient;
@@ -63,7 +64,6 @@ public class ServerStartTest {
     ServerRunner runner = ServerRunner.createServerBuilder()
         .withWiseTimeConnector(mockConnector)
         .withApiClient(mockApiClient)
-        .useSlf4JOnly(true)
         .build();
     long startTime = System.currentTimeMillis();
 
@@ -92,7 +92,9 @@ public class ServerStartTest {
 
   private static void getHome(SparkTestUtil testUtil) throws Exception {
     SparkTestUtil.UrlResponse response = testUtil.doMethod("GET", "/", null, "text/html");
-    assertThat(response.status).isEqualTo(200);
+    if (response.status != 200) {
+      throw new IOException("Invalid response code: " + response.status);
+    }
   }
 
   public static int getPort(Server server) {

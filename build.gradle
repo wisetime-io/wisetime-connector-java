@@ -18,7 +18,7 @@ buildscript {
     dependencies {
         classpath "org.openapitools:openapi-generator-gradle-plugin:3.3.4"
         classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.20.0"
-        classpath "io.wisetime:validate-version:0.2.3"
+        classpath "io.wisetime:validate-version:0.2.4"
     }
 }
 
@@ -127,7 +127,6 @@ dependencies {
     compile 'org.apache.commons:commons-collections4:4.2'
     compile 'com.google.guava:guava:27.1-jre'
     compile 'commons-io:commons-io:2.6'
-    compile 'commons-beanutils:commons-beanutils:1.9.3'
 
     compile 'org.xerial:sqlite-jdbc:3.27.2.1'
     compile 'org.codejargon:fluentjdbc:1.8.3'
@@ -176,7 +175,7 @@ test {
 ext.jacocoLimits = [
         'instruction': 72,
         'line'       : 72,
-        'method'     : 75,
+        'method'     : 74,
         'class'      : 90
 ]
 
