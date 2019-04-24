@@ -43,7 +43,12 @@ public enum ConnectorConfigKey implements RuntimeConfigKey {
   /**
    * Default port is 8080
    */
-  WEBHOOK_PORT("WEBHOOK_PORT");
+  WEBHOOK_PORT("WEBHOOK_PORT"),
+
+  /**
+   * Log level. Default value is set in logback.xml
+   */
+  LOG_LEVEL("LOG_LEVEL");
 
   private final String configKey;
 

@@ -15,13 +15,18 @@ import io.wisetime.connector.config.RuntimeConfig;
 public class RuntimeConfigPropertyDefiner extends PropertyDefinerBase {
 
   private String key;
+  private String defaultValue = "";
 
   @Override
   public String getPropertyValue() {
-    return RuntimeConfig.getString(() -> key).orElse("");
+    return RuntimeConfig.getString(() -> key).orElse(defaultValue);
   }
 
   public void setKey(String key) {
     this.key = key;
+  }
+
+  public void setDefaultValue(String defaultValue) {
+    this.defaultValue = defaultValue;
   }
 }
