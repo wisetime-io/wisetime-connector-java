@@ -32,6 +32,8 @@ steps:
       branch:
         exclude:
           - master
+      event:
+        - push
 
   - name: unit-test
     image: openjdk:8-jdk
@@ -66,9 +68,9 @@ steps:
     commands:
       - ./gradlew --info publish
     when:
-      branch:
-        include:
-          - master
+      ref:
+        - refs/heads/master
+        - refs/tags/*
 
   - name: cascade-to-bamboo
     image: quay.io/wisetime/alpine-git-bash
@@ -81,9 +83,9 @@ steps:
       - echo "Caccade to artifact via user $${BAMBOO_USER}"
       - ./bin/cascade.sh
     when:
-      branch:
-        include:
-          - master
+      ref:
+        - refs/heads/master
+        - refs/tags/*
 
 volumes:
   - name: host-cache
@@ -111,9 +113,9 @@ steps:
     commands:
       - ./bin/mirror.sh
     when:
-      branch:
-        include:
-          - master
+      ref:
+        - refs/heads/master
+        - refs/tags/*
 
 trigger:
   event:
