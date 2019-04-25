@@ -17,6 +17,9 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             artifactId = project.name
+            // We publish release to MavenCentral via CI job with reuse of previously created artifact, so folder is not 
+            // a git repository. Actual version is provided as property.
+            version = project.version
             from components.java
             artifact sourcesJar
             artifact javadocJar
