@@ -185,17 +185,6 @@ tasks.withType(Checkstyle) {
     }
 }
 
-task sourcesJar(type: Jar) {
-    from sourceSets.main.allJava
-    classifier = 'sources'
-}
-
-task javadocJar(type: Jar) {
-    from javadoc
-    classifier = 'javadoc'
-}
-
-
 clean {
     delete "${projectDir}/out"
     delete "${projectDir}/.openapi-generator"
