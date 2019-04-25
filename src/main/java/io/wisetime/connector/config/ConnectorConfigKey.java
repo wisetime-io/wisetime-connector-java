@@ -46,7 +46,7 @@ public enum ConnectorConfigKey implements RuntimeConfigKey {
   WEBHOOK_PORT("WEBHOOK_PORT"),
 
   /**
-   * Log level. Default value is set in logback.xml
+   * Level of root logger. Default value is INFO.
    */
   LOG_LEVEL("LOG_LEVEL");
 
