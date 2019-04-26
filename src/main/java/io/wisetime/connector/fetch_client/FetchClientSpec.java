@@ -14,6 +14,5 @@ public class FetchClientSpec {
   private final ApiClient apiClient;
   private final WiseTimeConnector connector;
   private final TimeGroupIdStore timeGroupIdStore;
-  private final String fetchClientId;
   private final int limit;
 }

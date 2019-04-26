@@ -179,11 +179,10 @@ public class DefaultApiClient implements ApiClient {
   }
 
   @Override
-  public List<TimeGroup> fetchTimeGroups(String fetchClientId, int limit) throws IOException {
+  public List<TimeGroup> fetchTimeGroups(int limit) throws IOException {
     return restRequestExecutor.executeTypedRequest(new TypeReference<List<TimeGroup>>(){},
         EndpointPath.PostedTimeFetch,
-        ImmutableList.of(new BasicNameValuePair("fetchClientId", fetchClientId),
-            new BasicNameValuePair("limit", String.valueOf(limit))));
+        ImmutableList.of(new BasicNameValuePair("limit", String.valueOf(limit))));
   }
 
   @Override

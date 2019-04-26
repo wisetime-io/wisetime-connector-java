@@ -165,11 +165,10 @@ class DefaultApiClientTest {
   void fetchTimeGroups() throws IOException {
     Faker faker = new Faker();
     int limit = faker.number().randomDigit();
-    String fetchClientId = faker.numerify("fcid######");
     when(requestExecutor.executeTypedRequest(any(), any(), any()))
         .thenReturn(ImmutableList.of());
 
-    apiClient.fetchTimeGroups(fetchClientId, limit);
+    apiClient.fetchTimeGroups(limit);
 
     ArgumentCaptor<List<NameValuePair>> paramCaptor = ArgumentCaptor.forClass(List.class);
     verify(requestExecutor).executeTypedRequest(
@@ -178,7 +177,6 @@ class DefaultApiClientTest {
         paramCaptor.capture()
     );
     assertThat(paramCaptor.getValue()).usingFieldByFieldElementComparator().containsExactlyInAnyOrder(
-        new BasicNameValuePair("fetchClientId", fetchClientId),
         new BasicNameValuePair("limit", String.valueOf(limit))
     );
   }

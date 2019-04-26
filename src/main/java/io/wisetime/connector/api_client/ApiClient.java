@@ -111,12 +111,11 @@ public interface ApiClient {
   /**
    * Fetches a posted time group.
    *
-   * @param fetchClientId the id of the fetch client
    * @param limit the maximum amount of time groups received by call. Valid values: 1-25
    * @return a list of time groups. Or empty list if time out is reached.
    * @throws IOException if request is unsuccessful
    */
-  List<TimeGroup> fetchTimeGroups(String fetchClientId, int limit) throws IOException;
+  List<TimeGroup> fetchTimeGroups(int limit) throws IOException;
 
   /**
    * Marks a time groups as either successfully posted or failed by id.

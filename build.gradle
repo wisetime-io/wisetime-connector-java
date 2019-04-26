@@ -122,9 +122,9 @@ dependencies {
     compile 'org.apache.commons:commons-lang3:3.9'
     compile 'net.jodah:failsafe:1.1.0'
 
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.7'
-    compile 'com.fasterxml.jackson.core:jackson-core:2.9.7'
-    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.7'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
+    compile 'com.fasterxml.jackson.core:jackson-core:2.9.8'
+    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.8'
 
     compile 'org.apache.commons:commons-collections4:4.2'
     compile 'com.google.guava:guava:27.1-jre'

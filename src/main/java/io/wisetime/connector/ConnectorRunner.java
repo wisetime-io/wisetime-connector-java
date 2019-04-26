@@ -13,10 +13,10 @@ import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.server.handler.ShutdownHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.webapp.WebAppContext;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URL;
-import java.util.Optional;
 import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
@@ -61,6 +61,8 @@ import io.wisetime.connector.webhook.WebhookServerRunner;
 @SuppressWarnings("WeakerAccess")
 public class ConnectorRunner {
 
+  private static final org.slf4j.Logger log = LoggerFactory.getLogger(ConnectorRunner.class);
+
   private final TimePosterRunner timePosterRunner;
   private final int port;
   private final WebAppContext webAppContext;
@@ -86,16 +88,20 @@ public class ConnectorRunner {
   public static ConnectorBuilder createConnectorBuilder() {
     ConnectorBuilder builder = new ConnectorBuilder();
     RuntimeConfig.getString(ConnectorConfigKey.API_KEY).ifPresent(builder::withApiKey);
-    Optional<String> fetchClientId = RuntimeConfig.getString(ConnectorConfigKey.FETCH_CLIENT_ID);
-    Optional<String> useWebhooks = RuntimeConfig.getString(ConnectorConfigKey.USE_WEBHOOKS);
-    if (fetchClientId.isPresent() && useWebhooks.isPresent()) {
-      throw new IllegalStateException("Only one of FETCH_CLIENT_ID or USE_WEBHOOKS environment variables should be set");
+    String connectorMode = RuntimeConfig.getString(ConnectorConfigKey.CONNECTOR_MODE).orElse("LONG_POLL");
+    switch (connectorMode) {
+      case "LONG_POLL":
+        builder.useFetchClient();
+        break;
+      case "WEBHOOK":
+        builder.useWebhook();
+        break;
+      case "TAG_ONLY":
+      default:
+        log.info("starting in connector in tag only mode");
     }
-    fetchClientId.ifPresent(builder::useFetchClient);
-    RuntimeConfig.getString(ConnectorConfigKey.FETCH_CLIENT_LIMIT).map(Integer::parseInt)
+    RuntimeConfig.getString(ConnectorConfigKey.LONG_POLLING_LIMIT).map(Integer::parseInt)
         .ifPresent(builder::withFetchClientLimit);
-    // Value is ignored, we just need a flag to enable webhooks
-    useWebhooks.ifPresent(webhook -> builder.useWebhook());
     RuntimeConfig.getString(ConnectorConfigKey.JETTY_SERVER_SHUTDOWN_TOKEN).ifPresent(builder::withShutdownToken);
     return builder;
   }
@@ -174,7 +180,6 @@ public class ConnectorRunner {
 
     private boolean persistentStorageOnly = false;
     private Boolean useFetchClient;
-    private String fetchClientId;
     private int fetchClientFetchLimit = 25;
     private WiseTimeConnector wiseTimeConnector;
     private ApiClient apiClient;
@@ -214,16 +219,10 @@ public class ConnectorRunner {
       // if useFetchClient is null, no time posting mechanism was specified, therefore running in tag upload mode only
       TimePosterRunner timePosterRunner = new NoOpTimePosterRunner();
       if (useFetchClient != null) {
-        if (useFetchClient && StringUtils.isBlank(fetchClientId)) {
-          throw new IllegalArgumentException("fetch client id can't be null or empty, " +
-              "if connector is configured to use the fetch client");
-        }
-
         if (useFetchClient) {
           TimeGroupIdStore timeGroupIdStore = new TimeGroupIdStore(sqLiteHelper);
 
-          FetchClientSpec spec = new FetchClientSpec(apiClient, wiseTimeConnector, timeGroupIdStore,
-              fetchClientId, fetchClientFetchLimit);
+          FetchClientSpec spec = new FetchClientSpec(apiClient, wiseTimeConnector, timeGroupIdStore, fetchClientFetchLimit);
           timePosterRunner = new FetchClient(spec);
         } else {
           port = RuntimeConfig.getInt(ConnectorConfigKey.WEBHOOK_PORT).orElse(DEFAULT_WEBHOOK_PORT);
@@ -326,14 +325,8 @@ public class ConnectorRunner {
 
     /**
      * Method to signal that the fetch implementation for posted time groups should be used.
-     *
-     * @param fetchClientId the id provided after registering a fetch client
      */
-    public ConnectorBuilder useFetchClient(String fetchClientId) {
-      if (useFetchClient != null) {
-        throw new IllegalStateException("useFetchClient or useWebhook should only be called once");
-      }
-      this.fetchClientId = fetchClientId;
+    public ConnectorBuilder useFetchClient() {
       this.useFetchClient = true;
       return this;
     }
@@ -359,9 +352,6 @@ public class ConnectorRunner {
      * Method to signal that the webhook based implementation for posted time groups should be used.
      */
     public ConnectorBuilder useWebhook() {
-      if (useFetchClient != null) {
-        throw new IllegalStateException("useFetchClient or useWebhook should only be called once");
-      }
       this.useFetchClient = false;
       return this;
     }
