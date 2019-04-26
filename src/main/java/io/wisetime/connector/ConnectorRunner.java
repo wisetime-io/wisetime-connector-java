@@ -156,13 +156,6 @@ public class ConnectorRunner {
     healthCheckTimer.purge();
     tagTimer.cancel();
     tagTimer.purge();
-    try {
-      // leaves time for the threads to stop
-      Thread.sleep(2000);
-    } catch (InterruptedException e) {
-      // ignore.
-    }
-    throw new InterruptedException();
   }
 
   //visible for testing
