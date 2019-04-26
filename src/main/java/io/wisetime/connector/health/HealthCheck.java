@@ -4,18 +4,14 @@
 
 package io.wisetime.connector.health;
 
-import org.apache.http.client.fluent.Executor;
-import org.apache.http.client.fluent.Request;
 import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
-import io.wisetime.connector.IntegrateApplication;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
 
@@ -39,24 +35,23 @@ public class HealthCheck extends TimerTask {
   static final int MAX_SUCCESSIVE_FAILURES = 3;
   static final int MAX_MINS_SINCE_SUCCESS_DEFAULT = 60;
 
-  private final int port;
-  private final Executor executor = Executor.newInstance();
   private final Supplier<DateTime> lastRunSuccess;
+  private final Supplier<Boolean> timePosterHealthCheck;
   private final Supplier<Boolean> connectorHealthCheck;
   private final AtomicInteger failureCount;
   private final int maxMinsSinceSuccess;
 
   // modifiable for testing
-  private int latencyTolerance;
   private Runnable shutdownFunction;
 
   /**
-   * @param port                 The port that server is running on in this VM.
-   * @param lastRunSuccess       Provides the last time the tag upsert method was run.
-   * @param connectorHealthCheck Optionally, the connector implementation can provide a health check via this function.
+   * @param timePosterHealthCheck Provides the health state of the used time post method
+   * @param lastRunSuccess        Provides the last time the tag upsert method was run.
+   * @param connectorHealthCheck  Optionally, the connector implementation can provide a health check via this function.
    */
-  public HealthCheck(int port, Supplier<DateTime> lastRunSuccess, Supplier<Boolean> connectorHealthCheck) {
-    this.port = port;
+  public HealthCheck(Supplier<DateTime> lastRunSuccess, Supplier<Boolean> timePosterHealthCheck,
+                     Supplier<Boolean> connectorHealthCheck) {
+    this.timePosterHealthCheck = timePosterHealthCheck;
     this.lastRunSuccess = lastRunSuccess;
     this.connectorHealthCheck = connectorHealthCheck;
     this.failureCount = new AtomicInteger(0);
@@ -69,7 +64,6 @@ public class HealthCheck extends TimerTask {
       }
       System.exit(-1);
     };
-    this.latencyTolerance = 2000;
     this.maxMinsSinceSuccess = RuntimeConfig
         .getInt(ConnectorConfigKey.HEALTH_MAX_MINS_SINCE_SUCCESS)
         .orElse(MAX_MINS_SINCE_SUCCESS_DEFAULT);
@@ -105,12 +99,17 @@ public class HealthCheck extends TimerTask {
         return false;
       }
 
+      if (Boolean.FALSE.equals(timePosterHealthCheck.get())) {
+        log.info("Unhealthy state where timePosterHealthCheck returned false");
+        return false;
+      }
+
       if (Boolean.FALSE.equals(connectorHealthCheck.get())) {
         log.info("Unhealthy state where connectorHealthCheck returned false");
         return false;
       }
-
-      return checkEndpointHealth();
+      // All checks passed
+      return true;
     } catch (Throwable t) {
       log.error("Unhealthy state where exception occurred checking health, returning unhealthy; msg='{}'",
           t.getMessage(), t);
@@ -118,34 +117,11 @@ public class HealthCheck extends TimerTask {
     }
   }
 
-  private boolean checkEndpointHealth() throws IOException {
-    if (port == 0) {
-      // running on ephemeral port, skip http check
-      return true;
-    }
-
-    log.debug("Calling local endpoint over http to check server is responding");
-    // call health endpoint to check responding & status of 200 re response
-    String result = executor.execute(
-        Request.Get(String.format("http://localhost:%d/ping", port))
-            .connectTimeout(latencyTolerance)
-            .socketTimeout(latencyTolerance))
-        .returnContent().asString();
-
-    return IntegrateApplication.PING_RESPONSE.equals(result);
-  }
-
   /**
    * Set function to be executed when connector found to be unhealthy.
    */
   public HealthCheck setShutdownFunction(Runnable shutdownFunction) {
     this.shutdownFunction = shutdownFunction;
-    return this;
-  }
-
-  // Visible for testing
-  HealthCheck setLowLatencyTolerance() {
-    this.latencyTolerance = 100;
     return this;
   }
 

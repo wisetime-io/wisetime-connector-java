@@ -2,7 +2,7 @@
  * Copyright (c) 2018 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector;
+package io.wisetime.connector.webhook;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -34,14 +34,15 @@ import static spark.Spark.staticFileLocation;
  * @author thomas.haines@practiceinsight.io
  * @see <a href="http://sparkjava.com">Spark</a> for more infromation about Spark framework.
  */
-public class IntegrateApplication implements SparkApplication {
+public class WebhookApplication implements SparkApplication {
 
-  private static final Logger log = LoggerFactory.getLogger(IntegrateApplication.class);
+  private static final Logger log = LoggerFactory.getLogger(WebhookApplication.class);
   public static final String PING_RESPONSE = "pong";
   private final ObjectMapper om;
   private final WiseTimeConnector wiseTimeConnector;
 
-  IntegrateApplication(WiseTimeConnector wiseTimeConnector) {
+
+  public WebhookApplication(WiseTimeConnector wiseTimeConnector) {
     this.wiseTimeConnector = wiseTimeConnector;
     om = TolerantObjectMapper.create();
   }

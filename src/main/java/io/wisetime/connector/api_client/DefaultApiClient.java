@@ -4,6 +4,12 @@
 
 package io.wisetime.connector.api_client;
 
+import com.google.common.collect.ImmutableList;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+
+import org.apache.http.message.BasicNameValuePair;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +27,8 @@ import io.wisetime.generated.connect.DeleteTagResponse;
 import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.TeamInfoResult;
+import io.wisetime.generated.connect.TimeGroup;
+import io.wisetime.generated.connect.TimeGroupStatus;
 import io.wisetime.generated.connect.UnsubscribeRequest;
 import io.wisetime.generated.connect.UnsubscribeResult;
 import io.wisetime.generated.connect.UpsertTagRequest;
@@ -168,5 +176,18 @@ public class DefaultApiClient implements ApiClient {
         EndpointPath.PostedTimeUnsubscribe,
         unsubscribeRequest
     );
+  }
+
+  @Override
+  public List<TimeGroup> fetchTimeGroups(String fetchClientId, int limit) throws IOException {
+    return restRequestExecutor.executeTypedRequest(new TypeReference<List<TimeGroup>>(){},
+        EndpointPath.PostedTimeFetch,
+        ImmutableList.of(new BasicNameValuePair("fetchClientId", fetchClientId),
+            new BasicNameValuePair("limit", String.valueOf(limit))));
+  }
+
+  @Override
+  public void updatePostedTimeStatus(TimeGroupStatus timeGroupStatus) throws IOException {
+    restRequestExecutor.executeTypedBodyRequest(Object.class, EndpointPath.PostedTimeUpdateStatus, timeGroupStatus);
   }
 }

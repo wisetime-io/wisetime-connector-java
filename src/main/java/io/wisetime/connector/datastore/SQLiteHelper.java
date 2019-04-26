@@ -82,6 +82,7 @@ public class SQLiteHelper {
     return sqLiteDataSource;
   }
 
+  @SuppressWarnings("UnusedReturnValue")
   public boolean createTable(LocalDbTable table) {
     fluentJdbc.query()
         .update("CREATE TABLE IF NOT EXISTS " + table.getName() + " ( " + table.getSchema() + " ) ")

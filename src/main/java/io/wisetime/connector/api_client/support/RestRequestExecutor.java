@@ -8,6 +8,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.net.UrlEscapers;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.commons.lang3.StringUtils;
@@ -53,7 +54,10 @@ public class RestRequestExecutor {
     return mapper.readValue(responseBody, valueType);
   }
 
-  public <T> T executeTypedRequest(Class<T> valueType,
+  /**
+   * Using TypeReference instead of class to be able to return typed list results
+   */
+  public <T> T executeTypedRequest(TypeReference<T> valueType,
                                    EndpointPath endpointPath,
                                    List<NameValuePair> params) throws IOException {
     String responseBody = executeRequest(endpointPath, params);
@@ -103,7 +107,7 @@ public class RestRequestExecutor {
 
     String mergedTemplate = actionPath;
     for (NameValuePair keyValuePair : namedParamList) {
-      String matchStr = String.format("(:%s)(/|$)", keyValuePair.getName());
+      String matchStr = String.format("(:%s)(/|$|\\?)", keyValuePair.getName());
       Pattern pattern = Pattern.compile(matchStr, Pattern.CASE_INSENSITIVE);
       Matcher match = pattern.matcher(mergedTemplate);
       if (!match.find()) {

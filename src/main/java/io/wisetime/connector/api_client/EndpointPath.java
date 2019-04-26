@@ -19,7 +19,9 @@ public enum EndpointPath {
   TagDeleteKeyword("/tag/keyword/delete", ConnectApiRequest.HttpMethod.POST),
   TeamInfo("/team/info", ConnectApiRequest.HttpMethod.GET),
   PostedTimeSubscribe("/postedtime/subscribe", ConnectApiRequest.HttpMethod.POST),
-  PostedTimeUnsubscribe("/postedtime/unsubscribe", ConnectApiRequest.HttpMethod.POST);
+  PostedTimeUnsubscribe("/postedtime/unsubscribe", ConnectApiRequest.HttpMethod.POST),
+  PostedTimeFetch("/postedtime/:fetchClientId?limit=:limit", ConnectApiRequest.HttpMethod.GET),
+  PostedTimeUpdateStatus("/postedtime/status", ConnectApiRequest.HttpMethod.POST);
 
   private final String actionPath;
   private ConnectApiRequest.HttpMethod httpMethod;

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Practice Insight Pty Ltd. All Rights Reserved.
+ * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
 package io.wisetime.connector;
@@ -26,22 +26,28 @@ import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
 import io.wisetime.connector.datastore.FileStore;
 import io.wisetime.connector.datastore.SQLiteHelper;
+import io.wisetime.connector.fetch_client.FetchClient;
+import io.wisetime.connector.fetch_client.FetchClientSpec;
+import io.wisetime.connector.fetch_client.TimeGroupIdStore;
 import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.integrate.ConnectorModule;
 import io.wisetime.connector.integrate.WiseTimeConnector;
-import io.wisetime.connector.server.IntegrateWebFilter;
-import io.wisetime.connector.server.TagRunner;
+import io.wisetime.connector.webhook.WebhookFilter;
+import io.wisetime.connector.tag.TagRunner;
+import io.wisetime.connector.webhook.WebhookApplication;
+import io.wisetime.connector.webhook.WebhookServerRunner;
 
 /**
- * Main entry point of WiseTime connector. Instance of service is created by {@link ServerBuilder}:
+ * Main entry point of WiseTime connector. Instance of service is created by {@link ConnectorBuilder}:
  * <pre>
- *     ServerRunner runner = ServerRunner.createServerBuilder()
+ *     ConnectorRunner runner = ConnectorRunner.createConnectorBuilder()
+ *         .useWebhook()
  *         .withWiseTimeConnector(myConnector)
  *         .withApiKey(apiKey)
  *         .build();
  *     </pre>
  *
- * You can then start the server by calling {@link #startServer()}. This is a blocking call, meaning that the current thread
+ * You can then start the connector by calling {@link #start()}. This is a blocking call, meaning that the current thread
  * will wait till the application dies.
  * <p>
  * Main extension point is {@link WiseTimeConnector}.
@@ -49,24 +55,24 @@ import io.wisetime.connector.server.TagRunner;
  * More information regarding the API key can be found here:
  * <a href="https://wisetime.io/docs/connect/api/">WiseTime Connect API</a>.
  *
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines@practiceinsight.io, pascal.filippi@staff.wisetime.com
  */
 @SuppressWarnings("WeakerAccess")
-public class ServerRunner {
+public class ConnectorRunner {
 
-  private final Server server;
+  private final TimePosterRunner timePosterRunner;
   private final int port;
   private final WebAppContext webAppContext;
   private final WiseTimeConnector wiseTimeConnector;
   private final ConnectorModule connectorModule;
 
   @SuppressWarnings("ParameterNumber")
-  private ServerRunner(Server server,
-                       int port,
-                       WebAppContext webAppContext,
-                       WiseTimeConnector wiseTimeConnector,
-                       ConnectorModule connectorModule) {
-    this.server = server;
+  private ConnectorRunner(TimePosterRunner timePosterRunner,
+                          int port,
+                          WebAppContext webAppContext,
+                          WiseTimeConnector wiseTimeConnector,
+                          ConnectorModule connectorModule) {
+    this.timePosterRunner = timePosterRunner;
     this.port = port;
     this.webAppContext = webAppContext;
     this.wiseTimeConnector = wiseTimeConnector;
@@ -74,15 +80,16 @@ public class ServerRunner {
   }
 
   /**
-   * Method to create new {@link ServerBuilder} instance. Automatically checks system properties for API_KEY.
+   * Method to create new {@link ConnectorBuilder} instance. Automatically checks system properties for API_KEY.
    */
-  public static ServerBuilder createServerBuilder() {
-    ServerBuilder builder = new ServerBuilder();
+  public static ConnectorBuilder createConnectorBuilder() {
+    ConnectorBuilder builder = new ConnectorBuilder();
     RuntimeConfig.getString(ConnectorConfigKey.API_KEY).ifPresent(builder::withApiKey);
     RuntimeConfig.getString(ConnectorConfigKey.JETTY_SERVER_SHUTDOWN_TOKEN).ifPresent(builder::withShutdownToken);
     return builder;
   }
 
+  @SuppressWarnings("unused")
   public int getPort() {
     return port;
   }
@@ -93,17 +100,20 @@ public class ServerRunner {
   }
 
   /**
-   * Start the server. This will run scheduled tasks for tag updates and health checks.
+   * Start the runner. This will run scheduled tasks for tag updates and health checks.
    * <p>
    * This method call is blocking, meaning that the current thread will wait until the application stops.
    */
-  public void startServer() throws Exception {
+  public void start() throws Exception {
     initWiseTimeConnector();
     final TagRunner tagRunTask = new TagRunner(wiseTimeConnector::performTagUpdate);
     final HealthCheck healthRunner = new HealthCheck(
-        getPort(),
         tagRunTask::getLastSuccessfulRun,
-        wiseTimeConnector::isConnectorHealthy);
+        timePosterRunner::isHealthy,
+        wiseTimeConnector::isConnectorHealthy
+    );
+
+    timePosterRunner.start();
 
     Timer healthCheckTimer = new Timer("health-check-timer");
     healthCheckTimer.scheduleAtFixedRate(healthRunner, TimeUnit.MINUTES.toMillis(1), TimeUnit.MINUTES.toMillis(3));
@@ -112,9 +122,14 @@ public class ServerRunner {
     Timer tagTimer = new Timer("tag-check-timer");
     tagTimer.scheduleAtFixedRate(tagRunTask, TimeUnit.SECONDS.toMillis(15), TimeUnit.MINUTES.toMillis(5));
 
-    server.start();
-    server.join();
-
+    while (!Thread.currentThread().isInterrupted() && timePosterRunner.isRunning()) {
+      try {
+        Thread.sleep(2000);
+      } catch (InterruptedException e) {
+        // ignore.
+      }
+    }
+    timePosterRunner.stop();
     healthCheckTimer.cancel();
     healthCheckTimer.purge();
     tagTimer.cancel();
@@ -126,21 +141,23 @@ public class ServerRunner {
     wiseTimeConnector.init(connectorModule);
   }
 
-  //Visible for testing
-  Server getServer() {
-    return server;
+  TimePosterRunner getTimePosterRunner() {
+    return timePosterRunner;
   }
 
   /**
-   * Builder for {@link ServerRunner}. You have to provide an API key or custom {@link ApiClient} that will handle
+   * Builder for {@link ConnectorRunner}. You have to provide an API key or custom {@link ApiClient} that will handle
    * authentication. For more information on how to obtain an API key, refer to:
    * <a href="https://wisetime.io/docs/connect/api/">WiseTime Connect API</a>.
    * <p>
    * You have to set a connector by calling {@link #withWiseTimeConnector(WiseTimeConnector)}.
    */
-  public static class ServerBuilder {
+  public static class ConnectorBuilder {
 
     private boolean persistentStorageOnly = false;
+    private Boolean useFetchClient;
+    private String fetchClientId;
+    private int fetchClientFetchLimit = 25;
     private WiseTimeConnector wiseTimeConnector;
     private ApiClient apiClient;
     private String apiKey;
@@ -149,10 +166,11 @@ public class ServerRunner {
     private static final int DEFAULT_WEBHOOK_PORT = 8080;
 
     /**
-     * Build {@link ServerRunner}. Make sure to set {@link WiseTimeConnector} and apiKey or apiClient before calling this
+     * Build {@link ConnectorRunner}. Make sure to set {@link WiseTimeConnector} and apiKey or apiClient before calling this
      * method.
      */
-    public ServerRunner build() {
+    public ConnectorRunner build() {
+      final SQLiteHelper sqLiteHelper = new SQLiteHelper(persistentStorageOnly);
 
       if (apiClient == null) {
         if (StringUtils.isEmpty(apiKey)) {
@@ -168,16 +186,49 @@ public class ServerRunner {
             String.format("an implementation of '%s' interface must be supplied", WiseTimeConnector.class.getSimpleName()));
       }
 
-      IntegrateApplication sparkApp = new IntegrateApplication(wiseTimeConnector);
+      ConnectorModule connectorModule = new ConnectorModule(
+          apiClient,
+          new FileStore(sqLiteHelper)
+      );
 
-      final int port = RuntimeConfig.getInt(ConnectorConfigKey.WEBHOOK_PORT).orElse(DEFAULT_WEBHOOK_PORT);
+      int port = 0;
+      WebAppContext webAppContext = null;
+      // if useFetchClient is null, no time posting mechanism was specified, therefore running in tag upload mode only
+      TimePosterRunner timePosterRunner = new DefaultTimePosterRunner();
+      if (useFetchClient != null) {
+        if (useFetchClient && StringUtils.isBlank(fetchClientId)) {
+          throw new IllegalArgumentException("fetch client id can't be null or empty, " +
+              "if connector is configured to use the fetch client");
+        }
 
-      Server server = new Server(port);
+        if (useFetchClient) {
+          TimeGroupIdStore timeGroupIdStore = new TimeGroupIdStore(sqLiteHelper);
 
-      WebAppContext webAppContext = createWebAppContext();
+          FetchClientSpec spec = new FetchClientSpec(apiClient, wiseTimeConnector, timeGroupIdStore,
+              fetchClientId, fetchClientFetchLimit);
+          timePosterRunner = new FetchClient(spec);
+        } else {
+          port = RuntimeConfig.getInt(ConnectorConfigKey.WEBHOOK_PORT).orElse(DEFAULT_WEBHOOK_PORT);
+
+          Server server = new Server(port);
+
+          webAppContext = createWebAppContext();
+
+          initializeWebhookServer(port, server, webAppContext);
+
+          timePosterRunner = new WebhookServerRunner(server, port);
+        }
+      }
+      return new ConnectorRunner(timePosterRunner, port, webAppContext, wiseTimeConnector, connectorModule);
+    }
+
+    private void initializeWebhookServer(int port,
+                                         Server server,
+                                         WebAppContext webAppContext) {
+      WebhookApplication sparkApp = new WebhookApplication(wiseTimeConnector);
 
       webAppContext.addFilter(
-          new FilterHolder(new IntegrateWebFilter(sparkApp)),
+          new FilterHolder(new WebhookFilter(sparkApp)),
           "/*",
           null
       );
@@ -190,22 +241,14 @@ public class ServerRunner {
       server.setHandler(handlerCollection);
 
       addCustomizers(port, server);
-
-      final SQLiteHelper sqLiteHelper = new SQLiteHelper(persistentStorageOnly);
-      ConnectorModule connectorModule = new ConnectorModule(
-          apiClient,
-          new FileStore(sqLiteHelper)
-      );
-
-      return new ServerRunner(server, port, webAppContext, wiseTimeConnector, connectorModule);
     }
 
     /**
-     * Implementation of {@link WiseTimeConnector} is required to start server.
+     * Implementation of {@link WiseTimeConnector} is required to start runner.
      *
      * @param wiseTimeConnector see {@link WiseTimeConnector}
      */
-    public ServerBuilder withWiseTimeConnector(WiseTimeConnector wiseTimeConnector) {
+    public ConnectorBuilder withWiseTimeConnector(WiseTimeConnector wiseTimeConnector) {
       this.wiseTimeConnector = wiseTimeConnector;
       return this;
     }
@@ -217,17 +260,17 @@ public class ServerRunner {
      *
      * @param apiKey see {@link #withApiClient(ApiClient)}
      */
-    public ServerBuilder withApiKey(String apiKey) {
+    public ConnectorBuilder withApiKey(String apiKey) {
       this.apiKey = apiKey;
       return this;
     }
 
     /**
-     * A shutdown token is required to shutdown the server externally.
+     * A shutdown token is required to shutdown the runner externally.
      *
      * @param shutdownToken see {@link #withShutdownToken(String)}
      */
-    public ServerBuilder withShutdownToken(String shutdownToken) {
+    public ConnectorBuilder withShutdownToken(String shutdownToken) {
       this.shutdownToken = shutdownToken;
       return this;
     }
@@ -244,7 +287,7 @@ public class ServerRunner {
      *
      * @param persistentStorageOnly whether persistent storage is required for this connector.
      */
-    public ServerBuilder requirePersistentStore(boolean persistentStorageOnly) {
+    public ConnectorBuilder requirePersistentStore(boolean persistentStorageOnly) {
       this.persistentStorageOnly = persistentStorageOnly;
       return this;
     }
@@ -258,8 +301,50 @@ public class ServerRunner {
      *
      * @param apiClient see {@link #withApiKey(String)}
      */
-    public ServerBuilder withApiClient(ApiClient apiClient) {
+    public ConnectorBuilder withApiClient(ApiClient apiClient) {
       this.apiClient = apiClient;
+      return this;
+    }
+
+    /**
+     * Method to signal that the fetch implementation for posted time groups should be used.
+     *
+     * @param fetchClientId the id provided after registering a fetch client
+     */
+    public ConnectorBuilder useFetchClient(String fetchClientId) {
+      if (useFetchClient != null) {
+        throw new IllegalStateException("useFetchClient or useWebhook should only be called once");
+      }
+      this.fetchClientId = fetchClientId;
+      this.useFetchClient = true;
+      return this;
+    }
+
+    /**
+     * Sets the maximum amount of time groups to be fetched with each call.
+     *
+     * @param limit the maximum amount of time groups to be fetch. Valid values: 1-25
+     */
+    public ConnectorBuilder withFetchClientLimit(int limit) {
+      if (!Boolean.TRUE.equals(useFetchClient)) {
+        throw new IllegalStateException("Can only be used with the fetch client mechanism");
+      }
+      if (limit < 1 || limit > 25) {
+        throw new IllegalArgumentException("The limit for time groups to be retrieved by the " +
+            "fetch client must be between 1 and 25");
+      }
+      this.fetchClientFetchLimit = limit;
+      return this;
+    }
+
+    /**
+     * Method to signal that the webhook based implementation for posted time groups should be used.
+     */
+    public ConnectorBuilder useWebhook() {
+      if (useFetchClient != null) {
+        throw new IllegalStateException("useFetchClient or useWebhook should only be called once");
+      }
+      this.useFetchClient = false;
       return this;
     }
 
@@ -269,7 +354,7 @@ public class ServerRunner {
       webAppContext.setParentLoaderPriority(true);
       webAppContext.setContextPath("/");
       final String webAppFilePath = "/webapp/emptyService.txt";
-      URL resource = ServerRunner.class.getResource(webAppFilePath);
+      URL resource = ConnectorRunner.class.getResource(webAppFilePath);
       if (resource == null) {
         throw new RuntimeException("should find file as base of webapp " + webAppFilePath);
       }

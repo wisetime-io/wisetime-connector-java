@@ -2,7 +2,7 @@
  * Copyright (c) 2018 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector.server;
+package io.wisetime.connector.webhook;
 
 import javax.servlet.FilterConfig;
 
@@ -14,11 +14,11 @@ import spark.servlet.SparkFilter;
  *
  * @author thomas.haines@practiceinsight.io
  */
-public class IntegrateWebFilter extends SparkFilter {
+public class WebhookFilter extends SparkFilter {
 
   private final SparkApplication sparkApp;
 
-  public IntegrateWebFilter(SparkApplication sparkApp) {
+  public WebhookFilter(SparkApplication sparkApp) {
     this.sparkApp = sparkApp;
   }
 

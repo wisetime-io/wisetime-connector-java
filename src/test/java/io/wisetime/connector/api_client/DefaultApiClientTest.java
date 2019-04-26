@@ -6,8 +6,13 @@ package io.wisetime.connector.api_client;
 
 import com.google.common.collect.ImmutableList;
 
+import com.github.javafaker.Faker;
+
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -19,12 +24,15 @@ import io.wisetime.generated.connect.AddKeywordsRequest;
 import io.wisetime.generated.connect.AddKeywordsResponse;
 import io.wisetime.generated.connect.DeleteTagRequest;
 import io.wisetime.generated.connect.DeleteTagResponse;
+import io.wisetime.generated.connect.TimeGroupStatus;
 import io.wisetime.generated.connect.UpsertTagRequest;
 import io.wisetime.generated.connect.UpsertTagResponse;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -34,7 +42,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 /**
  * @author shane.xie@practiceinsight.io
  */
-public class DefaultApiClientTest {
+class DefaultApiClientTest {
 
   private RestRequestExecutor requestExecutor;
   private DefaultApiClient apiClient;
@@ -150,6 +158,43 @@ public class DefaultApiClientTest {
         any(),
         any(EndpointPath.TagDelete.getClass()),
         any(DeleteTagRequest.class)
+    );
+  }
+
+  @Test
+  void fetchTimeGroups() throws IOException {
+    Faker faker = new Faker();
+    int limit = faker.number().randomDigit();
+    String fetchClientId = faker.numerify("fcid######");
+    when(requestExecutor.executeTypedRequest(any(), any(), any()))
+        .thenReturn(ImmutableList.of());
+
+    apiClient.fetchTimeGroups(fetchClientId, limit);
+
+    ArgumentCaptor<List<NameValuePair>> paramCaptor = ArgumentCaptor.forClass(List.class);
+    verify(requestExecutor).executeTypedRequest(
+        any(),
+        any(EndpointPath.PostedTimeFetch.getClass()),
+        paramCaptor.capture()
+    );
+    assertThat(paramCaptor.getValue()).usingFieldByFieldElementComparator().containsExactlyInAnyOrder(
+        new BasicNameValuePair("fetchClientId", fetchClientId),
+        new BasicNameValuePair("limit", String.valueOf(limit))
+    );
+  }
+
+  @Test
+  void updatePostedTimeStatus() throws IOException {
+    when(requestExecutor.executeTypedBodyRequest(any(), any(), any()))
+        .thenReturn(new DeleteTagResponse());
+
+    TimeGroupStatus status = new TimeGroupStatus();
+    apiClient.updatePostedTimeStatus(status);
+
+    verify(requestExecutor).executeTypedBodyRequest(
+        any(),
+        any(EndpointPath.PostedTimeUpdateStatus.getClass()),
+        eq(status)
     );
   }
 

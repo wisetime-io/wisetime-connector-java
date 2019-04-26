@@ -4,24 +4,19 @@
 
 package io.wisetime.connector.datastore;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.ToString;
+
 /**
  * @author galya.bogdanova@staff.wisetime.io
  */
-public final class LocalDbTable {
+@Getter
+@ToString
+@RequiredArgsConstructor
+public class LocalDbTable {
 
-  private String name;
-  private String schema;
+  private final String name;
+  private final String schema;
 
-  public LocalDbTable(String name, String schema) {
-    this.name = name;
-    this.schema = schema;
-  }
-
-  public String getName() {
-    return name;
-  }
-
-  public String getSchema() {
-    return schema;
-  }
 }
