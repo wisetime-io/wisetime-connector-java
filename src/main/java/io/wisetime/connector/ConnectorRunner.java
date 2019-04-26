@@ -88,17 +88,22 @@ public class ConnectorRunner {
   public static ConnectorBuilder createConnectorBuilder() {
     ConnectorBuilder builder = new ConnectorBuilder();
     RuntimeConfig.getString(ConnectorConfigKey.API_KEY).ifPresent(builder::withApiKey);
+    // Default to long poll,
     String connectorMode = RuntimeConfig.getString(ConnectorConfigKey.CONNECTOR_MODE).orElse("LONG_POLL");
     switch (connectorMode) {
-      case "LONG_POLL":
-        builder.useFetchClient();
+      case "TAG_ONLY":
+        log.info("starting in connector in tag only mode");
         break;
       case "WEBHOOK":
         builder.useWebhook();
         break;
-      case "TAG_ONLY":
+      case "LONG_POLL":
+        builder.useFetchClient();
+        break;
       default:
-        log.info("starting in connector in tag only mode");
+        // Checkstyle complained about fall-through...
+        builder.useFetchClient();
+        log.info("Unknown CONNECTOR_MODE option, starting with LONG_POLL");
     }
     RuntimeConfig.getString(ConnectorConfigKey.LONG_POLLING_LIMIT).map(Integer::parseInt)
         .ifPresent(builder::withFetchClientLimit);
