@@ -27,6 +27,7 @@ import io.wisetime.generated.connect.TimeGroupStatus;
 public class FetchClient implements Runnable, TimePosterRunner {
 
   private static final String IN_PROGRESS = "IN_PROGRESS";
+
   private static final int MAX_MINS_SINCE_SUCCESS = 10;
 
   private static final Logger log = LoggerFactory.getLogger(FetchClient.class);
@@ -52,9 +53,7 @@ public class FetchClient implements Runnable, TimePosterRunner {
   public void run() {
     while (!Thread.currentThread().isInterrupted()) {
       try {
-        final List<TimeGroup> fetchedTimeGroups = clientSpec.getApiClient().fetchTimeGroups(
-            clientSpec.getFetchClientId(),
-            clientSpec.getLimit());
+        final List<TimeGroup> fetchedTimeGroups = clientSpec.getApiClient().fetchTimeGroups(clientSpec.getLimit());
 
         for (TimeGroup timeGroup : fetchedTimeGroups) {
           // save the rows to the DB synchronously
@@ -69,10 +68,9 @@ public class FetchClient implements Runnable, TimePosterRunner {
             }
           });
         }
-
         lastSuccessfulRun.set(DateTime.now());
       } catch (Exception e) {
-        log.error("Error while fetching new time group for fetch client id: " + clientSpec.getFetchClientId(), e);
+        log.error("Error while fetching new time group", e);
       }
     }
   }
@@ -103,14 +101,12 @@ public class FetchClient implements Runnable, TimePosterRunner {
         case SUCCESS:
           clientSpec.getApiClient().updatePostedTimeStatus(new TimeGroupStatus()
               .status(TimeGroupStatus.StatusEnum.SUCCESS)
-              .timeGroupId(timeGroup.getGroupId())
-              .fetchClientId(clientSpec.getFetchClientId()));
+              .timeGroupId(timeGroup.getGroupId()));
           break;
         case PERMANENT_FAILURE:
           clientSpec.getApiClient().updatePostedTimeStatus(new TimeGroupStatus()
               .status(TimeGroupStatus.StatusEnum.FAILURE)
               .timeGroupId(timeGroup.getGroupId())
-              .fetchClientId(clientSpec.getFetchClientId())
               .message(result.getMessage().orElse("Unexpected error while posting time")));
           break;
         default:

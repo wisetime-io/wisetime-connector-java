@@ -16,6 +16,18 @@ public enum ConnectorConfigKey implements RuntimeConfigKey {
    */
   API_KEY("API_KEY"),
   /**
+   * Configured the method the connector should use to get posted time. Possible values:
+   * - LONG_POLL: The connector will continuously try to fetch posted time and upload new tags to WiseTime
+   * - WEBHOOK: The connector will act as server and passively listen for posted time and upload new tags to WiseTime
+   * - TAG_ONLY: The connector will only upload new tags to WiseTime
+   */
+  CONNECTOR_MODE("CONNECTOR_MODE"),
+  /**
+   * The maximum amount of time groups to be fetched with each API call.
+   * Will only be read when CONNECTOR_MODE is LONG_POLL
+   */
+  LONG_POLLING_LIMIT("FETCH_CLIENT_LIMIT"),
+  /**
    * The caller key that WiseTime should provide with post time webhook calls. The connector does not authenticate webhook
    * calls if not set
    */

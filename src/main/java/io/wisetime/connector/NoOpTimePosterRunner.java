@@ -10,7 +10,7 @@ package io.wisetime.connector;
  *
  * @author pascal.filippi@staff.wisetime.com
  */
-public class DefaultTimePosterRunner implements TimePosterRunner {
+public class NoOpTimePosterRunner implements TimePosterRunner {
   @Override
   public void start() {
     // do nothing

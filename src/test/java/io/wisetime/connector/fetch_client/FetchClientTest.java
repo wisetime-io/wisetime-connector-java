@@ -39,9 +39,6 @@ class FetchClientTest {
   private WiseTimeConnector wiseTimeConnectorMock;
   private TimeGroupIdStore timeGroupIdStoreMock;
 
-  private String fetchClientId;
-
-  private Faker faker = new Faker();
   private FakeEntities fakeEntities = new FakeEntities();
 
   @BeforeEach
@@ -49,14 +46,12 @@ class FetchClientTest {
     apiClientMock = mock(ApiClient.class);
     wiseTimeConnectorMock = mock(WiseTimeConnector.class);
     timeGroupIdStoreMock = mock(TimeGroupIdStore.class);
-    fetchClientId = faker.numerify("fc######");
-    fetchClient = new FetchClient(new FetchClientSpec(apiClientMock, wiseTimeConnectorMock, timeGroupIdStoreMock,
-        fetchClientId, 25));
+    fetchClient = new FetchClient(new FetchClientSpec(apiClientMock, wiseTimeConnectorMock, timeGroupIdStoreMock, 25));
   }
 
   @Test
   void testStartStop() throws Exception {
-    when(apiClientMock.fetchTimeGroups(eq(fetchClientId), anyInt())).thenReturn(ImmutableList.of());
+    when(apiClientMock.fetchTimeGroups( anyInt())).thenReturn(ImmutableList.of());
     fetchClient.start();
     assertThat(fetchClient.isRunning()).isTrue();
     assertThat(fetchClient.isHealthy()).isTrue();
@@ -69,7 +64,7 @@ class FetchClientTest {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();
     when(timeGroupIdStoreMock.alreadySeen(timeGroup.getGroupId())).thenReturn(Optional.empty());
     when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.SUCCESS);
-    when(apiClientMock.fetchTimeGroups(eq(fetchClientId), anyInt()))
+    when(apiClientMock.fetchTimeGroups(anyInt()))
         .thenReturn(ImmutableList.of(timeGroup))
         .thenReturn(ImmutableList.of());
     fetchClient.start();
@@ -86,7 +81,7 @@ class FetchClientTest {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();
     when(timeGroupIdStoreMock.alreadySeen(timeGroup.getGroupId())).thenReturn(Optional.empty());
     when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.PERMANENT_FAILURE);
-    when(apiClientMock.fetchTimeGroups(eq(fetchClientId), anyInt()))
+    when(apiClientMock.fetchTimeGroups(anyInt()))
         .thenReturn(ImmutableList.of(timeGroup))
         .thenReturn(ImmutableList.of());
     fetchClient.start();
@@ -103,7 +98,7 @@ class FetchClientTest {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();
     when(timeGroupIdStoreMock.alreadySeen(timeGroup.getGroupId())).thenReturn(Optional.empty());
     when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.TRANSIENT_FAILURE);
-    when(apiClientMock.fetchTimeGroups(eq(fetchClientId), anyInt()))
+    when(apiClientMock.fetchTimeGroups(anyInt()))
         .thenReturn(ImmutableList.of(timeGroup))
         .thenReturn(ImmutableList.of());
     fetchClient.start();
@@ -117,7 +112,7 @@ class FetchClientTest {
   void alreadySeenTimeGroup() throws Exception {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();
     when(timeGroupIdStoreMock.alreadySeen(timeGroup.getGroupId())).thenReturn(Optional.of("SUCCESS"));
-    when(apiClientMock.fetchTimeGroups(eq(fetchClientId), anyInt()))
+    when(apiClientMock.fetchTimeGroups(anyInt()))
         .thenReturn(ImmutableList.of(timeGroup))
         .thenReturn(ImmutableList.of());
     fetchClient.start();

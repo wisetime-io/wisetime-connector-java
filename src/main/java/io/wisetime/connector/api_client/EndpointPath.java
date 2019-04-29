@@ -20,7 +20,7 @@ public enum EndpointPath {
   TeamInfo("/team/info", ConnectApiRequest.HttpMethod.GET),
   PostedTimeSubscribe("/postedtime/subscribe", ConnectApiRequest.HttpMethod.POST),
   PostedTimeUnsubscribe("/postedtime/unsubscribe", ConnectApiRequest.HttpMethod.POST),
-  PostedTimeFetch("/postedtime/:fetchClientId?limit=:limit", ConnectApiRequest.HttpMethod.GET),
+  PostedTimeFetch("/postedtime?limit=:limit", ConnectApiRequest.HttpMethod.GET),
   PostedTimeUpdateStatus("/postedtime/status", ConnectApiRequest.HttpMethod.POST);
 
   private final String actionPath;
