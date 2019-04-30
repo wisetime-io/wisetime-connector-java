@@ -18,9 +18,8 @@ buildscript {
     dependencies {
         classpath "org.openapitools:openapi-generator-gradle-plugin:3.3.4"
         classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.20.0"
-        classpath "io.wisetime:validate-version:0.2.4"
-        classpath "io.freefair.gradle:lombok-plugin:3.2.0"
-        classpath "io.wisetime:validate-version:0.2.4"
+        classpath "io.freefair.gradle:lombok-plugin:3.2.1"
+        classpath "io.wisetime:validate-version:0.2.6"
     }
 }
 
@@ -29,7 +28,7 @@ plugins {
     id 'maven'
     id 'maven-publish'
     id 'application'
-    id 'com.google.cloud.tools.jib' version '0.10.0'
+    id 'com.google.cloud.tools.jib' version '1.1.2'
     id 'com.github.kt3k.coveralls' version '2.8.2'
     id "com.github.ben-manes.versions" version '0.21.0'
     id "fr.brouillard.oss.gradle.jgitver" version "0.8.0"
@@ -116,7 +115,7 @@ dependencies {
         exclude group: 'org.thymeleaf', module: 'thymeleaf'
         exclude group: 'org.slf4j', module: 'slf4j-api'
     }
-    compile 'org.thymeleaf:thymeleaf:3.0.5.RELEASE'
+    compile 'org.thymeleaf:thymeleaf:3.0.11.RELEASE'
 
     compile 'org.apache.commons:commons-configuration2:2.4'
     compile 'org.apache.commons:commons-lang3:3.9'
@@ -126,15 +125,15 @@ dependencies {
     compile 'com.fasterxml.jackson.core:jackson-core:2.9.8'
     compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.8'
 
-    compile 'org.apache.commons:commons-collections4:4.2'
+    compile 'org.apache.commons:commons-collections4:4.3'
     compile 'com.google.guava:guava:27.1-jre'
     compile 'commons-io:commons-io:2.6'
 
     compile 'org.xerial:sqlite-jdbc:3.27.2.1'
     compile 'org.codejargon:fluentjdbc:1.8.3'
 
-    compile 'org.apache.httpcomponents:httpcore:4.4.10'
-    compile('org.apache.httpcomponents:fluent-hc:4.5.6') {
+    compile 'org.apache.httpcomponents:httpcore:4.4.11'
+    compile('org.apache.httpcomponents:fluent-hc:4.5.8') {
         exclude group: 'commons-codec', module: 'commons-codec'
     }
     compile 'commons-codec:commons-codec:1.12'
@@ -155,7 +154,7 @@ dependencies {
     }
 
     testCompile 'org.junit.jupiter:junit-jupiter:5.4.2'
-    testCompile 'org.mockito:mockito-core:2.22.0'
+    testCompile 'org.mockito:mockito-core:2.27.0'
     testCompile 'org.assertj:assertj-core:3.12.2'
 }
 
