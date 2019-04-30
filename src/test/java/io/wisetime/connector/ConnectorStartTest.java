@@ -24,6 +24,7 @@ import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.config.TolerantObjectMapper;
 import io.wisetime.connector.integrate.WiseTimeConnector;
 import io.wisetime.connector.metric.Metric;
+import io.wisetime.connector.metric.MetricInfo;
 import io.wisetime.connector.metric.MetricService;
 import io.wisetime.connector.test_util.SparkTestUtil;
 import io.wisetime.connector.test_util.TemporaryFolder;
@@ -97,6 +98,18 @@ public class ConnectorStartTest {
         testUtil.doMethod("POST", "/receiveTimePostedEvent", requestBody, "application/json");
     assertThat(transientFailureResponse.status).isEqualTo(500);
     verify(metricService, never()).increment(Metric.TIME_GROUP_PROCESSED);
+    clearInvocations(metricService);
+
+    // METRIC
+    MetricInfo metricInfo = MetricInfo.builder()
+        .processedTags(1)
+        .processedTimeGroups(2)
+        .build();
+    when(metricService.getMetrics()).thenReturn(metricInfo);
+    SparkTestUtil.UrlResponse metricResponse = testUtil.doMethod("GET", "/metric", null, "plain/text");
+    MetricInfo metricResponseBody = objectMapper.readValue(metricResponse.body, MetricInfo.class);
+    assertThat(metricResponse.status).isEqualTo(200);
+    assertThat(metricResponseBody).isEqualTo(metricInfo);
 
     if (System.getProperty("examine") != null) {
       server.join();

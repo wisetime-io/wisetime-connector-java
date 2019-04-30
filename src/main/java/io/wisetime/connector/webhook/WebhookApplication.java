@@ -67,6 +67,11 @@ public class WebhookApplication implements SparkApplication {
       return PING_RESPONSE;
     });
 
+    get("/metric", (rq, rs) -> {
+      rs.type("application/json");
+      return om.writeValueAsString(metricService.getMetrics());
+    });
+
     if (wiseTimeConnector == null) {
       throw new UnsupportedOperationException("WiseTime Connector was not configured in server builder");
     }
