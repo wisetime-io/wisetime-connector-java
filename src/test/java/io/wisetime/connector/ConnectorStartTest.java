@@ -4,6 +4,8 @@
 
 package io.wisetime.connector;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 
@@ -18,15 +20,27 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import io.wisetime.connector.api_client.ApiClient;
+import io.wisetime.connector.api_client.PostResult;
+import io.wisetime.connector.config.TolerantObjectMapper;
 import io.wisetime.connector.integrate.WiseTimeConnector;
+import io.wisetime.connector.metric.Metric;
+import io.wisetime.connector.metric.MetricService;
 import io.wisetime.connector.test_util.SparkTestUtil;
 import io.wisetime.connector.test_util.TemporaryFolder;
 import io.wisetime.connector.test_util.TemporaryFolderExtension;
 import io.wisetime.connector.webhook.WebhookServerRunner;
+import io.wisetime.generated.connect.TimeGroup;
+import io.wisetime.generated.connect.User;
 
 import static io.wisetime.connector.config.ConnectorConfigKey.WEBHOOK_PORT;
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * @author thomas.haines@practiceinsight.io
@@ -41,15 +55,48 @@ public class ConnectorStartTest {
   @Test
   void startAndQuery() throws Exception {
     log.info(testExtension.newFolder().getAbsolutePath());
-    Server server = createTestServer();
+    WiseTimeConnector mockConnector = mock(WiseTimeConnector.class);
+    ApiClient mockApiClient = mock(ApiClient.class);
+    MetricService metricService = mock(MetricService.class);
 
+    Server server = createTestServer(mockConnector, mockApiClient, metricService);
+    ObjectMapper objectMapper = TolerantObjectMapper.create();
     SparkTestUtil testUtil = new SparkTestUtil(getPort(server));
-    SparkTestUtil.UrlResponse response = testUtil.doMethod("GET", "/ping", null, "plain/text");
-    assertThat(response.status).isEqualTo(200);
 
-    assertThat(response.body)
+    SparkTestUtil.UrlResponse pingResponse = testUtil.doMethod("GET", "/ping", null, "plain/text");
+    assertThat(pingResponse.status).isEqualTo(200);
+
+    assertThat(pingResponse.body)
         .as("expect pong response")
         .isEqualTo("pong");
+
+    TimeGroup timeGroup = new TimeGroup()
+        .user(new User())
+        .tags(emptyList());
+    String requestBody = objectMapper.writeValueAsString(timeGroup);
+
+    // SUCCESS
+    when(mockConnector.postTime(any(), any())).thenReturn(PostResult.SUCCESS);
+    SparkTestUtil.UrlResponse sucessResponse =
+        testUtil.doMethod("POST", "/receiveTimePostedEvent", requestBody, "application/json");
+    assertThat(sucessResponse.status).isEqualTo(200);
+    verify(metricService).increment(Metric.TIME_GROUP_PROCESSED);
+    clearInvocations(metricService);
+
+    // PERMANENT_FAILURE
+    when(mockConnector.postTime(any(), any())).thenReturn(PostResult.PERMANENT_FAILURE);
+    SparkTestUtil.UrlResponse premanentFailureResponse =
+        testUtil.doMethod("POST", "/receiveTimePostedEvent", requestBody, "application/json");
+    assertThat(premanentFailureResponse.status).isEqualTo(400);
+    verify(metricService, never()).increment(Metric.TIME_GROUP_PROCESSED);
+    clearInvocations(metricService);
+
+    // TRANSIENT_FAILURE
+    when(mockConnector.postTime(any(), any())).thenReturn(PostResult.TRANSIENT_FAILURE);
+    SparkTestUtil.UrlResponse transientFailureResponse =
+        testUtil.doMethod("POST", "/receiveTimePostedEvent", requestBody, "application/json");
+    assertThat(transientFailureResponse.status).isEqualTo(500);
+    verify(metricService, never()).increment(Metric.TIME_GROUP_PROCESSED);
 
     if (System.getProperty("examine") != null) {
       server.join();
@@ -58,14 +105,15 @@ public class ConnectorStartTest {
     }
   }
 
-  public static Server createTestServer() throws Exception {
-    WiseTimeConnector mockConnector = mock(WiseTimeConnector.class);
-    ApiClient mockApiClient = mock(ApiClient.class);
+  public static Server createTestServer(WiseTimeConnector mockConnector,
+                                        ApiClient mockApiClient,
+                                        MetricService metricService) throws Exception {
     System.setProperty(WEBHOOK_PORT.getConfigKey(), "0");
     ConnectorRunner runner = ConnectorRunner.createConnectorBuilder()
         .useWebhook()
         .withWiseTimeConnector(mockConnector)
         .withApiClient(mockApiClient)
+        .withMetricService(metricService)
         .build();
     long startTime = System.currentTimeMillis();
 

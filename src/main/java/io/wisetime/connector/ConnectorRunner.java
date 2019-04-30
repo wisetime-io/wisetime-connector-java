@@ -4,6 +4,8 @@
 
 package io.wisetime.connector;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
@@ -21,21 +23,23 @@ import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
 import io.wisetime.connector.api_client.ApiClient;
+import io.wisetime.connector.api_client.ApiClientMetricWrapper;
 import io.wisetime.connector.api_client.DefaultApiClient;
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
-import io.wisetime.connector.datastore.SQLiteHelper;
 import io.wisetime.connector.datastore.FileStore;
+import io.wisetime.connector.datastore.SQLiteHelper;
 import io.wisetime.connector.fetch_client.FetchClient;
 import io.wisetime.connector.fetch_client.FetchClientSpec;
 import io.wisetime.connector.fetch_client.TimeGroupIdStore;
 import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.integrate.ConnectorModule;
 import io.wisetime.connector.integrate.WiseTimeConnector;
-import io.wisetime.connector.webhook.WebhookFilter;
+import io.wisetime.connector.metric.MetricService;
 import io.wisetime.connector.tag.TagRunner;
 import io.wisetime.connector.webhook.WebhookApplication;
+import io.wisetime.connector.webhook.WebhookFilter;
 import io.wisetime.connector.webhook.WebhookServerRunner;
 
 /**
@@ -183,6 +187,7 @@ public class ConnectorRunner {
     private ApiClient apiClient;
     private String apiKey;
     private String shutdownToken;
+    private MetricService metricService;
 
     private static final int DEFAULT_WEBHOOK_PORT = 8080;
 
@@ -201,6 +206,12 @@ public class ConnectorRunner {
         RestRequestExecutor requestExecutor = new RestRequestExecutor(apiKey);
         apiClient = new DefaultApiClient(requestExecutor);
       }
+
+      if (metricService == null) {
+        metricService = new MetricService();
+      }
+      // Wrap api client for metrics gathering
+      apiClient = new ApiClientMetricWrapper(apiClient, metricService);
 
       if (wiseTimeConnector == null) {
         throw new IllegalArgumentException(
@@ -229,7 +240,7 @@ public class ConnectorRunner {
 
           webAppContext = createWebAppContext();
 
-          initializeWebhookServer(port, server, webAppContext);
+          initializeWebhookServer(port, server, webAppContext, metricService);
 
           timePosterRunner = new WebhookServerRunner(server, port);
         }
@@ -239,8 +250,9 @@ public class ConnectorRunner {
 
     private void initializeWebhookServer(int port,
                                          Server server,
-                                         WebAppContext webAppContext) {
-      WebhookApplication sparkApp = new WebhookApplication(wiseTimeConnector);
+                                         WebAppContext webAppContext,
+                                         MetricService metricService) {
+      WebhookApplication sparkApp = new WebhookApplication(wiseTimeConnector, metricService);
 
       webAppContext.addFilter(
           new FilterHolder(new WebhookFilter(sparkApp)),
@@ -351,6 +363,12 @@ public class ConnectorRunner {
      */
     public ConnectorBuilder useWebhook() {
       this.useFetchClient = false;
+      return this;
+    }
+
+    @VisibleForTesting
+    ConnectorBuilder withMetricService(MetricService metricService) {
+      this.metricService = metricService;
       return this;
     }
 
