@@ -70,7 +70,7 @@ public class ConnectorStartTest {
     long startTime = System.currentTimeMillis();
 
     startServerRunner(runner);
-    Server server = ((WebhookServerRunner)runner.getTimePosterRunner()).getServer();
+    Server server = ((WebhookServerRunner) runner.getTimePosterRunner()).getServer();
     SparkTestUtil testUtil = new SparkTestUtil(getPort(server));
 
     RetryPolicy retryPolicy = new RetryPolicy()

@@ -10,7 +10,7 @@ import spark.Request;
 
 /**
  * Main extension point of application. User will have to implement this interface and provide it during building
- * {@link io.wisetime.connector.ServerRunner}.
+ * {@link io.wisetime.connector.ConnectorRunner}.
  *
  * @author thomas.haines@practiceinsight.io
  */
@@ -50,4 +50,9 @@ public interface WiseTimeConnector {
   default boolean isConnectorHealthy() {
     return true;
   }
+
+  /**
+   * Called when application is about to stop. Implementations should free the resources that the connector have acquired.
+   */
+  default void shutdown() {}
 }

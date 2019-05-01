@@ -18,9 +18,8 @@ buildscript {
     dependencies {
         classpath "org.openapitools:openapi-generator-gradle-plugin:3.3.4"
         classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.20.0"
-        classpath "io.wisetime:validate-version:0.2.4"
         classpath "io.freefair.gradle:lombok-plugin:3.2.0"
-        classpath "io.wisetime:validate-version:0.2.4"
+        classpath "io.wisetime:validate-version:[0.2.6,)"
     }
 }
 
