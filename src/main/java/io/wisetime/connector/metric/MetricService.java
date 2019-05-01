@@ -10,8 +10,8 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Simple in memory metric service.
  * <p/>
- * You can increment metric statistics using {@link #increment(Metric)} method and get all gathered metric information using
- * {@link #getMetrics()}
+ * You can increment metric statistics using {@link #increment(Metric)} or {@link #increment(Metric, int)} method and get all
+ * collected metrics information using {@link #getMetrics()}
  * <p/>
  * This class is fully threadsafe
  *
@@ -30,14 +30,20 @@ public class MetricService {
     increment(metric, 1);
   }
 
+  /**
+   * Increments specified metric by specified value
+   *
+   * @param metric      to increment
+   * @param incrementBy metric to increment by
+   */
   public void increment(Metric metric, int incrementBy) {
     metrics.compute(metric, (key, count) -> count != null ? count + incrementBy : incrementBy);
   }
 
   /**
-   * Returns metrics gathered from the start of the application.
+   * Returns metrics collected from the start of the application.
    *
-   * @return {@link MetricInfo} object as a representation of the gathered metrics
+   * @return {@link MetricInfo} object as a representation of the collected metrics
    */
   public MetricInfo getMetrics() {
     int processedTags = metrics.getOrDefault(Metric.TAG_PROCESSED, 0);

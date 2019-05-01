@@ -70,7 +70,7 @@ public class HealthCheck extends TimerTask {
 
   @Override
   public void run() {
-    boolean healthy = checkServerHealth();
+    boolean healthy = checkConnectorHealth();
     if (healthy) {
       failureCount.set(0);
       log.debug("Health check successful");
@@ -86,7 +86,7 @@ public class HealthCheck extends TimerTask {
     }
   }
 
-  private boolean checkServerHealth() {
+  public boolean checkConnectorHealth() {
     try {
       final DateTime lastSuccessResult = lastRunSuccess.get();
       if (DateTime.now().minusMinutes(maxMinsSinceSuccess).isAfter(lastSuccessResult)) {

@@ -122,7 +122,7 @@ public class ConnectorStartTest {
                                         ApiClient mockApiClient,
                                         MetricService metricService) throws Exception {
     System.setProperty(WEBHOOK_PORT.getConfigKey(), "0");
-    ConnectorRunner runner = ConnectorRunner.createConnectorBuilder()
+    ConnectorRunner runner = (ConnectorRunner) Connector.builder()
         .useWebhook()
         .withWiseTimeConnector(mockConnector)
         .withApiClient(mockApiClient)
