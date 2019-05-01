@@ -12,9 +12,10 @@ import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.HandlerCollection;
-import org.eclipse.jetty.server.handler.ShutdownHandler;
 import org.eclipse.jetty.servlet.FilterHolder;
+import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
+import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -65,7 +66,7 @@ import io.wisetime.connector.webhook.WebhookServerRunner;
 @SuppressWarnings("WeakerAccess")
 public class ConnectorRunner {
 
-  private static final org.slf4j.Logger log = LoggerFactory.getLogger(ConnectorRunner.class);
+  private static final Logger log = LoggerFactory.getLogger(ConnectorRunner.class);
 
   private final TimePosterRunner timePosterRunner;
   private final int port;
@@ -111,7 +112,6 @@ public class ConnectorRunner {
     }
     RuntimeConfig.getString(ConnectorConfigKey.LONG_POLLING_LIMIT).map(Integer::parseInt)
         .ifPresent(builder::withFetchClientLimit);
-    RuntimeConfig.getString(ConnectorConfigKey.JETTY_SERVER_SHUTDOWN_TOKEN).ifPresent(builder::withShutdownToken);
     return builder;
   }
 
@@ -138,28 +138,34 @@ public class ConnectorRunner {
         timePosterRunner::isHealthy,
         wiseTimeConnector::isConnectorHealthy
     );
+    healthRunner.setShutdownFunction(Thread.currentThread()::interrupt);
 
     timePosterRunner.start();
 
-    Timer healthCheckTimer = new Timer("health-check-timer");
-    healthCheckTimer.scheduleAtFixedRate(healthRunner, TimeUnit.MINUTES.toMillis(1), TimeUnit.MINUTES.toMillis(3));
+    Timer healthCheckTimer = new Timer("health-check-timer", true);
+    healthCheckTimer.scheduleAtFixedRate(healthRunner, TimeUnit.SECONDS.toMillis(5), TimeUnit.SECONDS.toMillis(3));
 
     // start thread to monitor and upload new tags
-    Timer tagTimer = new Timer("tag-check-timer");
+    Timer tagTimer = new Timer("tag-check-timer", true);
     tagTimer.scheduleAtFixedRate(tagRunTask, TimeUnit.SECONDS.toMillis(15), TimeUnit.MINUTES.toMillis(5));
 
-    while (!Thread.currentThread().isInterrupted() && timePosterRunner.isRunning()) {
+    while (timePosterRunner.isRunning()) {
       try {
         Thread.sleep(2000);
       } catch (InterruptedException e) {
-        // ignore.
+        break;
       }
     }
-    timePosterRunner.stop();
     healthCheckTimer.cancel();
     healthCheckTimer.purge();
     tagTimer.cancel();
     tagTimer.purge();
+    try {
+      timePosterRunner.stop();
+    } catch (Exception e) {
+      log.warn("Failed to stop time poster runner", e);
+    }
+    wiseTimeConnector.shutdown();
   }
 
   //visible for testing
@@ -186,7 +192,6 @@ public class ConnectorRunner {
     private WiseTimeConnector wiseTimeConnector;
     private ApiClient apiClient;
     private String apiKey;
-    private String shutdownToken;
     private MetricService metricService;
 
     private static final int DEFAULT_WEBHOOK_PORT = 8080;
@@ -236,13 +241,15 @@ public class ConnectorRunner {
         } else {
           port = RuntimeConfig.getInt(ConnectorConfigKey.WEBHOOK_PORT).orElse(DEFAULT_WEBHOOK_PORT);
 
-          Server server = new Server(port);
+          QueuedThreadPool pool = new QueuedThreadPool();
+          pool.setDaemon(true);
+          Server server = new Server(pool);
 
           webAppContext = createWebAppContext();
 
           initializeWebhookServer(port, server, webAppContext, metricService);
 
-          timePosterRunner = new WebhookServerRunner(server, port);
+          timePosterRunner = new WebhookServerRunner(server);
         }
       }
       return new ConnectorRunner(timePosterRunner, port, webAppContext, wiseTimeConnector, connectorModule);
@@ -262,9 +269,6 @@ public class ConnectorRunner {
 
       HandlerCollection handlerCollection = new HandlerCollection(false);
       handlerCollection.addHandler(webAppContext);
-      if (StringUtils.isNotBlank(shutdownToken)) {
-        handlerCollection.addHandler(new ShutdownHandler(shutdownToken, false, true));
-      }
       server.setHandler(handlerCollection);
 
       addCustomizers(port, server);
@@ -289,16 +293,6 @@ public class ConnectorRunner {
      */
     public ConnectorBuilder withApiKey(String apiKey) {
       this.apiKey = apiKey;
-      return this;
-    }
-
-    /**
-     * A shutdown token is required to shutdown the runner externally.
-     *
-     * @param shutdownToken see {@link #withShutdownToken(String)}
-     */
-    public ConnectorBuilder withShutdownToken(String shutdownToken) {
-      this.shutdownToken = shutdownToken;
       return this;
     }
 
