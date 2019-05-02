@@ -17,8 +17,8 @@ import lombok.Data;
 @Builder
 @JsonDeserialize(builder = MetricInfo.MetricInfoBuilder.class)
 public class MetricInfo {
-  private final int processedTags;
-  private final int processedTimeGroups;
+  private final long processedTags;
+  private final long processedTimeGroups;
 
   @SuppressWarnings("WeakerAccess")
   @JsonPOJOBuilder(withPrefix = "")
