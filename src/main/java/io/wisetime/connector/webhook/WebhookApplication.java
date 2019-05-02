@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.config.TolerantObjectMapper;
 import io.wisetime.connector.integrate.WiseTimeConnector;
+import io.wisetime.connector.metric.Metric;
+import io.wisetime.connector.metric.MetricService;
 import io.wisetime.generated.connect.Tag;
 import io.wisetime.generated.connect.TimeGroup;
 import spark.ModelAndView;
@@ -40,9 +42,11 @@ public class WebhookApplication implements SparkApplication {
   public static final String PING_RESPONSE = "pong";
   private final ObjectMapper om;
   private final WiseTimeConnector wiseTimeConnector;
+  private final MetricService metricService;
 
-  public WebhookApplication(WiseTimeConnector wiseTimeConnector) {
+  public WebhookApplication(WiseTimeConnector wiseTimeConnector, MetricService metricService) {
     this.wiseTimeConnector = wiseTimeConnector;
+    this.metricService = metricService;
     om = TolerantObjectMapper.create();
   }
 
@@ -63,6 +67,11 @@ public class WebhookApplication implements SparkApplication {
       return PING_RESPONSE;
     });
 
+    get("/metric", (rq, rs) -> {
+      rs.type("application/json");
+      return om.writeValueAsString(metricService.getMetrics());
+    });
+
     if (wiseTimeConnector == null) {
       throw new UnsupportedOperationException("WiseTime Connector was not configured in server builder");
     }
@@ -76,6 +85,7 @@ public class WebhookApplication implements SparkApplication {
       switch (postResult) {
         case SUCCESS:
           response.status(200);
+          metricService.increment(Metric.TIME_GROUP_PROCESSED);
           return "Success";
         case PERMANENT_FAILURE:
           response.status(400);

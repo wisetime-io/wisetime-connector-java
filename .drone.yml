@@ -27,13 +27,8 @@ steps:
       GRADLE_USER_HOME: .gcache
       GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false
     commands:
-      - ./gradlew versionCheck
-    when:
-      branch:
-        exclude:
-          - master
-      event:
-        - push
+      - echo ${DRONE_MACHINE}
+      - ./gradlew test check
 
   - name: check-versions
     image: openjdk:8-jdk
@@ -46,6 +41,8 @@ steps:
       branch:
         exclude:
           - master
+      event:
+        - push
 
   - name: save-cache
     image: drillster/drone-volume-cache
