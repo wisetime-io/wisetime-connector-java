@@ -56,17 +56,17 @@ public class FetchClient implements Runnable, TimePosterRunner {
         final List<TimeGroup> fetchedTimeGroups = clientSpec.getApiClient().fetchTimeGroups(clientSpec.getLimit());
 
         for (TimeGroup timeGroup : fetchedTimeGroups) {
-          // save the rows to the DB synchronously
-          clientSpec.getTimeGroupIdStore().putTimeGroupId(timeGroup.getGroupId(), IN_PROGRESS);
+          if (!timeGroupAlreadyProcessed(timeGroup)) {
+            // save the rows to the DB synchronously
+            clientSpec.getTimeGroupIdStore().putTimeGroupId(timeGroup.getGroupId(), IN_PROGRESS);
 
-          // trigger async process to post to external system
-          postTimeExecutor.submit(() -> {
-            if (!timeGroupAlreadyProcessed(timeGroup)) {
+            // trigger async process to post to external system
+            postTimeExecutor.submit(() -> {
               PostResult result = clientSpec.getConnector().postTime(null, timeGroup);
               clientSpec.getTimeGroupIdStore().putTimeGroupId(timeGroup.getGroupId(), result.name());
               updateTimeGroupStatus(timeGroup, result);
-            }
-          });
+            });
+          }
         }
         lastSuccessfulRun.set(DateTime.now());
       } catch (Exception e) {
