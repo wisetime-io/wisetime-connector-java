@@ -74,12 +74,13 @@ public class ConnectorBuilder {
       RestRequestExecutor requestExecutor = new RestRequestExecutor(apiKey);
       apiClient = new DefaultApiClient(requestExecutor);
     }
-    // Wrap api client for metrics gathering
-    apiClient = new ApiClientMetricWrapper(apiClient, metricService);
 
     if (metricService == null) {
       metricService = new MetricService();
     }
+
+    // Wrap api client for metrics gathering
+    apiClient = new ApiClientMetricWrapper(apiClient, metricService);
 
     if (wiseTimeConnector == null) {
       throw new IllegalArgumentException(
