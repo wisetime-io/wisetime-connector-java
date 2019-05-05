@@ -29,6 +29,7 @@ import spark.template.thymeleaf.ThymeleafTemplateEngine;
 import static spark.Spark.get;
 import static spark.Spark.post;
 import static spark.Spark.staticFileLocation;
+import static spark.Spark.stop;
 
 /**
  * Spark web application that implements WiseTime posted time web hook.
@@ -124,5 +125,6 @@ public class WebhookApplication implements SparkApplication {
 
   @Override
   public void destroy() {
+    stop();
   }
 }
