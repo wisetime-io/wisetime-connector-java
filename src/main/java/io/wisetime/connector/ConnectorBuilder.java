@@ -49,6 +49,8 @@ import io.wisetime.connector.webhook.WebhookServerRunner;
 @SuppressWarnings({"WeakerAccess", "unused"})
 public class ConnectorBuilder {
 
+  private static final int DEFAULT_WEBHOOK_PORT = 8080;
+
   private boolean persistentStorageOnly = false;
   private Boolean useFetchClient;
   private int fetchClientFetchLimit = 25;
@@ -57,7 +59,12 @@ public class ConnectorBuilder {
   private String apiKey;
   private MetricService metricService;
 
-  private static final int DEFAULT_WEBHOOK_PORT = 8080;
+  /**
+   * Package private constructor to prevent direct object creation.
+   * Use {@link Connector#builder()} instead.
+   */
+  ConnectorBuilder() {
+  }
 
   /**
    * Build {@link ConnectorController}. Make sure to set {@link WiseTimeConnector} and apiKey or apiClient before calling
