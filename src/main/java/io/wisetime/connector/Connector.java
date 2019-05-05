@@ -51,8 +51,7 @@ public abstract class Connector {
         builder.useFetchClient();
         log.info("Unknown CONNECTOR_MODE option, starting with LONG_POLL");
     }
-    RuntimeConfig.getString(ConnectorConfigKey.LONG_POLLING_LIMIT).map(Integer::parseInt)
-        .ifPresent(builder::withFetchClientLimit);
+    RuntimeConfig.getInt(ConnectorConfigKey.LONG_POLLING_LIMIT).ifPresent(builder::withFetchClientLimit);
     return builder;
   }
 }

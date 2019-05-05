@@ -29,17 +29,13 @@ public enum ConnectorConfigKey implements RuntimeConfigKey {
   LONG_POLLING_LIMIT("FETCH_CLIENT_LIMIT"),
   /**
    * The caller key that WiseTime should provide with post time webhook calls. The connector does not authenticate webhook
-   * calls if not set
+   * calls if not set. Only relevant when CONNECTOR_MODE is WEBHOOK.
    */
   CALLER_KEY("CALLER_KEY"),
   /**
    * Path to internal WiseTime files. If not set - temp directory will be used.
    */
   DATA_DIR("DATA_DIR"),
-  /**
-   * The token necessary for a shutdown command to work with the embedded Jetty server.
-   */
-  JETTY_SERVER_SHUTDOWN_TOKEN("JETTY_SERVER_SHUTDOWN_TOKEN"),
   /**
    * Properties file path (optional).
    */
@@ -53,7 +49,7 @@ public enum ConnectorConfigKey implements RuntimeConfigKey {
    */
   API_BASE_URL("API_BASE_URL"),
   /**
-   * Default port is 8080
+   * Default port is 8080. Only relevant when CONNECTOR_MODE is WEBHOOK.
    */
   WEBHOOK_PORT("WEBHOOK_PORT"),
 
