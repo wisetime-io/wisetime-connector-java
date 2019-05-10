@@ -5,13 +5,16 @@
 package io.wisetime.connector.tag;
 
 import org.joda.time.DateTime;
+import org.joda.time.Minutes;
 import org.slf4j.LoggerFactory;
 
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 
 import io.wisetime.connector.WiseTimeConnector;
+import io.wisetime.connector.config.ConnectorConfigKey;
+import io.wisetime.connector.config.RuntimeConfig;
+import io.wisetime.connector.health.HealthIndicator;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -21,15 +24,21 @@ import lombok.extern.slf4j.Slf4j;
  * @author thomas.haines@practiceinsight.io
  */
 @Slf4j
-public class TagRunner extends TimerTask {
+public class TagRunner extends TimerTask implements HealthIndicator {
+
+  private static final int MAX_MINS_SINCE_SUCCESS_DEFAULT = 60;
 
   private final WiseTimeConnector connector;
   private final AtomicBoolean runLock = new AtomicBoolean(false);
-  private final AtomicReference<DateTime> lastSuccessfulRun;
+  private final int maxMinsSinceSuccess;
+  DateTime lastSuccessfulRun;
 
   public TagRunner(WiseTimeConnector connector) {
     this.connector = connector;
-    this.lastSuccessfulRun = new AtomicReference<>(DateTime.now());
+    this.lastSuccessfulRun = DateTime.now();
+    maxMinsSinceSuccess = RuntimeConfig
+        .getInt(ConnectorConfigKey.HEALTH_MAX_MINS_SINCE_SUCCESS)
+        .orElse(MAX_MINS_SINCE_SUCCESS_DEFAULT);
   }
 
   @Override
@@ -37,7 +46,7 @@ public class TagRunner extends TimerTask {
     if (runLock.compareAndSet(false, true)) {
       try {
         connector.performTagUpdate();
-        lastSuccessfulRun.set(DateTime.now());
+        lastSuccessfulRun = DateTime.now();
       } catch (Exception e) {
         LoggerFactory.getLogger(connector.getClass()).error(e.getMessage(), e);
       } finally {
@@ -49,7 +58,8 @@ public class TagRunner extends TimerTask {
     }
   }
 
-  public DateTime getLastSuccessfulRun() {
-    return lastSuccessfulRun.get();
+  @Override
+  public boolean isHealthy() {
+    return Minutes.minutesBetween(lastSuccessfulRun, DateTime.now()).getMinutes() < maxMinsSinceSuccess;
   }
 }

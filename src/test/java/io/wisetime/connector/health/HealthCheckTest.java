@@ -4,15 +4,16 @@
 
 package io.wisetime.connector.health;
 
-import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author thomas.haines@practiceinsight.io
@@ -27,7 +28,7 @@ class HealthCheckTest {
 
   @Test
   void testHealthy() {
-    final HealthCheck healthCheck = createHealthCheck(DateTime::now);
+    final HealthCheck healthCheck = new HealthCheck(() -> true);
     healthCheck.run();
     healthCheck.run();
     assertThat(healthCheck.getFailureCount())
@@ -38,7 +39,7 @@ class HealthCheckTest {
 
   @Test
   void testServerDown() {
-    final HealthCheck healthCheck = createHealthCheck(DateTime::now, () -> Boolean.TRUE, () -> Boolean.FALSE);
+    final HealthCheck healthCheck = new HealthCheck(() -> false);
 
     healthCheck.run();
     assertThat(healthCheck.getFailureCount())
@@ -48,47 +49,12 @@ class HealthCheckTest {
 
   @Test
   void testConnectorUnhealthy_thenShutdown() {
-    final HealthCheck healthCheck = createHealthCheck(DateTime::now, () -> Boolean.FALSE, () -> Boolean.TRUE);
+    Runnable shutdownFunction = mock(Runnable.class);
+    final HealthCheck healthCheck = new HealthCheck(() -> false);
+    healthCheck.setShutdownFunction(shutdownFunction);
 
-    IntStream.range(1, HealthCheck.MAX_SUCCESSIVE_FAILURES + 1).forEach(runCount -> {
-      healthCheck.run();
-      assertThat(healthCheck.getFailureCount())
-          .as("expect server failure count to match times called")
-          .isEqualTo(runCount);
+    IntStream.range(0, HealthCheck.MAX_SUCCESSIVE_FAILURES).forEach(runCount -> healthCheck.run());
 
-      assertThat(shutdownCalled.get())
-          .as("shutdown should be called once max failures is reached")
-          .isEqualTo(runCount >= HealthCheck.MAX_SUCCESSIVE_FAILURES);
-    });
-    assertThat(shutdownCalled.get())
-        .as("if failing health ran HealthCheck.maxFailures + 1 times shutdown should have been called")
-        .isTrue();
-  }
-
-  @Test
-  void testConnectorUnhealthy_lastSuccessOld() {
-    HealthCheck newSuccess = createHealthCheck(DateTime::now);
-    newSuccess.run();
-    assertThat(newSuccess.getFailureCount())
-        .as("new success is healthy")
-        .isEqualTo(0);
-
-    HealthCheck oldSuccess = createHealthCheck(() ->
-        DateTime.now().minusMinutes(HealthCheck.MAX_MINS_SINCE_SUCCESS_DEFAULT + 5));
-
-    oldSuccess.run();
-    assertThat(oldSuccess.getFailureCount())
-        .as("old success is failure")
-        .isEqualTo(1);
-  }
-
-  private HealthCheck createHealthCheck(Supplier<DateTime> lastRunSuccess) {
-    return createHealthCheck(lastRunSuccess, () -> Boolean.TRUE, () -> Boolean.TRUE);
-  }
-
-  private HealthCheck createHealthCheck(Supplier<DateTime> lastRunSuccess, Supplier<Boolean> connectorHealthCheck,
-                                        Supplier<Boolean> timePosterHealthCheck) {
-    return new HealthCheck(lastRunSuccess, timePosterHealthCheck, connectorHealthCheck)
-        .setShutdownFunction(() -> shutdownCalled.set(true));
+    verify(shutdownFunction, times(1)).run();
   }
 }

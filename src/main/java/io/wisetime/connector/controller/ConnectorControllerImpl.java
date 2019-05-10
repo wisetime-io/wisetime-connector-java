@@ -16,6 +16,8 @@ import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.ConnectorController;
 import io.wisetime.connector.ConnectorModule;
 import io.wisetime.connector.WiseTimeConnector;
+import io.wisetime.connector.health.HealthIndicator;
+import io.wisetime.connector.health.WisetimeConnectorHealthIndicator;
 import io.wisetime.connector.metric.MetricInfo;
 import io.wisetime.connector.metric.MetricService;
 import io.wisetime.connector.tag.TagRunner;
@@ -33,7 +35,7 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class ConnectorControllerImpl implements ConnectorController {
+public class ConnectorControllerImpl implements ConnectorController, HealthIndicator {
 
   private final TimePoster timePoster;
   private final WiseTimeConnector wiseTimeConnector;
@@ -54,12 +56,7 @@ public class ConnectorControllerImpl implements ConnectorController {
     timePoster = createTimePoster(configuration, apiClient, sqLiteHelper);
 
     tagRunner = new TagRunner(wiseTimeConnector);
-    //todo (vs) replace with interface
-    healthRunner = new HealthCheck(
-        tagRunner::getLastSuccessfulRun,
-        timePoster::isHealthy,
-        wiseTimeConnector::isConnectorHealthy
-    );
+    healthRunner = new HealthCheck(tagRunner, timePoster, new WisetimeConnectorHealthIndicator(wiseTimeConnector));
   }
 
   private TimePoster createTimePoster(ConnectorControllerConfiguration configuration, ApiClient apiClient,

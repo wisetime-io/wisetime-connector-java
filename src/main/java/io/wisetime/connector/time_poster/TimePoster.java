@@ -4,12 +4,14 @@
 
 package io.wisetime.connector.time_poster;
 
+import io.wisetime.connector.health.HealthIndicator;
+
 /**
  * Common runner interface between webhooks and fetch clients.
  *
  * @author pascal.filippi@gmail.com
  */
-public interface TimePoster {
+public interface TimePoster extends HealthIndicator {
   /**
    * Starts the runner
    *
@@ -23,13 +25,6 @@ public interface TimePoster {
    * @throws Exception if any error occurred during shut down
    */
   void stop() throws Exception;
-
-  /**
-   * Checks if the runner is healthy
-   *
-   * @return true if the runner is healthy, false otherwise
-   */
-  boolean isHealthy();
 
   /**
    * Checks if the runner is running
