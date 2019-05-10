@@ -1,8 +1,6 @@
-package io.wisetime.connector.fetch_client;
+package io.wisetime.connector.time_poster.long_polling;
 
 import com.google.common.collect.ImmutableList;
-
-import com.github.javafaker.Faker;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -12,7 +10,7 @@ import java.util.Optional;
 
 import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.api_client.PostResult;
-import io.wisetime.connector.integrate.WiseTimeConnector;
+import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.test_util.FakeEntities;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeGroupStatus;
@@ -31,9 +29,9 @@ import static org.mockito.Mockito.when;
 /**
  * @author pascal.filippi@gmail.com
  */
-class FetchClientTest {
+class FetchClientTimePosterTest {
 
-  private FetchClient fetchClient;
+  private FetchClientTimePoster fetchClient;
 
   private ApiClient apiClientMock;
   private WiseTimeConnector wiseTimeConnectorMock;
@@ -46,7 +44,7 @@ class FetchClientTest {
     apiClientMock = mock(ApiClient.class);
     wiseTimeConnectorMock = mock(WiseTimeConnector.class);
     timeGroupIdStoreMock = mock(TimeGroupIdStore.class);
-    fetchClient = new FetchClient(new FetchClientSpec(apiClientMock, wiseTimeConnectorMock, timeGroupIdStoreMock, 25));
+    fetchClient = new FetchClientTimePoster(wiseTimeConnectorMock, apiClientMock, timeGroupIdStoreMock, 25);
   }
 
   @Test

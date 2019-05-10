@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 
 import io.wisetime.connector.config.RuntimeConfig;
 import io.wisetime.connector.config.RuntimeConfigKey;
+import io.wisetime.connector.utils.RuntimeConfigPropertyDefiner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

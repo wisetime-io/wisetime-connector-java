@@ -2,14 +2,14 @@
  * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector;
+package io.wisetime.connector.time_poster;
 
 /**
  * Common runner interface between webhooks and fetch clients.
  *
  * @author pascal.filippi@gmail.com
  */
-public interface TimePosterRunner {
+public interface TimePoster {
   /**
    * Starts the runner
    *

@@ -12,6 +12,7 @@ import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Supplier;
 
+import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
 
@@ -21,7 +22,7 @@ import io.wisetime.connector.config.RuntimeConfig;
  * <p>
  * 1. For {@link ConnectorConfigKey#HEALTH_MAX_MINS_SINCE_SUCCESS} minutes there was no successful time posting processing;
  * <p>
- * 2. {@link io.wisetime.connector.integrate.WiseTimeConnector#isConnectorHealthy()} returns false; or
+ * 2. {@link WiseTimeConnector#isConnectorHealthy()} returns false; or
  * <p>
  * 3. Ping request to current connector instance was unsuccessful.
  *

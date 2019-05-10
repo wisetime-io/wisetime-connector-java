@@ -2,7 +2,7 @@
  * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector.fetch_client;
+package io.wisetime.connector.time_poster.long_polling;
 
 import org.codejargon.fluentjdbc.api.query.Query;
 import org.codejargon.fluentjdbc.api.query.UpdateResult;
@@ -19,16 +19,16 @@ import static io.wisetime.connector.datastore.CoreLocalDbTable.TABLE_TIME_GROUPS
  *
  * @author pascal.filippi@gmail.com
  */
-public class TimeGroupIdStore {
+class TimeGroupIdStore {
 
   private SQLiteHelper sqLiteHelper;
 
-  public TimeGroupIdStore(SQLiteHelper sqLiteHelper) {
+  TimeGroupIdStore(SQLiteHelper sqLiteHelper) {
     this.sqLiteHelper = sqLiteHelper;
     sqLiteHelper.createTable(TABLE_TIME_GROUPS_RECEIVED);
   }
 
-  public Optional<String> alreadySeen(String timeGroupId) {
+  Optional<String> alreadySeen(String timeGroupId) {
     return sqLiteHelper.query()
         .select("SELECT post_result FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
             " WHERE time_group_id=? AND received_timestamp > ?")
@@ -36,7 +36,7 @@ public class TimeGroupIdStore {
         .firstResult(rs -> rs.getString(1));
   }
 
-  public void putTimeGroupId(String timeGroupId, String postResult) {
+  void putTimeGroupId(String timeGroupId, String postResult) {
     final Query query = sqLiteHelper.query();
     query.transaction().inNoResult(() -> {
       long timeStamp = System.currentTimeMillis();
@@ -55,7 +55,7 @@ public class TimeGroupIdStore {
     });
   }
 
-  public void deleteTimeGroupId(String timeGroupId) {
+  void deleteTimeGroupId(String timeGroupId) {
     sqLiteHelper.query().update("DELETE FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() + " WHERE time_group_id=?")
         .params(timeGroupId)
         .run();

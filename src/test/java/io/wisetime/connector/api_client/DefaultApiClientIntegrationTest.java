@@ -51,8 +51,7 @@ class DefaultApiClientIntegrationTest {
       log.info("DefaultApiClientIntegrationTest skipped");
       return;
     }
-    RestRequestExecutor requestExecutor = new RestRequestExecutor(apiKey.get());
-    defaultApiClient = new DefaultApiClient(requestExecutor);
+    defaultApiClient = new DefaultApiClient(apiKey.get());
   }
 
   @Test

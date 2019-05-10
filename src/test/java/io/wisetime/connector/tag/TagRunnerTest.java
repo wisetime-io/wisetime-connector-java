@@ -7,11 +7,12 @@ package io.wisetime.connector.tag;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import io.wisetime.connector.tag.TagRunner;
+import io.wisetime.connector.WiseTimeConnector;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author thomas.haines@practiceinsight.io
@@ -20,15 +21,8 @@ class TagRunnerTest {
 
   @Test
   void testRun() throws Exception {
-    final AtomicBoolean runCalled = new AtomicBoolean(false);
-    TagRunner tagRunner = new TagRunner(() -> runCalled.set(true));
-    testRun(runCalled, tagRunner);
-
-    // check lock does not prevent second run
-    testRun(runCalled, tagRunner);
-  }
-
-  private void testRun(AtomicBoolean runCalled, TagRunner tagRunner) throws InterruptedException {
+    WiseTimeConnector connector = mock(WiseTimeConnector.class);
+    TagRunner tagRunner = new TagRunner(connector);
     DateTime startRun = tagRunner.getLastSuccessfulRun();
     Thread.sleep(1);
     tagRunner.run();
@@ -37,10 +31,6 @@ class TagRunnerTest {
         .as("expect last success was updated")
         .isGreaterThan(startRun);
 
-    assertThat(runCalled.get())
-        .as("expect runnable called")
-        .isTrue();
-
-    runCalled.set(false);
+    verify(connector, times(1)).performTagUpdate();
   }
 }

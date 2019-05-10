@@ -2,11 +2,9 @@
  * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector.fetch_client;
+package io.wisetime.connector.time_poster.long_polling;
 
 import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Optional;
@@ -14,56 +12,72 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicReference;
 
-import io.wisetime.connector.TimePosterRunner;
+import io.wisetime.connector.WiseTimeConnector;
+import io.wisetime.connector.api_client.ApiClient;
+import io.wisetime.connector.datastore.SQLiteHelper;
+import io.wisetime.connector.time_poster.TimePoster;
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeGroupStatus;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Implements a fetch based approach to retrieve time groups.
  *
  * @author pascal.filippi@staff.wisetime.com
  */
-public class FetchClient implements Runnable, TimePosterRunner {
+@Slf4j
+public class FetchClientTimePoster implements Runnable, TimePoster {
 
   private static final String IN_PROGRESS = "IN_PROGRESS";
 
   private static final int MAX_MINS_SINCE_SUCCESS = 10;
 
-  private static final Logger log = LoggerFactory.getLogger(FetchClient.class);
-
   private final AtomicReference<DateTime> lastSuccessfulRun = new AtomicReference<>(DateTime.now());
 
-  private final FetchClientSpec clientSpec;
   private final ExecutorService postTimeExecutor;
+  private final TimeGroupIdStore timeGroupIdStore;
+  private final int timeGroupsFetchLimit;
+  private final ApiClient apiClient;
+  private final WiseTimeConnector wiseTimeConnector;
 
   private ExecutorService fetchClientExecutor = null;
 
-  public FetchClient(FetchClientSpec clientSpec) {
-    this.clientSpec = clientSpec;
+  public FetchClientTimePoster(WiseTimeConnector wiseTimeConnector, ApiClient apiClient,
+                               SQLiteHelper sqLiteHelper, int timeGroupsFetchLimit) {
+    this(wiseTimeConnector, apiClient, new TimeGroupIdStore(sqLiteHelper), timeGroupsFetchLimit);
+  }
+
+  public FetchClientTimePoster(WiseTimeConnector wiseTimeConnector, ApiClient apiClient,
+                               TimeGroupIdStore timeGroupIdStore, int timeGroupsFetchLimit) {
+    this.wiseTimeConnector = wiseTimeConnector;
+    this.apiClient = apiClient;
+    this.timeGroupIdStore = timeGroupIdStore;
+    this.timeGroupsFetchLimit = timeGroupsFetchLimit;
     /*
        The thread pool processes each time row that is returned from the batch fetch.
        Up to a maximum of three concurrent posts are permitted.
      */
-    final int threadPoolSize = Math.min(clientSpec.getLimit(), 3);
+    final int threadPoolSize = Math.min(timeGroupsFetchLimit, 3);
     this.postTimeExecutor = Executors.newFixedThreadPool(threadPoolSize);
   }
+
 
   @Override
   public void run() {
     while (!Thread.currentThread().isInterrupted()) {
       try {
-        final List<TimeGroup> fetchedTimeGroups = clientSpec.getApiClient().fetchTimeGroups(clientSpec.getLimit());
+        final List<TimeGroup> fetchedTimeGroups = apiClient.fetchTimeGroups(timeGroupsFetchLimit);
 
         for (TimeGroup timeGroup : fetchedTimeGroups) {
           if (!timeGroupAlreadyProcessed(timeGroup)) {
             // save the rows to the DB synchronously
-            clientSpec.getTimeGroupIdStore().putTimeGroupId(timeGroup.getGroupId(), IN_PROGRESS);
+            timeGroupIdStore.putTimeGroupId(timeGroup.getGroupId(), IN_PROGRESS);
 
             // trigger async process to post to external system
             postTimeExecutor.submit(() -> {
-              PostResult result = clientSpec.getConnector().postTime(null, timeGroup);
-              clientSpec.getTimeGroupIdStore().putTimeGroupId(timeGroup.getGroupId(), result.name());
+              PostResult result = wiseTimeConnector.postTime(null, timeGroup);
+              timeGroupIdStore.putTimeGroupId(timeGroup.getGroupId(), result.name());
               updateTimeGroupStatus(timeGroup, result);
             });
           }
@@ -76,7 +90,7 @@ public class FetchClient implements Runnable, TimePosterRunner {
   }
 
   private boolean timeGroupAlreadyProcessed(TimeGroup timeGroup) {
-    Optional<String> timeGroupStatus = clientSpec.getTimeGroupIdStore().alreadySeen(timeGroup.getGroupId());
+    Optional<String> timeGroupStatus = timeGroupIdStore.alreadySeen(timeGroup.getGroupId());
     if (!timeGroupStatus.isPresent()) {
       return false;
     }
@@ -99,12 +113,12 @@ public class FetchClient implements Runnable, TimePosterRunner {
       // simply sending no update is considered a transient failure after a certain timeout
       switch (result) {
         case SUCCESS:
-          clientSpec.getApiClient().updatePostedTimeStatus(new TimeGroupStatus()
+          apiClient.updatePostedTimeStatus(new TimeGroupStatus()
               .status(TimeGroupStatus.StatusEnum.SUCCESS)
               .timeGroupId(timeGroup.getGroupId()));
           break;
         case PERMANENT_FAILURE:
-          clientSpec.getApiClient().updatePostedTimeStatus(new TimeGroupStatus()
+          apiClient.updatePostedTimeStatus(new TimeGroupStatus()
               .status(TimeGroupStatus.StatusEnum.FAILURE)
               .timeGroupId(timeGroup.getGroupId())
               .message(result.getMessage().orElse("Unexpected error while posting time")));

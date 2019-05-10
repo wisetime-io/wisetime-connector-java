@@ -2,17 +2,27 @@
  * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector;
+package io.wisetime.connector.controller;
 
 import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
+import io.wisetime.connector.api_client.ApiClient;
+import io.wisetime.connector.api_client.ApiClientMetricWrapper;
+import io.wisetime.connector.api_client.WiseTimeConnectorMetricWrapper;
+import io.wisetime.connector.datastore.FileStore;
+import io.wisetime.connector.datastore.SQLiteHelper;
 import io.wisetime.connector.health.HealthCheck;
-import io.wisetime.connector.integrate.ConnectorModule;
-import io.wisetime.connector.integrate.WiseTimeConnector;
+import io.wisetime.connector.ConnectorController;
+import io.wisetime.connector.ConnectorModule;
+import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.metric.MetricInfo;
 import io.wisetime.connector.metric.MetricService;
 import io.wisetime.connector.tag.TagRunner;
+import io.wisetime.connector.time_poster.NoOpTimePoster;
+import io.wisetime.connector.time_poster.TimePoster;
+import io.wisetime.connector.time_poster.long_polling.FetchClientTimePoster;
+import io.wisetime.connector.time_poster.webhook.WebhookTimePoster;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -23,15 +33,48 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 @RequiredArgsConstructor
-public class ConnectorRunner implements ConnectorController {
+public class ConnectorControllerImpl implements ConnectorController {
 
-  private final TimePosterRunner timePosterRunner;
+  private final TimePoster timePoster;
   private final WiseTimeConnector wiseTimeConnector;
   private final ConnectorModule connectorModule;
   private final TagRunner tagRunner;
   private final HealthCheck healthRunner;
   private final MetricService metricService;
   private Runnable shutdownFunction;
+
+  public ConnectorControllerImpl(ConnectorControllerConfiguration configuration) {
+    metricService = new MetricService();
+    wiseTimeConnector = new WiseTimeConnectorMetricWrapper(configuration.getWiseTimeConnector(), metricService);
+    ApiClient apiClient = new ApiClientMetricWrapper(configuration.getApiClient(), metricService);
+
+    final SQLiteHelper sqLiteHelper = new SQLiteHelper(configuration.isForcePersistentStorage());
+    connectorModule = new ConnectorModule(apiClient, new FileStore(sqLiteHelper));
+
+    timePoster = createTimePoster(configuration, apiClient, sqLiteHelper);
+
+    tagRunner = new TagRunner(wiseTimeConnector);
+    //todo (vs) replace with interface
+    healthRunner = new HealthCheck(
+        tagRunner::getLastSuccessfulRun,
+        timePoster::isHealthy,
+        wiseTimeConnector::isConnectorHealthy
+    );
+  }
+
+  private TimePoster createTimePoster(ConnectorControllerConfiguration configuration, ApiClient apiClient,
+                                SQLiteHelper sqLiteHelper) {
+    ConnectorControllerBuilderImpl.LaunchMode launchMode = configuration.getLaunchMode();
+    switch (launchMode) {
+      case LONG_POLL:
+        return new FetchClientTimePoster(wiseTimeConnector, apiClient, sqLiteHelper, configuration.getFetchClientLimit());
+      case WEBHOOK:
+        return new WebhookTimePoster(configuration.getWebhookPort(), wiseTimeConnector, metricService);
+      case TAGS_ONLY:
+      default:
+        return new NoOpTimePoster();
+    }
+  }
 
   /**
    * Start the runner. This will run scheduled tasks for tag updates and health checks.
@@ -44,7 +87,7 @@ public class ConnectorRunner implements ConnectorController {
     shutdownFunction = Thread.currentThread()::interrupt;
     healthRunner.setShutdownFunction(shutdownFunction);
 
-    timePosterRunner.start();
+    timePoster.start();
 
     Timer healthCheckTimer = new Timer("health-check-timer", true);
     healthCheckTimer.scheduleAtFixedRate(healthRunner, TimeUnit.SECONDS.toMillis(5), TimeUnit.SECONDS.toMillis(3));
@@ -53,7 +96,7 @@ public class ConnectorRunner implements ConnectorController {
     Timer tagTimer = new Timer("tag-check-timer", true);
     tagTimer.scheduleAtFixedRate(tagRunner, TimeUnit.SECONDS.toMillis(15), TimeUnit.MINUTES.toMillis(5));
 
-    while (timePosterRunner.isRunning()) {
+    while (timePoster.isRunning()) {
       try {
         Thread.sleep(2000);
       } catch (InterruptedException e) {
@@ -65,7 +108,7 @@ public class ConnectorRunner implements ConnectorController {
     tagTimer.cancel();
     tagTimer.purge();
     try {
-      timePosterRunner.stop();
+      timePoster.stop();
     } catch (Exception e) {
       log.warn("Failed to stop time poster runner", e);
     }
@@ -93,9 +136,5 @@ public class ConnectorRunner implements ConnectorController {
   //visible for testing
   void initWiseTimeConnector() {
     wiseTimeConnector.init(connectorModule);
-  }
-
-  TimePosterRunner getTimePosterRunner() {
-    return timePosterRunner;
   }
 }

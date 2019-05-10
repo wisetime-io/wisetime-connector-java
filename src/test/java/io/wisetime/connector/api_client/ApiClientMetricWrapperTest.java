@@ -91,36 +91,6 @@ class ApiClientMetricWrapperTest {
         .hasMessage("API ERROR");
     verify(metricService, never()).increment(eq(Metric.TAG_PROCESSED), anyInt());
   }
-
-  @Test
-  void updatePostedTimeStatus_success() throws IOException {
-    TimeGroupStatus timeGroupStatus = new TimeGroupStatus();
-    timeGroupStatus.setStatus(StatusEnum.SUCCESS);
-    apiClientMetricWrapper.updatePostedTimeStatus(timeGroupStatus);
-    verify(metricService).increment(Metric.TIME_GROUP_PROCESSED);
-  }
-
-  @Test
-  void updatePostedTimeStatus_failure() throws IOException {
-    TimeGroupStatus timeGroupStatus = new TimeGroupStatus();
-    timeGroupStatus.setStatus(StatusEnum.FAILURE);
-    apiClientMetricWrapper.updatePostedTimeStatus(timeGroupStatus);
-    verify(metricService, never()).increment(Metric.TIME_GROUP_PROCESSED);
-  }
-
-  @Test
-  void updatePostedTimeStatus_error() throws IOException {
-    TimeGroupStatus timeGroupStatus = new TimeGroupStatus();
-    doThrow(new RuntimeException("API ERROR"))
-        .when(apiClient)
-        .updatePostedTimeStatus(any());
-
-    assertThatThrownBy(() -> apiClientMetricWrapper.updatePostedTimeStatus(timeGroupStatus))
-        .as("Metric Wrapper shouldn't handle exceptions")
-        .isInstanceOf(RuntimeException.class)
-        .hasMessage("API ERROR");
-    verify(metricService, never()).increment(Metric.TIME_GROUP_PROCESSED);
-  }
   
   @Test
   void otherMethods_delegateOnly() throws IOException {
@@ -132,6 +102,7 @@ class ApiClientMetricWrapperTest {
     apiClientMetricWrapper.tagDelete(new DeleteTagRequest());
     apiClientMetricWrapper.tagDeleteKeyword(new DeleteKeywordRequest());
     apiClientMetricWrapper.teamInfo();
+    apiClientMetricWrapper.updatePostedTimeStatus(new TimeGroupStatus());
     verify(metricService, never()).increment(any());
     verify(metricService, never()).increment(any(), anyInt());
   }

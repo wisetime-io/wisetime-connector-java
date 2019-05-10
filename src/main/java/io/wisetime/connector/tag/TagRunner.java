@@ -5,12 +5,14 @@
 package io.wisetime.connector.tag;
 
 import org.joda.time.DateTime;
-import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
+
+import io.wisetime.connector.WiseTimeConnector;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A wrapper class around the tag upload process, that enforces a singleton runner pattern in the event that the previous
@@ -18,15 +20,15 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * @author thomas.haines@practiceinsight.io
  */
+@Slf4j
 public class TagRunner extends TimerTask {
 
-  private static final Logger log = LoggerFactory.getLogger(TagRunner.class);
-  private final Runnable tagRunner;
+  private final WiseTimeConnector connector;
   private final AtomicBoolean runLock = new AtomicBoolean(false);
   private final AtomicReference<DateTime> lastSuccessfulRun;
 
-  public TagRunner(Runnable tagRunner) {
-    this.tagRunner = tagRunner;
+  public TagRunner(WiseTimeConnector connector) {
+    this.connector = connector;
     this.lastSuccessfulRun = new AtomicReference<>(DateTime.now());
   }
 
@@ -34,10 +36,10 @@ public class TagRunner extends TimerTask {
   public void run() {
     if (runLock.compareAndSet(false, true)) {
       try {
-        tagRunner.run();
+        connector.performTagUpdate();
         lastSuccessfulRun.set(DateTime.now());
       } catch (Exception e) {
-        LoggerFactory.getLogger(tagRunner.getClass()).error(e.getMessage(), e);
+        LoggerFactory.getLogger(connector.getClass()).error(e.getMessage(), e);
       } finally {
         // ensure lock is released
         runLock.set(false);
