@@ -4,12 +4,15 @@
 
 package io.wisetime.connector.fetch_client;
 
+import org.apache.commons.lang3.tuple.Pair;
 import org.codejargon.fluentjdbc.api.query.Query;
 import org.codejargon.fluentjdbc.api.query.UpdateResult;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
+import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.datastore.SQLiteHelper;
 
 import static io.wisetime.connector.datastore.CoreLocalDbTable.TABLE_TIME_GROUPS_RECEIVED;
@@ -21,6 +24,11 @@ import static io.wisetime.connector.datastore.CoreLocalDbTable.TABLE_TIME_GROUPS
  */
 public class TimeGroupIdStore {
 
+  static final String IN_PROGRESS = "IN_PROGRESS";
+  static final String SUCCESS_AND_SENT = "SUCCESS_AND_SENT";
+  static final String PERMANENT_FAILURE_AND_SENT = "PERMANENT_FAILURE_AND_SENT";
+  private static final long MAX_IN_PROGRESS_TIME = 5;
+
   private SQLiteHelper sqLiteHelper;
 
   public TimeGroupIdStore(SQLiteHelper sqLiteHelper) {
@@ -30,26 +38,40 @@ public class TimeGroupIdStore {
 
   public Optional<String> alreadySeen(String timeGroupId) {
     return sqLiteHelper.query()
+        // always return status for SUCCESS, TRANSIENT_FAILURE and PERMANENT_FAILURE
+        // If a time group is IN_PROGRESS for more than 5 minutes: assume failure and allow to try again
         .select("SELECT post_result FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
-            " WHERE time_group_id=? AND received_timestamp > ?")
-        .params(timeGroupId, System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(30))
+            " WHERE time_group_id=? AND (received_timestamp > ? or post_result != ?)")
+        .params(timeGroupId,
+            System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(MAX_IN_PROGRESS_TIME),
+            IN_PROGRESS)
         .firstResult(rs -> rs.getString(1));
   }
 
-  public void putTimeGroupId(String timeGroupId, String postResult) {
+  public List<Pair<String, PostResult>> getAllWithPendingStatusUpdate() {
+    return sqLiteHelper.query()
+        // Get all statuses with SUCCESS or PERMANENT_FAILURE for updating
+        .select("SELECT time_group_id, post_result, message FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
+            " WHERE post_result = ? or post_result = ?")
+        .params(PostResult.SUCCESS.name(), PostResult.PERMANENT_FAILURE.name())
+        .listResult(rs -> Pair.of(rs.getString(1),
+            PostResult.valueOf(rs.getString(2)).withMessage(rs.getString(3))));
+  }
+
+  public void putTimeGroupId(String timeGroupId, String postResult, String message) {
     final Query query = sqLiteHelper.query();
     query.transaction().inNoResult(() -> {
       long timeStamp = System.currentTimeMillis();
       UpdateResult result = query.update("UPDATE " + TABLE_TIME_GROUPS_RECEIVED.getName() +
-          " SET received_timestamp=?, post_result=? WHERE time_group_id=?")
-          .params(timeStamp, postResult, timeGroupId)
+          " SET received_timestamp=?, post_result=?, message=? WHERE time_group_id=?")
+          .params(timeStamp, postResult, message, timeGroupId)
           .run();
 
       if (result.affectedRows() == 0) {
         // new key value
         query.update("INSERT INTO " + TABLE_TIME_GROUPS_RECEIVED.getName() +
-            " (time_group_id, post_result, received_timestamp, created_ts) VALUES (?,?,?,?)")
-            .params(timeGroupId, postResult, timeStamp, System.currentTimeMillis())
+            " (time_group_id, post_result, received_timestamp, created_ts, message) VALUES (?,?,?,?,?)")
+            .params(timeGroupId, postResult, timeStamp, System.currentTimeMillis(), message)
             .run();
       }
     });

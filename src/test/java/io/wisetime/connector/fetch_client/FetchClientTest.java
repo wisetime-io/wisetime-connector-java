@@ -1,8 +1,10 @@
+/*
+ * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
+ */
+
 package io.wisetime.connector.fetch_client;
 
 import com.google.common.collect.ImmutableList;
-
-import com.github.javafaker.Faker;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -120,6 +122,5 @@ class FetchClientTest {
     fetchClient.stop();
 
     verify(wiseTimeConnectorMock, never()).postTime(isNull(), any());
-    verify(apiClientMock, times(1)).updatePostedTimeStatus(any());
   }
 }
