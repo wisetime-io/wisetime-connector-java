@@ -77,7 +77,7 @@ public class ConnectorStartTest {
     String requestBody = objectMapper.writeValueAsString(timeGroup);
 
     // SUCCESS
-    when(mockConnector.postTime(any(), any())).thenReturn(PostResult.SUCCESS);
+    when(mockConnector.postTime(any(), any())).thenReturn(PostResult.SUCCESS());
     SparkTestUtil.UrlResponse sucessResponse =
         testUtil.doMethod("POST", "/receiveTimePostedEvent", requestBody, "application/json");
     assertThat(sucessResponse.status).isEqualTo(200);
@@ -85,7 +85,7 @@ public class ConnectorStartTest {
     clearInvocations(metricService);
 
     // PERMANENT_FAILURE
-    when(mockConnector.postTime(any(), any())).thenReturn(PostResult.PERMANENT_FAILURE);
+    when(mockConnector.postTime(any(), any())).thenReturn(PostResult.PERMANENT_FAILURE());
     SparkTestUtil.UrlResponse premanentFailureResponse =
         testUtil.doMethod("POST", "/receiveTimePostedEvent", requestBody, "application/json");
     assertThat(premanentFailureResponse.status).isEqualTo(400);
@@ -93,7 +93,7 @@ public class ConnectorStartTest {
     clearInvocations(metricService);
 
     // TRANSIENT_FAILURE
-    when(mockConnector.postTime(any(), any())).thenReturn(PostResult.TRANSIENT_FAILURE);
+    when(mockConnector.postTime(any(), any())).thenReturn(PostResult.TRANSIENT_FAILURE());
     SparkTestUtil.UrlResponse transientFailureResponse =
         testUtil.doMethod("POST", "/receiveTimePostedEvent", requestBody, "application/json");
     assertThat(transientFailureResponse.status).isEqualTo(500);

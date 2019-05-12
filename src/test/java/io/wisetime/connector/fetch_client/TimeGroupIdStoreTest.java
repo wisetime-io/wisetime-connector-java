@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 
 import io.wisetime.connector.api_client.PostResult;
+import io.wisetime.connector.api_client.PostResult.PostResultStatus;
 import io.wisetime.connector.datastore.SQLiteHelper;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,10 +39,10 @@ class TimeGroupIdStoreTest {
         .isNotPresent();
 
     // store a value
-    timeGroupIdStore.putTimeGroupId(id, PostResult.SUCCESS.name(), "");
+    timeGroupIdStore.putTimeGroupId(id, PostResultStatus.SUCCESS.name(), "");
     assertThat(timeGroupIdStore.alreadySeen(id))
         .as("persisted id should be found")
-        .hasValue(PostResult.SUCCESS.name());
+        .hasValue(PostResultStatus.SUCCESS.name());
   }
 
   @Test
@@ -53,10 +54,10 @@ class TimeGroupIdStoreTest {
         .isNotPresent();
 
     // store a value
-    timeGroupIdStore.putTimeGroupId(id, PostResult.PERMANENT_FAILURE.name(), "");
+    timeGroupIdStore.putTimeGroupId(id, PostResultStatus.PERMANENT_FAILURE.name(), "");
     assertThat(timeGroupIdStore.alreadySeen(id))
         .as("persisted id should be found")
-        .hasValue(PostResult.PERMANENT_FAILURE.name());
+        .hasValue(PostResultStatus.PERMANENT_FAILURE.name());
 
     // delete a value
     timeGroupIdStore.deleteTimeGroupId(id);
@@ -74,12 +75,12 @@ class TimeGroupIdStoreTest {
         .isNotPresent();
 
     // store a value
-    timeGroupIdStore.putTimeGroupId(id, PostResult.PERMANENT_FAILURE.name(), "");
+    timeGroupIdStore.putTimeGroupId(id, PostResultStatus.PERMANENT_FAILURE.name(), "");
     // second put should update status
-    timeGroupIdStore.putTimeGroupId(id, PostResult.SUCCESS.name(), "");
+    timeGroupIdStore.putTimeGroupId(id, PostResultStatus.SUCCESS.name(), "");
     assertThat(timeGroupIdStore.alreadySeen(id))
         .as("persisted id should be found")
-        .hasValue(PostResult.SUCCESS.name());
+        .hasValue(PostResultStatus.SUCCESS.name());
   }
 
   @Test
@@ -88,18 +89,22 @@ class TimeGroupIdStoreTest {
     final String id2 = faker.numerify("tg##########");
     final String id3 = faker.numerify("tg##########");
     final String id4 = faker.numerify("tg##########");
+    final String id5 = faker.numerify("tg##########");
     final String message1 = faker.gameOfThrones().quote();
     final String message2 = faker.gameOfThrones().quote();
-    timeGroupIdStore.putTimeGroupId(id1, PostResult.PERMANENT_FAILURE.name(), message1);
-    timeGroupIdStore.putTimeGroupId(id2, PostResult.SUCCESS.name(), message2);
+    final String message3 = faker.gameOfThrones().quote();
+    timeGroupIdStore.putTimeGroupId(id1, PostResultStatus.PERMANENT_FAILURE.name(), message1);
+    timeGroupIdStore.putTimeGroupId(id2, PostResultStatus.SUCCESS.name(), message2);
     timeGroupIdStore.putTimeGroupId(id3, TimeGroupIdStore.IN_PROGRESS, "");
     timeGroupIdStore.putTimeGroupId(id4, TimeGroupIdStore.SUCCESS_AND_SENT, "");
+    timeGroupIdStore.putTimeGroupId(id5, PostResultStatus.SUCCESS.name(), message3);
 
     assertThat(timeGroupIdStore.getAllWithPendingStatusUpdate())
-        .usingFieldByFieldElementComparator()
+        .usingRecursiveFieldByFieldElementComparator()
         .contains(
-            Pair.of(id1, PostResult.PERMANENT_FAILURE.withMessage(message1)),
-            Pair.of(id2, PostResult.SUCCESS.withMessage(message2))
+            Pair.of(id1, PostResult.PERMANENT_FAILURE().withMessage(message1)),
+            Pair.of(id2, PostResult.SUCCESS().withMessage(message2)),
+            Pair.of(id5, PostResult.SUCCESS().withMessage(message3))
         );
   }
 }

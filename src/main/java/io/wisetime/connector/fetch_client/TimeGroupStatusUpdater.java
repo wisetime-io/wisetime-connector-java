@@ -86,7 +86,7 @@ public class TimeGroupStatusUpdater extends TimerTask {
     try {
       // TRANSIENT_FAILURE doesn't need to be handled.
       // simply sending no update is considered a transient failure after a certain timeout
-      switch (result) {
+      switch (result.getStatus()) {
         case SUCCESS:
           apiClient.updatePostedTimeStatus(new TimeGroupStatus()
               .status(TimeGroupStatus.StatusEnum.SUCCESS)

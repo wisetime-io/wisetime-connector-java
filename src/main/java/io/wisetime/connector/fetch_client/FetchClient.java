@@ -16,6 +16,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import io.wisetime.connector.TimePosterRunner;
 import io.wisetime.connector.api_client.PostResult;
+import io.wisetime.connector.api_client.PostResult.PostResultStatus;
 import io.wisetime.generated.connect.TimeGroup;
 
 import static io.wisetime.connector.fetch_client.TimeGroupIdStore.IN_PROGRESS;
@@ -70,7 +71,7 @@ public class FetchClient implements Runnable, TimePosterRunner {
               } catch (Exception e) {
                 // We can't rule out postTime throws runtime exceptions, in this case permanently fail the time group:
                 // most likely a bug
-                result = PostResult.PERMANENT_FAILURE.withError(e).withMessage(e.getMessage());
+                result = PostResult.PERMANENT_FAILURE().withError(e).withMessage(e.getMessage());
                 log.error("Unexpected exception while trying to post time", e);
               }
               clientSpec.getTimeGroupIdStore()
@@ -90,8 +91,8 @@ public class FetchClient implements Runnable, TimePosterRunner {
     Optional<String> timeGroupStatus = clientSpec.getTimeGroupIdStore().alreadySeen(timeGroup.getGroupId());
     // For any failure state: Allow reprocessing. For SUCCESS and IN_PROGRESS deny reprocessing
     return timeGroupStatus.filter(s ->
-        !PostResult.TRANSIENT_FAILURE.name().equals(s)
-            && !PostResult.PERMANENT_FAILURE.name().equals(s)
+        !PostResultStatus.TRANSIENT_FAILURE.name().equals(s)
+            && !PostResultStatus.PERMANENT_FAILURE.name().equals(s)
             && !PERMANENT_FAILURE_AND_SENT.equals(s)).isPresent();
   }
 

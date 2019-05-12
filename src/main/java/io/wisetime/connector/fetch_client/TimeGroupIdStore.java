@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 import io.wisetime.connector.api_client.PostResult;
+import io.wisetime.connector.api_client.PostResult.PostResultStatus;
 import io.wisetime.connector.datastore.SQLiteHelper;
 
 import static io.wisetime.connector.datastore.CoreLocalDbTable.TABLE_TIME_GROUPS_RECEIVED;
@@ -53,7 +54,7 @@ public class TimeGroupIdStore {
         // Get all statuses with SUCCESS or PERMANENT_FAILURE for updating
         .select("SELECT time_group_id, post_result, message FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
             " WHERE post_result = ? or post_result = ?")
-        .params(PostResult.SUCCESS.name(), PostResult.PERMANENT_FAILURE.name())
+        .params(PostResultStatus.SUCCESS.name(), PostResultStatus.PERMANENT_FAILURE.name())
         .listResult(rs -> Pair.of(rs.getString(1),
             PostResult.valueOf(rs.getString(2)).withMessage(rs.getString(3))));
   }

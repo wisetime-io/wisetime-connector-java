@@ -45,7 +45,7 @@ class TimeGroupStatusUpdaterTest {
   @Test
   void testRun() throws Exception {
     String id = faker.numerify("fc_######");
-    PostResult postResult = PostResult.PERMANENT_FAILURE.withMessage(faker.gameOfThrones().quote());
+    PostResult postResult = PostResult.PERMANENT_FAILURE().withMessage(faker.gameOfThrones().quote());
     when(timeGroupIdStoreMock.getAllWithPendingStatusUpdate()).thenReturn(ImmutableList.of(Pair.of(id, postResult)));
 
     timeGroupStatusUpdater.run();
