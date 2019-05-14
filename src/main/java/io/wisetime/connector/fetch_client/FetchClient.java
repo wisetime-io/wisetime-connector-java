@@ -45,10 +45,9 @@ public class FetchClient implements Runnable, TimePosterRunner {
     this.clientSpec = clientSpec;
     /*
        The thread pool processes each time row that is returned from the batch fetch.
-       Up to a maximum of three concurrent posts are permitted.
+       Only one concurrent post is allowed until WiseTimeConnector#postTime is guaranteed to be thread safe.
      */
-    final int threadPoolSize = Math.min(clientSpec.getLimit(), 3);
-    this.postTimeExecutor = Executors.newFixedThreadPool(threadPoolSize);
+    this.postTimeExecutor = Executors.newSingleThreadExecutor();
     timeGroupStatusUpdater = new TimeGroupStatusUpdater(clientSpec.getTimeGroupIdStore(), clientSpec.getApiClient());
   }
 
