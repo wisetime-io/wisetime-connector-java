@@ -16,8 +16,11 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import io.wisetime.connector.TimePosterRunner;
 import io.wisetime.connector.api_client.PostResult;
+import io.wisetime.connector.api_client.PostResult.PostResultStatus;
 import io.wisetime.generated.connect.TimeGroup;
-import io.wisetime.generated.connect.TimeGroupStatus;
+
+import static io.wisetime.connector.fetch_client.TimeGroupIdStore.IN_PROGRESS;
+import static io.wisetime.connector.fetch_client.TimeGroupIdStore.PERMANENT_FAILURE_AND_SENT;
 
 /**
  * Implements a fetch based approach to retrieve time groups.
@@ -25,8 +28,6 @@ import io.wisetime.generated.connect.TimeGroupStatus;
  * @author pascal.filippi@staff.wisetime.com
  */
 public class FetchClient implements Runnable, TimePosterRunner {
-
-  private static final String IN_PROGRESS = "IN_PROGRESS";
 
   private static final int MAX_MINS_SINCE_SUCCESS = 10;
 
@@ -36,6 +37,7 @@ public class FetchClient implements Runnable, TimePosterRunner {
 
   private final FetchClientSpec clientSpec;
   private final ExecutorService postTimeExecutor;
+  private final TimeGroupStatusUpdater timeGroupStatusUpdater;
 
   private ExecutorService fetchClientExecutor = null;
 
@@ -47,6 +49,7 @@ public class FetchClient implements Runnable, TimePosterRunner {
      */
     final int threadPoolSize = Math.min(clientSpec.getLimit(), 3);
     this.postTimeExecutor = Executors.newFixedThreadPool(threadPoolSize);
+    timeGroupStatusUpdater = new TimeGroupStatusUpdater(clientSpec.getTimeGroupIdStore(), clientSpec.getApiClient());
   }
 
   @Override
@@ -58,13 +61,22 @@ public class FetchClient implements Runnable, TimePosterRunner {
         for (TimeGroup timeGroup : fetchedTimeGroups) {
           if (!timeGroupAlreadyProcessed(timeGroup)) {
             // save the rows to the DB synchronously
-            clientSpec.getTimeGroupIdStore().putTimeGroupId(timeGroup.getGroupId(), IN_PROGRESS);
+            clientSpec.getTimeGroupIdStore().putTimeGroupId(timeGroup.getGroupId(), IN_PROGRESS, "");
 
             // trigger async process to post to external system
             postTimeExecutor.submit(() -> {
-              PostResult result = clientSpec.getConnector().postTime(null, timeGroup);
-              clientSpec.getTimeGroupIdStore().putTimeGroupId(timeGroup.getGroupId(), result.name());
-              updateTimeGroupStatus(timeGroup, result);
+              PostResult result;
+              try {
+                result = clientSpec.getConnector().postTime(null, timeGroup);
+              } catch (Exception e) {
+                // We can't rule out postTime throws runtime exceptions, in this case permanently fail the time group:
+                // most likely a bug
+                result = PostResult.PERMANENT_FAILURE().withError(e).withMessage(e.getMessage());
+                log.error("Unexpected exception while trying to post time", e);
+              }
+              clientSpec.getTimeGroupIdStore()
+                  .putTimeGroupId(timeGroup.getGroupId(), result.name(), result.getMessage().orElse(""));
+              timeGroupStatusUpdater.processSingle(timeGroup.getGroupId(), result);
             });
           }
         }
@@ -77,45 +89,11 @@ public class FetchClient implements Runnable, TimePosterRunner {
 
   private boolean timeGroupAlreadyProcessed(TimeGroup timeGroup) {
     Optional<String> timeGroupStatus = clientSpec.getTimeGroupIdStore().alreadySeen(timeGroup.getGroupId());
-    if (!timeGroupStatus.isPresent()) {
-      return false;
-    }
-    if (IN_PROGRESS.equals(timeGroupStatus.get())) {
-      return true;
-    }
-    PostResult postResult = PostResult.valueOf(timeGroupStatus.get());
-    if (postResult == PostResult.SUCCESS || postResult == PostResult.PERMANENT_FAILURE) {
-      // Successfully or permanently failed processed group -> try updating status again
-      updateTimeGroupStatus(timeGroup, postResult);
-      return true;
-    }
-    // recorded transient failure state: process time group
-    return false;
-  }
-
-  private void updateTimeGroupStatus(TimeGroup timeGroup, PostResult result) {
-    try {
-      // TRANSIENT_FAILURE doesn't need to be handled.
-      // simply sending no update is considered a transient failure after a certain timeout
-      switch (result) {
-        case SUCCESS:
-          clientSpec.getApiClient().updatePostedTimeStatus(new TimeGroupStatus()
-              .status(TimeGroupStatus.StatusEnum.SUCCESS)
-              .timeGroupId(timeGroup.getGroupId()));
-          break;
-        case PERMANENT_FAILURE:
-          clientSpec.getApiClient().updatePostedTimeStatus(new TimeGroupStatus()
-              .status(TimeGroupStatus.StatusEnum.FAILURE)
-              .timeGroupId(timeGroup.getGroupId())
-              .message(result.getMessage().orElse("Unexpected error while posting time")));
-          break;
-        default:
-          // do nothing
-          log.debug("TRANSIENT_FAILURE for time group");
-      }
-    } catch (Exception e) {
-      log.error("Error while updating posted time status.", e);
-    }
+    // For any failure state: Allow reprocessing. For SUCCESS and IN_PROGRESS deny reprocessing
+    return timeGroupStatus.filter(s ->
+        !PostResultStatus.TRANSIENT_FAILURE.name().equals(s)
+            && !PostResultStatus.PERMANENT_FAILURE.name().equals(s)
+            && !PERMANENT_FAILURE_AND_SENT.equals(s)).isPresent();
   }
 
   public void start() {
@@ -124,16 +102,19 @@ public class FetchClient implements Runnable, TimePosterRunner {
     }
     fetchClientExecutor = Executors.newSingleThreadExecutor();
     fetchClientExecutor.submit(this);
+    timeGroupStatusUpdater.startScheduler();
   }
 
   public void stop() {
     fetchClientExecutor.shutdownNow();
+    timeGroupStatusUpdater.stopScheduler();
     fetchClientExecutor = null;
   }
 
   @Override
   public boolean isHealthy() {
-    return DateTime.now().minusMinutes(MAX_MINS_SINCE_SUCCESS).isBefore(lastSuccessfulRun.get());
+    return DateTime.now().minusMinutes(MAX_MINS_SINCE_SUCCESS).isBefore(lastSuccessfulRun.get())
+        && timeGroupStatusUpdater.isHealthy();
   }
 
   @Override

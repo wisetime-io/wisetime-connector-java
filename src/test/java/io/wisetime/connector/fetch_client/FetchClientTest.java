@@ -1,8 +1,10 @@
+/*
+ * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
+ */
+
 package io.wisetime.connector.fetch_client;
 
 import com.google.common.collect.ImmutableList;
-
-import com.github.javafaker.Faker;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -63,7 +65,7 @@ class FetchClientTest {
   void successfulTimeGroup() throws Exception {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();
     when(timeGroupIdStoreMock.alreadySeen(timeGroup.getGroupId())).thenReturn(Optional.empty());
-    when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.SUCCESS);
+    when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.SUCCESS());
     when(apiClientMock.fetchTimeGroups(anyInt()))
         .thenReturn(ImmutableList.of(timeGroup))
         .thenReturn(ImmutableList.of());
@@ -80,7 +82,7 @@ class FetchClientTest {
   void failedTimeGroup() throws Exception {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();
     when(timeGroupIdStoreMock.alreadySeen(timeGroup.getGroupId())).thenReturn(Optional.empty());
-    when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.PERMANENT_FAILURE);
+    when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.PERMANENT_FAILURE());
     when(apiClientMock.fetchTimeGroups(anyInt()))
         .thenReturn(ImmutableList.of(timeGroup))
         .thenReturn(ImmutableList.of());
@@ -97,7 +99,7 @@ class FetchClientTest {
   void transientlyFailedTimeGroup() throws Exception {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();
     when(timeGroupIdStoreMock.alreadySeen(timeGroup.getGroupId())).thenReturn(Optional.empty());
-    when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.TRANSIENT_FAILURE);
+    when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.TRANSIENT_FAILURE());
     when(apiClientMock.fetchTimeGroups(anyInt()))
         .thenReturn(ImmutableList.of(timeGroup))
         .thenReturn(ImmutableList.of());
@@ -120,6 +122,5 @@ class FetchClientTest {
     fetchClient.stop();
 
     verify(wiseTimeConnectorMock, never()).postTime(isNull(), any());
-    verify(apiClientMock, times(1)).updatePostedTimeStatus(any());
   }
 }

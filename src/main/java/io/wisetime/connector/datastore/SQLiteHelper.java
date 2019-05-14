@@ -87,6 +87,16 @@ public class SQLiteHelper {
     fluentJdbc.query()
         .update("CREATE TABLE IF NOT EXISTS " + table.getName() + " ( " + table.getSchema() + " ) ")
         .run();
+    for (LocalDbTable.Modification modification: table.getModifications()) {
+      boolean alreadyPresent = fluentJdbc.query()
+          .select("PRAGMA table_info(" + table.getName() + ")")
+          .listResult(rs -> rs.getString("name"))
+          .stream()
+          .anyMatch(columnName -> modification.getColumnName().equalsIgnoreCase(columnName));
+      if (!alreadyPresent) {
+        fluentJdbc.query().update(modification.getSql()).run();
+      }
+    }
     return doesTableExist(table);
   }
 
