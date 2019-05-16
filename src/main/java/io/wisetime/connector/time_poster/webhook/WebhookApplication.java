@@ -25,6 +25,7 @@ import spark.ModelAndView;
 import spark.servlet.SparkApplication;
 import spark.template.thymeleaf.ThymeleafTemplateEngine;
 
+import static io.wisetime.connector.api_client.PostResult.PostResultStatus;
 import static spark.Spark.get;
 import static spark.Spark.post;
 import static spark.Spark.staticFileLocation;
@@ -83,16 +84,16 @@ class WebhookApplication implements SparkApplication {
       log(timeGroup, postResult);
 
       response.type("plain/text");
-      switch (postResult) {
+      switch (postResult.getStatus()) {
         case SUCCESS:
-          response.status(200);
+          response.status(postResult.getStatus().getStatusCode());
           return "Success";
         case PERMANENT_FAILURE:
-          response.status(400);
+          response.status(postResult.getStatus().getStatusCode());
           return "Invalid request";
         case TRANSIENT_FAILURE:
         default:
-          response.status(500);
+          response.status(postResult.getStatus().getStatusCode());
           return "Unexpected error";
       }
     });
@@ -115,7 +116,7 @@ class WebhookApplication implements SparkApplication {
       }
     };
 
-    if (postResult == PostResult.SUCCESS) {
+    if (postResult.getStatus() == PostResultStatus.SUCCESS) {
       log.info(message);
     } else {
       logError.accept(message, postResult.getError());
