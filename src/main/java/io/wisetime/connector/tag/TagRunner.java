@@ -5,12 +5,17 @@
 package io.wisetime.connector.tag;
 
 import org.joda.time.DateTime;
-import org.slf4j.Logger;
+import org.joda.time.Minutes;
 import org.slf4j.LoggerFactory;
 
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
+
+import io.wisetime.connector.WiseTimeConnector;
+import io.wisetime.connector.config.ConnectorConfigKey;
+import io.wisetime.connector.config.RuntimeConfig;
+import io.wisetime.connector.health.HealthIndicator;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * A wrapper class around the tag upload process, that enforces a singleton runner pattern in the event that the previous
@@ -18,26 +23,32 @@ import java.util.concurrent.atomic.AtomicReference;
  *
  * @author thomas.haines@practiceinsight.io
  */
-public class TagRunner extends TimerTask {
+@Slf4j
+public class TagRunner extends TimerTask implements HealthIndicator {
 
-  private static final Logger log = LoggerFactory.getLogger(TagRunner.class);
-  private final Runnable tagRunner;
+  private static final int MAX_MINS_SINCE_SUCCESS_DEFAULT = 60;
+
+  private final WiseTimeConnector connector;
   private final AtomicBoolean runLock = new AtomicBoolean(false);
-  private final AtomicReference<DateTime> lastSuccessfulRun;
+  private final int maxMinsSinceSuccess;
+  DateTime lastSuccessfulRun;
 
-  public TagRunner(Runnable tagRunner) {
-    this.tagRunner = tagRunner;
-    this.lastSuccessfulRun = new AtomicReference<>(DateTime.now());
+  public TagRunner(WiseTimeConnector connector) {
+    this.connector = connector;
+    this.lastSuccessfulRun = DateTime.now();
+    maxMinsSinceSuccess = RuntimeConfig
+        .getInt(ConnectorConfigKey.HEALTH_MAX_MINS_SINCE_SUCCESS)
+        .orElse(MAX_MINS_SINCE_SUCCESS_DEFAULT);
   }
 
   @Override
   public void run() {
     if (runLock.compareAndSet(false, true)) {
       try {
-        tagRunner.run();
-        lastSuccessfulRun.set(DateTime.now());
+        connector.performTagUpdate();
+        lastSuccessfulRun = DateTime.now();
       } catch (Exception e) {
-        LoggerFactory.getLogger(tagRunner.getClass()).error(e.getMessage(), e);
+        LoggerFactory.getLogger(connector.getClass()).error(e.getMessage(), e);
       } finally {
         // ensure lock is released
         runLock.set(false);
@@ -47,7 +58,8 @@ public class TagRunner extends TimerTask {
     }
   }
 
-  public DateTime getLastSuccessfulRun() {
-    return lastSuccessfulRun.get();
+  @Override
+  public boolean isHealthy() {
+    return Minutes.minutesBetween(lastSuccessfulRun, DateTime.now()).getMinutes() < maxMinsSinceSuccess;
   }
 }

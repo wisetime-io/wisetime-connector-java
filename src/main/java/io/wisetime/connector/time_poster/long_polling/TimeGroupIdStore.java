@@ -2,7 +2,7 @@
  * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector.fetch_client;
+package io.wisetime.connector.time_poster.long_polling;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.codejargon.fluentjdbc.api.query.Query;
@@ -23,7 +23,7 @@ import static io.wisetime.connector.datastore.CoreLocalDbTable.TABLE_TIME_GROUPS
  *
  * @author pascal.filippi@gmail.com
  */
-public class TimeGroupIdStore {
+class TimeGroupIdStore {
 
   static final String IN_PROGRESS = "IN_PROGRESS";
   static final String SUCCESS_AND_SENT = "SUCCESS_AND_SENT";
@@ -32,12 +32,12 @@ public class TimeGroupIdStore {
 
   private SQLiteHelper sqLiteHelper;
 
-  public TimeGroupIdStore(SQLiteHelper sqLiteHelper) {
+  TimeGroupIdStore(SQLiteHelper sqLiteHelper) {
     this.sqLiteHelper = sqLiteHelper;
     sqLiteHelper.createTable(TABLE_TIME_GROUPS_RECEIVED);
   }
 
-  public Optional<String> alreadySeen(String timeGroupId) {
+  Optional<String> alreadySeen(String timeGroupId) {
     return sqLiteHelper.query()
         // always return status for SUCCESS, TRANSIENT_FAILURE and PERMANENT_FAILURE
         // If a time group is IN_PROGRESS for more than 5 minutes: assume failure and allow to try again
@@ -49,7 +49,7 @@ public class TimeGroupIdStore {
         .firstResult(rs -> rs.getString(1));
   }
 
-  public List<Pair<String, PostResult>> getAllWithPendingStatusUpdate() {
+  List<Pair<String, PostResult>> getAllWithPendingStatusUpdate() {
     return sqLiteHelper.query()
         // Get all statuses with SUCCESS or PERMANENT_FAILURE for updating
         .select("SELECT time_group_id, post_result, message FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
@@ -59,7 +59,7 @@ public class TimeGroupIdStore {
             PostResult.valueOf(rs.getString(2)).withMessage(rs.getString(3))));
   }
 
-  public void putTimeGroupId(String timeGroupId, String postResult, String message) {
+  void putTimeGroupId(String timeGroupId, String postResult, String message) {
     final Query query = sqLiteHelper.query();
     query.transaction().inNoResult(() -> {
       long timeStamp = System.currentTimeMillis();
@@ -78,7 +78,7 @@ public class TimeGroupIdStore {
     });
   }
 
-  public void deleteTimeGroupId(String timeGroupId) {
+  void deleteTimeGroupId(String timeGroupId) {
     sqLiteHelper.query().update("DELETE FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() + " WHERE time_group_id=?")
         .params(timeGroupId)
         .run();

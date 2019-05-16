@@ -2,7 +2,7 @@
  * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector.logging;
+package io.wisetime.connector.utils;
 
 import ch.qos.logback.core.PropertyDefinerBase;
 import io.wisetime.connector.config.RuntimeConfig;

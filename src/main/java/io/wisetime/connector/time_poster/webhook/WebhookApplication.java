@@ -2,7 +2,7 @@
  * Copyright (c) 2018 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector.webhook;
+package io.wisetime.connector.time_poster.webhook;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -15,10 +15,9 @@ import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
+import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.config.TolerantObjectMapper;
-import io.wisetime.connector.integrate.WiseTimeConnector;
-import io.wisetime.connector.metric.Metric;
 import io.wisetime.connector.metric.MetricService;
 import io.wisetime.generated.connect.Tag;
 import io.wisetime.generated.connect.TimeGroup;
@@ -38,15 +37,16 @@ import static spark.Spark.stop;
  * @author thomas.haines@practiceinsight.io
  * @see <a href="http://sparkjava.com">Spark</a> for more infromation about Spark framework.
  */
-public class WebhookApplication implements SparkApplication {
+class WebhookApplication implements SparkApplication {
 
   private static final Logger log = LoggerFactory.getLogger(WebhookApplication.class);
-  public static final String PING_RESPONSE = "pong";
+  static final String PING_RESPONSE = "pong";
+
   private final ObjectMapper om;
   private final WiseTimeConnector wiseTimeConnector;
   private final MetricService metricService;
 
-  public WebhookApplication(WiseTimeConnector wiseTimeConnector, MetricService metricService) {
+  WebhookApplication(WiseTimeConnector wiseTimeConnector, MetricService metricService) {
     this.wiseTimeConnector = wiseTimeConnector;
     this.metricService = metricService;
     om = TolerantObjectMapper.create();
@@ -87,7 +87,6 @@ public class WebhookApplication implements SparkApplication {
       switch (postResult.getStatus()) {
         case SUCCESS:
           response.status(postResult.getStatus().getStatusCode());
-          metricService.increment(Metric.TIME_GROUP_PROCESSED);
           return "Success";
         case PERMANENT_FAILURE:
           response.status(postResult.getStatus().getStatusCode());

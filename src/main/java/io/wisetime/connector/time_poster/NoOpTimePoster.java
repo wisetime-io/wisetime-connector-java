@@ -2,7 +2,7 @@
  * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector;
+package io.wisetime.connector.time_poster;
 
 /**
  * Dummy implementation of TimePosterRunner that is being used when time posting is disabled for this connector.
@@ -10,7 +10,7 @@ package io.wisetime.connector;
  *
  * @author pascal.filippi@staff.wisetime.com
  */
-public class NoOpTimePosterRunner implements TimePosterRunner {
+public class NoOpTimePoster implements TimePoster {
   @Override
   public void start() {
     // do nothing

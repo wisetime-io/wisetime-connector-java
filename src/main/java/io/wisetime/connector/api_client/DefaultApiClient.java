@@ -47,9 +47,13 @@ public class DefaultApiClient implements ApiClient {
   private final RestRequestExecutor restRequestExecutor;
   private final ForkJoinPool forkJoinPool;
 
-  public DefaultApiClient(RestRequestExecutor restRequestExecutor) {
-    this.restRequestExecutor = restRequestExecutor;
-    this.forkJoinPool = new ForkJoinPool(10);
+  public DefaultApiClient(String apiKey) {
+    this(new RestRequestExecutor(apiKey));
+  }
+
+  DefaultApiClient(RestRequestExecutor requestExecutor) {
+    this.restRequestExecutor = requestExecutor;
+    forkJoinPool = new ForkJoinPool(10);
   }
 
   @Override

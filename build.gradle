@@ -167,10 +167,10 @@ test {
 }
 
 ext.jacocoLimits = [
-        'instruction': 72,
-        'line'       : 72,
-        'method'     : 74,
-        'class'      : 90
+        'instruction': 70,
+        'line'       : 69,
+        'method'     : 69,
+        'class'      : 80
 ]
 
 tasks.withType(Checkstyle) {

@@ -4,12 +4,12 @@
 
     <include resource="logback-extra.xml" optional="true"/>
 
-    <define name="logLevel" class="io.wisetime.connector.logging.RuntimeConfigPropertyDefiner">
+    <define name="logLevel" class="io.wisetime.connector.utils.RuntimeConfigPropertyDefiner">
         <key>LOG_LEVEL</key>
         <defaultValue>INFO</defaultValue>
     </define>
 
-    <define name="awsPropertiesFile" class="io.wisetime.connector.logging.RuntimeConfigPropertyDefiner">
+    <define name="awsPropertiesFile" class="io.wisetime.connector.utils.RuntimeConfigPropertyDefiner">
         <key>CONNECTOR_PROPERTIES_FILE</key>
     </define>
 

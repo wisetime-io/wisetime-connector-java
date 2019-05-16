@@ -5,42 +5,55 @@
 package io.wisetime.connector.tag;
 
 import org.joda.time.DateTime;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import io.wisetime.connector.tag.TagRunner;
+import io.wisetime.connector.WiseTimeConnector;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 /**
  * @author thomas.haines@practiceinsight.io
  */
 class TagRunnerTest {
 
-  @Test
-  void testRun() throws Exception {
-    final AtomicBoolean runCalled = new AtomicBoolean(false);
-    TagRunner tagRunner = new TagRunner(() -> runCalled.set(true));
-    testRun(runCalled, tagRunner);
+  private WiseTimeConnector connector;
+  private TagRunner tagRunner;
 
-    // check lock does not prevent second run
-    testRun(runCalled, tagRunner);
+  @BeforeEach
+   void setup() {
+    connector = mock(WiseTimeConnector.class);
+    tagRunner = new TagRunner(connector);
   }
 
-  private void testRun(AtomicBoolean runCalled, TagRunner tagRunner) throws InterruptedException {
-    DateTime startRun = tagRunner.getLastSuccessfulRun();
+  @Test
+  void testRun() throws Exception {
+    DateTime startRun = tagRunner.lastSuccessfulRun;
     Thread.sleep(1);
     tagRunner.run();
 
-    assertThat(tagRunner.getLastSuccessfulRun())
+    assertThat(tagRunner.lastSuccessfulRun)
         .as("expect last success was updated")
         .isGreaterThan(startRun);
 
-    assertThat(runCalled.get())
-        .as("expect runnable called")
-        .isTrue();
+    verify(connector, times(1)).performTagUpdate();
+  }
 
-    runCalled.set(false);
+  @Test
+  void testIsHealthy() {
+    assertThat(tagRunner.isHealthy())
+        .as("last successful run is just about now - expecting to return true")
+        .isTrue();
+  }
+
+  @Test
+  void testIsUnHealthy() {
+    tagRunner.lastSuccessfulRun = new DateTime().minusYears(1);
+    assertThat(tagRunner.isHealthy())
+        .as("last successful run was long time ago - expecting false")
+        .isFalse();
   }
 }

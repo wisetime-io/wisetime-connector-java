@@ -17,7 +17,7 @@ The WiseTime Connector Library is available on Maven Central. You can include it
 #### Gradle
 
 ```groovy
-compile 'io.wisetime:wisetime-connector:1.3.8'
+compile 'io.wisetime:wisetime-connector:2.0.1'
 ```
 
 #### Maven
@@ -26,7 +26,7 @@ compile 'io.wisetime:wisetime-connector:1.3.8'
 <dependency>
   <groupId>io.wisetime</groupId>
   <artifactId>wisetime-connector</artifactId>
-  <version>1.3.8</version>
+  <version>2.0.1</version>
 </dependency>
 ```
 
@@ -85,8 +85,8 @@ public class ConnectorLauncher {
    */
   public static void main(final String... args) throws Exception {
     
-    ConnectorRunner.createConnectorBuilder()
-        .useWebhook() // or useFetchClient("yourFetchClientId")
+    Connector.newBuilder()
+        .useWebhook() // or useFetchClient()
         .withWiseTimeConnector(new HelloConnector())
         .build()
         .start();
@@ -96,7 +96,7 @@ public class ConnectorLauncher {
 
 The connector will launch a web server at port 8080 when calling useWebhook(). The server implements the [Posted Time Webhook] (https://wisetime.io/docs/connect/posted-time-webhook/) that WiseTime will call whenever a user posts time to the team.
 
-When using useFetchClient(fetchClientId). The connector will use long polling to retrieve time posted to the team from WiseTime.
+When using useFetchClient(). The connector will use long polling to retrieve time posted to the team from WiseTime.
 
 ## Sample Project
 

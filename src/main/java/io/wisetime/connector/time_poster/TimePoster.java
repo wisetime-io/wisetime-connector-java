@@ -2,14 +2,16 @@
  * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector;
+package io.wisetime.connector.time_poster;
+
+import io.wisetime.connector.health.HealthIndicator;
 
 /**
  * Common runner interface between webhooks and fetch clients.
  *
  * @author pascal.filippi@gmail.com
  */
-public interface TimePosterRunner {
+public interface TimePoster extends HealthIndicator {
   /**
    * Starts the runner
    *
@@ -23,13 +25,6 @@ public interface TimePosterRunner {
    * @throws Exception if any error occurred during shut down
    */
   void stop() throws Exception;
-
-  /**
-   * Checks if the runner is healthy
-   *
-   * @return true if the runner is healthy, false otherwise
-   */
-  boolean isHealthy();
 
   /**
    * Checks if the runner is running

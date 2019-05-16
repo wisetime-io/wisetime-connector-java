@@ -4,16 +4,17 @@
 
 package io.wisetime.connector.health;
 
-import org.joda.time.DateTime;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Supplier;
 
+import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.config.ConnectorConfigKey;
-import io.wisetime.connector.config.RuntimeConfig;
 
 /**
  * Task that will automatically stop application after 3 consecutive health check failures. Application considered to be
@@ -21,7 +22,7 @@ import io.wisetime.connector.config.RuntimeConfig;
  * <p>
  * 1. For {@link ConnectorConfigKey#HEALTH_MAX_MINS_SINCE_SUCCESS} minutes there was no successful time posting processing;
  * <p>
- * 2. {@link io.wisetime.connector.integrate.WiseTimeConnector#isConnectorHealthy()} returns false; or
+ * 2. {@link WiseTimeConnector#isConnectorHealthy()} returns false; or
  * <p>
  * 3. Ping request to current connector instance was unsuccessful.
  *
@@ -33,39 +34,14 @@ public class HealthCheck extends TimerTask {
 
   // visible for testing
   static final int MAX_SUCCESSIVE_FAILURES = 3;
-  static final int MAX_MINS_SINCE_SUCCESS_DEFAULT = 60;
 
-  private final Supplier<DateTime> lastRunSuccess;
-  private final Supplier<Boolean> timePosterHealthCheck;
-  private final Supplier<Boolean> connectorHealthCheck;
+  private final List<HealthIndicator> healthIndicators;
   private final AtomicInteger failureCount;
-  private final int maxMinsSinceSuccess;
+  private Runnable shutdownFunction = () -> System.exit(1);
 
-  private Runnable shutdownFunction;
-
-  /**
-   * @param timePosterHealthCheck Provides the health state of the used time post method
-   * @param lastRunSuccess        Provides the last time the tag upsert method was run.
-   * @param connectorHealthCheck  Optionally, the connector implementation can provide a health check via this function.
-   */
-  public HealthCheck(Supplier<DateTime> lastRunSuccess, Supplier<Boolean> timePosterHealthCheck,
-                     Supplier<Boolean> connectorHealthCheck) {
-    this.timePosterHealthCheck = timePosterHealthCheck;
-    this.lastRunSuccess = lastRunSuccess;
-    this.connectorHealthCheck = connectorHealthCheck;
+  public HealthCheck() {
     this.failureCount = new AtomicInteger(0);
-    this.shutdownFunction = () -> {
-      try {
-        // allow time for logs to reach AWS before killing VM
-        Thread.sleep(5000);
-      } catch (InterruptedException e) {
-        log.info(e.getMessage());
-      }
-      System.exit(-1);
-    };
-    this.maxMinsSinceSuccess = RuntimeConfig
-        .getInt(ConnectorConfigKey.HEALTH_MAX_MINS_SINCE_SUCCESS)
-        .orElse(MAX_MINS_SINCE_SUCCESS_DEFAULT);
+    this.healthIndicators = new ArrayList<>();
   }
 
   @Override
@@ -88,27 +64,14 @@ public class HealthCheck extends TimerTask {
 
   public boolean checkConnectorHealth() {
     try {
-      final DateTime lastSuccessResult = lastRunSuccess.get();
-      if (DateTime.now().minusMinutes(maxMinsSinceSuccess).isAfter(lastSuccessResult)) {
-        log.info(
-            "Unhealthy state where lastRunSuccess ({}) is not within the last {}mins (maxMinutesSinceSuccess)",
-            lastSuccessResult,
-            maxMinsSinceSuccess
-        );
-        return false;
+      boolean allHealthy = true;
+      for (HealthIndicator healthIndicator : healthIndicators) {
+        if (!healthIndicator.isHealthy()) {
+          log.warn("Connector is unhealthy. {} is in failed state", healthIndicator.name());
+          allHealthy = false;
+        }
       }
-
-      if (Boolean.FALSE.equals(timePosterHealthCheck.get())) {
-        log.info("Unhealthy state where timePosterHealthCheck returned false");
-        return false;
-      }
-
-      if (Boolean.FALSE.equals(connectorHealthCheck.get())) {
-        log.info("Unhealthy state where connectorHealthCheck returned false");
-        return false;
-      }
-      // All checks passed
-      return true;
+      return allHealthy;
     } catch (Throwable t) {
       log.error("Unhealthy state where exception occurred checking health, returning unhealthy; msg='{}'",
           t.getMessage(), t);
@@ -122,6 +85,10 @@ public class HealthCheck extends TimerTask {
   public HealthCheck setShutdownFunction(Runnable shutdownFunction) {
     this.shutdownFunction = shutdownFunction;
     return this;
+  }
+
+  public void addHealthIndicator(HealthIndicator... healthIndicators) {
+    this.healthIndicators.addAll(Arrays.asList(healthIndicators));
   }
 
   // visible for testing

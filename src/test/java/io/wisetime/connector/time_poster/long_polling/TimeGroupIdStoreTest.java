@@ -2,7 +2,7 @@
  * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector.fetch_client;
+package io.wisetime.connector.time_poster.long_polling;
 
 import com.github.javafaker.Faker;
 

@@ -2,34 +2,23 @@
  * Copyright (c) 2018 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector.integrate;
+package io.wisetime.connector;
 
 import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.datastore.ConnectorStore;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Module with main WiseTime connector dependencies.
  *
  * @author thomas.haines@practiceinsight.io
  */
-@SuppressWarnings("WeakerAccess")
+@RequiredArgsConstructor
+@Getter
 public class ConnectorModule {
 
   private final ApiClient apiClient;
   private final ConnectorStore connectorStore;
-
-  public ConnectorModule(ApiClient apiClient,
-                         ConnectorStore connectorStore) {
-    this.apiClient = apiClient;
-    this.connectorStore = connectorStore;
-  }
-
-  public ConnectorStore getConnectorStore() {
-    return connectorStore;
-  }
-
-  public ApiClient getApiClient() {
-    return apiClient;
-  }
 
 }

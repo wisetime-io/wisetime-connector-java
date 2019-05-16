@@ -2,7 +2,7 @@
  * Copyright (c) 2018 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector.integrate;
+package io.wisetime.connector;
 
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.generated.connect.TimeGroup;
@@ -10,7 +10,7 @@ import spark.Request;
 
 /**
  * Main extension point of application. User will have to implement this interface and provide it during building
- * {@link io.wisetime.connector.ConnectorRunner}.
+ * with {@link ConnectorController#newBuilder()}.
  *
  * @author thomas.haines@practiceinsight.io
  */
@@ -39,7 +39,6 @@ public interface WiseTimeConnector {
    * @param userPostedTime For convenience, the json body of the request is provided as a Java object model representation.
    * @return The result of the post operation.
    *
-
    */
   PostResult postTime(Request request, TimeGroup userPostedTime);
 
