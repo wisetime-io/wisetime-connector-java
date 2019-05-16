@@ -7,8 +7,6 @@ package io.wisetime.connector.api_client;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-
 import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.metric.Metric;
 import io.wisetime.connector.metric.MetricService;
@@ -41,7 +39,7 @@ public class WiseTimeConnectorMetricWrapperTest {
   void postTime_success() {
     Request request = mock(Request.class);
     TimeGroup userPostedTime = new TimeGroup();
-    when(connector.postTime(request, userPostedTime)).thenReturn(PostResult.SUCCESS);
+    when(connector.postTime(request, userPostedTime)).thenReturn(PostResult.SUCCESS());
 
     wiseTimeConnectorWrapper.postTime(request, userPostedTime);
 
@@ -52,7 +50,7 @@ public class WiseTimeConnectorMetricWrapperTest {
   void postTime_error() {
     Request request = mock(Request.class);
     TimeGroup userPostedTime = new TimeGroup();
-    when(connector.postTime(request, userPostedTime)).thenReturn(PostResult.TRANSIENT_FAILURE);
+    when(connector.postTime(request, userPostedTime)).thenReturn(PostResult.TRANSIENT_FAILURE());
 
     wiseTimeConnectorWrapper.postTime(request, userPostedTime);
 

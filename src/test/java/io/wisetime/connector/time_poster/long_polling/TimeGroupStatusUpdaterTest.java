@@ -2,7 +2,7 @@
  * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector.fetch_client;
+package io.wisetime.connector.time_poster.long_polling;
 
 import com.google.common.collect.ImmutableList;
 
@@ -15,6 +15,7 @@ import org.mockito.ArgumentCaptor;
 
 import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.api_client.PostResult;
+import io.wisetime.connector.time_poster.long_polling.TimeGroupStatusUpdater;
 import io.wisetime.generated.connect.TimeGroupStatus;
 
 import static org.assertj.core.api.Assertions.assertThat;

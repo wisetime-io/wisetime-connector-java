@@ -14,16 +14,15 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.api_client.ApiClient;
-import io.wisetime.connector.datastore.SQLiteHelper;
-import io.wisetime.connector.time_poster.TimePoster;
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.api_client.PostResult.PostResultStatus;
+import io.wisetime.connector.datastore.SQLiteHelper;
+import io.wisetime.connector.time_poster.TimePoster;
 import io.wisetime.generated.connect.TimeGroup;
-import io.wisetime.generated.connect.TimeGroupStatus;
 import lombok.extern.slf4j.Slf4j;
 
-import static io.wisetime.connector.fetch_client.TimeGroupIdStore.IN_PROGRESS;
-import static io.wisetime.connector.fetch_client.TimeGroupIdStore.PERMANENT_FAILURE_AND_SENT;
+import static io.wisetime.connector.time_poster.long_polling.TimeGroupIdStore.IN_PROGRESS;
+import static io.wisetime.connector.time_poster.long_polling.TimeGroupIdStore.PERMANENT_FAILURE_AND_SENT;
 
 /**
  * Implements a fetch based approach to retrieve time groups.
@@ -62,7 +61,7 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
        Only one concurrent post is allowed until WiseTimeConnector#postTime is guaranteed to be thread safe.
      */
     this.postTimeExecutor = Executors.newSingleThreadExecutor();
-    timeGroupStatusUpdater = new TimeGroupStatusUpdater(clientSpec.getTimeGroupIdStore(), clientSpec.getApiClient());
+    timeGroupStatusUpdater = new TimeGroupStatusUpdater(timeGroupIdStore, apiClient);
   }
 
   @Override

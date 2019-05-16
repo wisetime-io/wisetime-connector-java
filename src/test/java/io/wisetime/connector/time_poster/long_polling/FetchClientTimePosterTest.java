@@ -4,8 +4,6 @@
 
 package io.wisetime.connector.time_poster.long_polling;
 
-package io.wisetime.connector.fetch_client;
-
 import com.google.common.collect.ImmutableList;
 
 import org.junit.jupiter.api.BeforeEach;

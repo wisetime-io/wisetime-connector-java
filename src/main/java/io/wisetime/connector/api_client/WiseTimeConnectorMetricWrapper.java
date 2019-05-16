@@ -28,7 +28,7 @@ public class WiseTimeConnectorMetricWrapper implements WiseTimeConnector {
   @Override
   public PostResult postTime(Request request, TimeGroup userPostedTime) {
     PostResult result = wiseTimeConnector.postTime(request, userPostedTime);
-    if (result == PostResult.SUCCESS) {
+    if (result.getStatus() == PostResult.PostResultStatus.SUCCESS) {
       metricService.increment(Metric.TIME_GROUP_PROCESSED);
     }
     return result;
