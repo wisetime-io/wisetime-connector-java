@@ -2,11 +2,12 @@
  * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector.api_client;
+package io.wisetime.connector.metric;
 
 import java.io.IOException;
 import java.util.List;
 
+import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.metric.Metric;
 import io.wisetime.connector.metric.MetricService;
 import io.wisetime.generated.connect.UpsertTagRequest;

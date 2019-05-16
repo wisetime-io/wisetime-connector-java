@@ -20,6 +20,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.api_client.PostResult;
+import io.wisetime.connector.health.HealthIndicator;
 import io.wisetime.generated.connect.TimeGroupStatus;
 
 import static io.wisetime.connector.time_poster.long_polling.TimeGroupIdStore.PERMANENT_FAILURE_AND_SENT;
@@ -28,7 +29,7 @@ import static io.wisetime.connector.time_poster.long_polling.TimeGroupIdStore.SU
 /**
  * @author pascal.filippi@gmail.com
  */
-public class TimeGroupStatusUpdater extends TimerTask {
+public class TimeGroupStatusUpdater extends TimerTask implements HealthIndicator {
 
   private static final Logger log = LoggerFactory.getLogger(TimeGroupStatusUpdater.class);
   private static final int MAX_MINS_SINCE_SUCCESS = 10;
@@ -109,7 +110,8 @@ public class TimeGroupStatusUpdater extends TimerTask {
     }
   }
 
-  boolean isHealthy() {
+  @Override
+  public boolean isHealthy() {
     return DateTime.now().minusMinutes(MAX_MINS_SINCE_SUCCESS).isBefore(lastSuccessfulRun.get());
   }
 }

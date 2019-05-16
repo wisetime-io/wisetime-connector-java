@@ -7,15 +7,15 @@ package io.wisetime.connector.controller;
 import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
-import io.wisetime.connector.api_client.ApiClient;
-import io.wisetime.connector.api_client.ApiClientMetricWrapper;
-import io.wisetime.connector.api_client.WiseTimeConnectorMetricWrapper;
-import io.wisetime.connector.datastore.FileStore;
-import io.wisetime.connector.datastore.SQLiteHelper;
-import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.ConnectorController;
 import io.wisetime.connector.ConnectorModule;
 import io.wisetime.connector.WiseTimeConnector;
+import io.wisetime.connector.api_client.ApiClient;
+import io.wisetime.connector.metric.ApiClientMetricWrapper;
+import io.wisetime.connector.metric.WiseTimeConnectorMetricWrapper;
+import io.wisetime.connector.datastore.FileStore;
+import io.wisetime.connector.datastore.SQLiteHelper;
+import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.health.HealthIndicator;
 import io.wisetime.connector.health.WisetimeConnectorHealthIndicator;
 import io.wisetime.connector.metric.MetricInfo;
@@ -46,6 +46,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
   private Runnable shutdownFunction;
 
   public ConnectorControllerImpl(ConnectorControllerConfiguration configuration) {
+    healthRunner = new HealthCheck();
     metricService = new MetricService();
     wiseTimeConnector = new WiseTimeConnectorMetricWrapper(configuration.getWiseTimeConnector(), metricService);
     ApiClient apiClient = new ApiClientMetricWrapper(configuration.getApiClient(), metricService);
@@ -56,15 +57,17 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     timePoster = createTimePoster(configuration, apiClient, sqLiteHelper);
 
     tagRunner = new TagRunner(wiseTimeConnector);
-    healthRunner = new HealthCheck(tagRunner, timePoster, new WisetimeConnectorHealthIndicator(wiseTimeConnector));
+    healthRunner.addHealthIndicator(tagRunner, timePoster,
+        this, new WisetimeConnectorHealthIndicator(wiseTimeConnector));
   }
 
   private TimePoster createTimePoster(ConnectorControllerConfiguration configuration, ApiClient apiClient,
-                                SQLiteHelper sqLiteHelper) {
+                                      SQLiteHelper sqLiteHelper) {
     ConnectorControllerBuilderImpl.LaunchMode launchMode = configuration.getLaunchMode();
     switch (launchMode) {
       case LONG_POLL:
-        return new FetchClientTimePoster(wiseTimeConnector, apiClient, sqLiteHelper, configuration.getFetchClientLimit());
+        return new FetchClientTimePoster(wiseTimeConnector, apiClient, healthRunner,
+            sqLiteHelper, configuration.getFetchClientLimit());
       case WEBHOOK:
         return new WebhookTimePoster(configuration.getWebhookPort(), wiseTimeConnector, metricService);
       case TAGS_ONLY:

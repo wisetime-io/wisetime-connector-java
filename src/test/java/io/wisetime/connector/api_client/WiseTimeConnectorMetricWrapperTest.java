@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.metric.Metric;
 import io.wisetime.connector.metric.MetricService;
+import io.wisetime.connector.metric.WiseTimeConnectorMetricWrapper;
 import io.wisetime.generated.connect.TimeGroup;
 import spark.Request;
 

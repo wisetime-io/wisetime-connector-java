@@ -7,6 +7,9 @@ package io.wisetime.connector.health;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -32,13 +35,13 @@ public class HealthCheck extends TimerTask {
   // visible for testing
   static final int MAX_SUCCESSIVE_FAILURES = 3;
 
-  private final HealthIndicator[] healthIndicators;
+  private final List<HealthIndicator> healthIndicators;
   private final AtomicInteger failureCount;
   private Runnable shutdownFunction = () -> System.exit(1);
 
-  public HealthCheck(HealthIndicator... healthIndicators) {
+  public HealthCheck() {
     this.failureCount = new AtomicInteger(0);
-    this.healthIndicators = healthIndicators;
+    this.healthIndicators = new ArrayList<>();
   }
 
   @Override
@@ -61,13 +64,14 @@ public class HealthCheck extends TimerTask {
 
   public boolean checkConnectorHealth() {
     try {
+      boolean allHealthy = true;
       for (HealthIndicator healthIndicator : healthIndicators) {
         if (!healthIndicator.isHealthy()) {
           log.warn("Connector is unhealthy. {} is in failed state", healthIndicator.name());
-          return false;
+          allHealthy = false;
         }
       }
-      return true;
+      return allHealthy;
     } catch (Throwable t) {
       log.error("Unhealthy state where exception occurred checking health, returning unhealthy; msg='{}'",
           t.getMessage(), t);
@@ -81,6 +85,10 @@ public class HealthCheck extends TimerTask {
   public HealthCheck setShutdownFunction(Runnable shutdownFunction) {
     this.shutdownFunction = shutdownFunction;
     return this;
+  }
+
+  public void addHealthIndicator(HealthIndicator... healthIndicators) {
+    this.healthIndicators.addAll(Arrays.asList(healthIndicators));
   }
 
   // visible for testing

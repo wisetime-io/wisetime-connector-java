@@ -20,15 +20,17 @@ import static org.mockito.Mockito.verify;
  */
 class HealthCheckTest {
   private AtomicBoolean shutdownCalled;
+  private HealthCheck healthCheck;
 
   @BeforeEach
   void setup() {
     shutdownCalled = new AtomicBoolean(false);
+    healthCheck = new HealthCheck();
   }
 
   @Test
   void testHealthy() {
-    final HealthCheck healthCheck = new HealthCheck(() -> true);
+    healthCheck.addHealthIndicator(() -> true);
     healthCheck.run();
     healthCheck.run();
     assertThat(healthCheck.getFailureCount())
@@ -39,7 +41,7 @@ class HealthCheckTest {
 
   @Test
   void testServerDown() {
-    final HealthCheck healthCheck = new HealthCheck(() -> false);
+    healthCheck.addHealthIndicator(() -> false);
 
     healthCheck.run();
     assertThat(healthCheck.getFailureCount())
@@ -50,7 +52,7 @@ class HealthCheckTest {
   @Test
   void testConnectorUnhealthy_thenShutdown() {
     Runnable shutdownFunction = mock(Runnable.class);
-    final HealthCheck healthCheck = new HealthCheck(() -> false);
+    healthCheck.addHealthIndicator(() -> false);
     healthCheck.setShutdownFunction(shutdownFunction);
 
     IntStream.range(0, HealthCheck.MAX_SUCCESSIVE_FAILURES).forEach(runCount -> healthCheck.run());

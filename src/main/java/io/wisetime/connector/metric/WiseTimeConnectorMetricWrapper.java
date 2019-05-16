@@ -2,9 +2,10 @@
  * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector.api_client;
+package io.wisetime.connector.metric;
 
 import io.wisetime.connector.WiseTimeConnector;
+import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.metric.Metric;
 import io.wisetime.connector.metric.MetricService;
 import io.wisetime.generated.connect.TimeGroup;

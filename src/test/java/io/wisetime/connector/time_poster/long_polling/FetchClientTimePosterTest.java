@@ -15,6 +15,7 @@ import java.util.Optional;
 import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.WiseTimeConnector;
+import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.test_util.FakeEntities;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeGroupStatus;
@@ -48,7 +49,8 @@ class FetchClientTimePosterTest {
     apiClientMock = mock(ApiClient.class);
     wiseTimeConnectorMock = mock(WiseTimeConnector.class);
     timeGroupIdStoreMock = mock(TimeGroupIdStore.class);
-    fetchClient = new FetchClientTimePoster(wiseTimeConnectorMock, apiClientMock, timeGroupIdStoreMock, 25);
+    fetchClient = new FetchClientTimePoster(wiseTimeConnectorMock, apiClientMock,
+        mock(HealthCheck.class), timeGroupIdStoreMock, 25);
   }
 
   @Test

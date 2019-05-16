@@ -17,6 +17,7 @@ import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.api_client.PostResult.PostResultStatus;
 import io.wisetime.connector.datastore.SQLiteHelper;
+import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.time_poster.TimePoster;
 import io.wisetime.generated.connect.TimeGroup;
 import lombok.extern.slf4j.Slf4j;
@@ -45,12 +46,12 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
 
   private ExecutorService fetchClientExecutor = null;
 
-  public FetchClientTimePoster(WiseTimeConnector wiseTimeConnector, ApiClient apiClient,
+  public FetchClientTimePoster(WiseTimeConnector wiseTimeConnector, ApiClient apiClient, HealthCheck healthCheck,
                                SQLiteHelper sqLiteHelper, int timeGroupsFetchLimit) {
-    this(wiseTimeConnector, apiClient, new TimeGroupIdStore(sqLiteHelper), timeGroupsFetchLimit);
+    this(wiseTimeConnector, apiClient, healthCheck, new TimeGroupIdStore(sqLiteHelper), timeGroupsFetchLimit);
   }
 
-  public FetchClientTimePoster(WiseTimeConnector wiseTimeConnector, ApiClient apiClient,
+  public FetchClientTimePoster(WiseTimeConnector wiseTimeConnector, ApiClient apiClient, HealthCheck healthCheck,
                                TimeGroupIdStore timeGroupIdStore, int timeGroupsFetchLimit) {
     this.wiseTimeConnector = wiseTimeConnector;
     this.apiClient = apiClient;
@@ -62,6 +63,7 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
      */
     this.postTimeExecutor = Executors.newSingleThreadExecutor();
     timeGroupStatusUpdater = new TimeGroupStatusUpdater(timeGroupIdStore, apiClient);
+    healthCheck.addHealthIndicator(timeGroupStatusUpdater);
   }
 
   @Override
@@ -124,8 +126,7 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
 
   @Override
   public boolean isHealthy() {
-    return DateTime.now().minusMinutes(MAX_MINS_SINCE_SUCCESS).isBefore(lastSuccessfulRun.get())
-        && timeGroupStatusUpdater.isHealthy();
+    return DateTime.now().minusMinutes(MAX_MINS_SINCE_SUCCESS).isBefore(lastSuccessfulRun.get());
   }
 
   @Override

@@ -11,8 +11,8 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 
+import io.wisetime.connector.metric.ApiClientMetricWrapper;
 import io.wisetime.connector.metric.Metric;
 import io.wisetime.connector.metric.MetricService;
 import io.wisetime.generated.connect.AddKeywordsRequest;
@@ -20,7 +20,6 @@ import io.wisetime.generated.connect.DeleteKeywordRequest;
 import io.wisetime.generated.connect.DeleteTagRequest;
 import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.TimeGroupStatus;
-import io.wisetime.generated.connect.TimeGroupStatus.StatusEnum;
 import io.wisetime.generated.connect.UnsubscribeRequest;
 import io.wisetime.generated.connect.UpsertTagRequest;
 
