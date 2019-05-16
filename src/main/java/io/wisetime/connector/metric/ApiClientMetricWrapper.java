@@ -8,8 +8,6 @@ import java.io.IOException;
 import java.util.List;
 
 import io.wisetime.connector.api_client.ApiClient;
-import io.wisetime.connector.metric.Metric;
-import io.wisetime.connector.metric.MetricService;
 import io.wisetime.generated.connect.UpsertTagRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
