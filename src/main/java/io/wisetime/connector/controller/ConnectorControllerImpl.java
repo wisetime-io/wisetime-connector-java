@@ -58,7 +58,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
 
     tagRunner = new TagRunner(wiseTimeConnector);
     healthRunner.addHealthIndicator(tagRunner, timePoster,
-        this, new WisetimeConnectorHealthIndicator(wiseTimeConnector));
+        new WisetimeConnectorHealthIndicator(wiseTimeConnector));
   }
 
   private TimePoster createTimePoster(ConnectorControllerConfiguration configuration, ApiClient apiClient,
