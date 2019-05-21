@@ -67,7 +67,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     switch (launchMode) {
       case LONG_POLL:
         return new FetchClientTimePoster(wiseTimeConnector, apiClient, healthRunner,
-            sqLiteHelper, configuration.getFetchClientLimit());
+            sqLiteHelper, configuration.getFetchClientLimit(), configuration.getLongPollingThreads());
       case WEBHOOK:
         return new WebhookTimePoster(configuration.getWebhookPort(), wiseTimeConnector, metricService);
       case TAGS_ONLY:

@@ -26,4 +26,5 @@ public interface ConnectorControllerConfiguration {
 
   int getFetchClientLimit();
 
+  int getLongPollingThreads();
 }

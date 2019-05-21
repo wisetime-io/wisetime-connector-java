@@ -41,22 +41,27 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
   private final TimeGroupStatusUpdater timeGroupStatusUpdater;
   private final TimeGroupIdStore timeGroupIdStore;
   private final int timeGroupsFetchLimit;
+  private final int longPollingThreads;
   private final ApiClient apiClient;
   private final WiseTimeConnector wiseTimeConnector;
 
   private ExecutorService fetchClientExecutor = null;
 
+  @SuppressWarnings("ParameterNumber")
   public FetchClientTimePoster(WiseTimeConnector wiseTimeConnector, ApiClient apiClient, HealthCheck healthCheck,
-                               SQLiteHelper sqLiteHelper, int timeGroupsFetchLimit) {
-    this(wiseTimeConnector, apiClient, healthCheck, new TimeGroupIdStore(sqLiteHelper), timeGroupsFetchLimit);
+                               SQLiteHelper sqLiteHelper, int timeGroupsFetchLimit, int longPollingThreads) {
+    this(wiseTimeConnector, apiClient, healthCheck, new TimeGroupIdStore(sqLiteHelper),
+        timeGroupsFetchLimit, longPollingThreads);
   }
 
+  @SuppressWarnings("ParameterNumber")
   public FetchClientTimePoster(WiseTimeConnector wiseTimeConnector, ApiClient apiClient, HealthCheck healthCheck,
-                               TimeGroupIdStore timeGroupIdStore, int timeGroupsFetchLimit) {
+                               TimeGroupIdStore timeGroupIdStore, int timeGroupsFetchLimit, int longPollingThreads) {
     this.wiseTimeConnector = wiseTimeConnector;
     this.apiClient = apiClient;
     this.timeGroupIdStore = timeGroupIdStore;
     this.timeGroupsFetchLimit = timeGroupsFetchLimit;
+    this.longPollingThreads = longPollingThreads;
     /*
        The thread pool processes each time row that is returned from the batch fetch.
        Only one concurrent post is allowed until WiseTimeConnector#postTime is guaranteed to be thread safe.
@@ -71,6 +76,7 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
     while (!Thread.currentThread().isInterrupted()) {
       try {
         final List<TimeGroup> fetchedTimeGroups = apiClient.fetchTimeGroups(timeGroupsFetchLimit);
+        log.info("Received {} time groups in Thread {}.", fetchedTimeGroups.size(), Thread.currentThread().getName());
 
         for (TimeGroup timeGroup : fetchedTimeGroups) {
           if (!timeGroupAlreadyProcessed(timeGroup)) {
@@ -113,8 +119,10 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
     if (fetchClientExecutor != null) {
       throw new IllegalStateException("Fetch Client already running");
     }
-    fetchClientExecutor = Executors.newSingleThreadExecutor();
-    fetchClientExecutor.submit(this);
+    fetchClientExecutor = Executors.newFixedThreadPool(longPollingThreads);
+    for (int i = 0; i < longPollingThreads; i++) {
+      fetchClientExecutor.submit(this);
+    }
     timeGroupStatusUpdater.startScheduler();
   }
 

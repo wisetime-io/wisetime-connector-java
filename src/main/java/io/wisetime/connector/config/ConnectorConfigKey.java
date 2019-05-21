@@ -28,6 +28,13 @@ public enum ConnectorConfigKey implements RuntimeConfigKey {
    */
   LONG_POLLING_LIMIT("FETCH_CLIENT_LIMIT"),
   /**
+   * Number of parallel long polling threads. The threads are only used for the actual polling.
+   * Interaction with the client system will happen in a single separate thread.
+   * Defaults to two.
+   * Will only be read when CONNECTOR_MODE is LONG_POLL
+   */
+  LONG_POLLING_THREADS("FETCH_CLIENT_THREADS"),
+  /**
    * The caller key that WiseTime should provide with post time webhook calls. The connector does not authenticate webhook
    * calls if not set. Only relevant when CONNECTOR_MODE is WEBHOOK.
    */
