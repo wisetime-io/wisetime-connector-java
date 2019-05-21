@@ -9,10 +9,10 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Simple in memory metric service.
- * <p/>
+ * <p>
  * You can increment metric statistics using {@link #increment(Metric)} or {@link #increment(Metric, int)} method and get all
  * collected metrics information using {@link #getMetrics()}
- * <p/>
+ * </p>
  * This class is fully threadsafe
  *
  * @author yehor.lashkul
