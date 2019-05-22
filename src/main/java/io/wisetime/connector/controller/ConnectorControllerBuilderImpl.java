@@ -127,12 +127,12 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
 
   @Override
   public int getFetchClientLimit() {
-    return RuntimeConfig.getInt(ConnectorConfigKey.LONG_POLLING_LIMIT).orElse(fetchClientFetchLimit);
+    return RuntimeConfig.getInt(ConnectorConfigKey.LONG_POLL_BATCH_SIZE).orElse(fetchClientFetchLimit);
   }
 
   @Override
   public int getLongPollingThreads() {
-    return RuntimeConfig.getInt(ConnectorConfigKey.LONG_POLLING_THREADS).orElse(longPollingThreads);
+    return RuntimeConfig.getInt(ConnectorConfigKey.LONG_POLL_THREADS).orElse(longPollingThreads);
   }
 
   public enum LaunchMode {
