@@ -22,7 +22,7 @@
 
     <appender name="AWS_CLOUD" class="io.wisetime.wise_log_aws.cloud.WiseAppender">
         <!-- deny all events with a level below WARN, except for io.wisetime.* packages -->
-        <filter class="io.wisetime.wise_log_aws.cloud.ThresholdFilterWithExclusion">
+        <filter class="io.wisetime.connector.logging.aws.ThresholdFilterWithExclusion">
             <level>WARN</level>
             <excludedLogPrefixList>io.wisetime.</excludedLogPrefixList>
         </filter>
