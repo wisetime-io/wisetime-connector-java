@@ -1,4 +1,8 @@
-package io.wisetime.wise_log_aws.cloud;
+/*
+ * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
+ */
+
+package io.wisetime.connector.log;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 

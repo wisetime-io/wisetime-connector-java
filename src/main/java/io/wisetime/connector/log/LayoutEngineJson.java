@@ -2,17 +2,20 @@
  * Copyright (c) 2018 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.wise_log_aws.cloud;
+package io.wisetime.connector.log;
 
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.TextNode;
+
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import java.io.IOException;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -22,6 +25,8 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.IThrowableProxy;
 import ch.qos.logback.core.CoreConstants;
 import ch.qos.logback.core.LayoutBase;
+import io.wisetime.connector.config.ConnectorConfigKey;
+import io.wisetime.connector.config.RuntimeConfig;
 
 /**
  * @author thomas.haines@practiceinsight.io
@@ -32,7 +37,7 @@ public class LayoutEngineJson extends LayoutBase<ILoggingEvent> {
   private final Pattern lineBreakPattern = Pattern.compile("^(.+?)\r?\n.*");
   private static final String EMPTY = "";
   private String moduleName = null;
-  private ObjectNode configMap = null;
+  private final ObjectNode sourceNode;
 
   LayoutEngineJson() {
     super();
@@ -41,6 +46,13 @@ public class LayoutEngineJson extends LayoutBase<ILoggingEvent> {
     om = new ObjectMapper();
     om.configure(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY, true);
     om.configure(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS, true);
+
+    sourceNode = om.createObjectNode();
+    RuntimeConfig.getString(ConnectorConfigKey.API_KEY)
+        .ifPresent(keyVal -> sourceNode.put("api_key", keyVal));
+    sourceNode.set(
+        "init_ts",
+        TextNode.valueOf(DateTime.now().withZone(DateTimeZone.UTC).toString("yyyyMMdd_HHmm")));
   }
 
   @Override
@@ -55,15 +67,10 @@ public class LayoutEngineJson extends LayoutBase<ILoggingEvent> {
   private String createSingleLineJson(ILoggingEvent event) {
     ObjectNode rootNode = om.createObjectNode();
 
-    // if module name added, use it
-    getModuleName().ifPresent(modName -> rootNode.put("b_mod", modName));
-
-    // if config info available, use it
-    getConfigMap().ifPresent(configNode -> rootNode.set("source", configNode));
-
     rootNode.put("a_level", getSeverity(event));
     rootNode.put("b_mesg", getMessage(event, true));
     rootNode.set("context", createContextNode(event));
+    rootNode.set("source", sourceNode);
 
     try {
       // inside try block we try to use sort serialization of jackson for consistent output / readability
@@ -207,28 +214,6 @@ public class LayoutEngineJson extends LayoutBase<ILoggingEvent> {
   public void stop() {
     tpc.stop();
     super.stop();
-  }
-
-  void addConfig(ConfigPojo configPojo, Map<String, String> configPropertyMap) {
-    this.moduleName = configPojo.getModuleName().orElse("unknown").trim();
-
-    if (!configPropertyMap.isEmpty()) {
-      configMap = om.createObjectNode();
-
-      configPropertyMap.forEach((key, value) -> {
-        if (key != null && value != null) {
-          configMap.put(key.toLowerCase().trim(), value.trim());
-        }
-      });
-    }
-  }
-
-  private Optional<ObjectNode> getConfigMap() {
-    return Optional.ofNullable(configMap);
-  }
-
-  private Optional<String> getModuleName() {
-    return Optional.ofNullable(moduleName);
   }
 
 }

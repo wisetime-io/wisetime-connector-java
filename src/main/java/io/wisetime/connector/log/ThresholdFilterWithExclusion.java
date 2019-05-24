@@ -1,4 +1,8 @@
-package io.wisetime.connector.logging.aws;
+/*
+ * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
+ */
+
+package io.wisetime.connector.log;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -35,12 +39,12 @@ public class ThresholdFilterWithExclusion extends ThresholdFilter {
       return FilterReply.NEUTRAL;
     }
 
-    final FilterReply threshholdResult = super.decide(event);
-    if (threshholdResult == FilterReply.DENY && isExcludedPackagePrefix(event.getLoggerName())) {
+    final FilterReply thresholdResult = super.decide(event);
+    if (thresholdResult == FilterReply.DENY && isExcludedPackagePrefix(event.getLoggerName())) {
       return FilterReply.NEUTRAL;
     }
 
-    return threshholdResult;
+    return thresholdResult;
   }
 
   private boolean isExcludedPackagePrefix(String loggerName) {

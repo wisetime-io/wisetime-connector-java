@@ -1,8 +1,8 @@
 /*
- * Copyright (c) 2018 Practice Insight Pty Ltd. All Rights Reserved.
+ * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.wise_log_aws.cloud;
+package io.wisetime.connector.log;
 
 import com.amazonaws.util.IOUtils;
 

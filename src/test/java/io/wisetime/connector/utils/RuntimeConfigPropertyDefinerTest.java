@@ -1,4 +1,8 @@
-package io.wisetime.connector.logging;
+/*
+ * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
+ */
+
+package io.wisetime.connector.utils;
 
 import org.junit.jupiter.api.Test;
 

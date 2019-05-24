@@ -1,13 +1,15 @@
 /*
- * Copyright (c) 2018 Practice Insight Pty Ltd. All Rights Reserved.
+ * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.wise_log_aws.cloud;
+package io.wisetime.connector.log;
 
 import org.junit.jupiter.api.Test;
 
 import java.net.URL;
 import java.util.Map;
+
+import io.wisetime.connector.config.PropertyFileUtil;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -21,7 +23,7 @@ class CloudWriterTest {
     URL filePath = TestFileUtil.class.getResource("/user_defined.properties");
     String pathToFile = filePath.getPath();
 
-    Map<String, String> result = CloudWriter.addUserPropertyFile(pathToFile);
+    Map<String, String> result = PropertyFileUtil.addUserPropertyFile(pathToFile);
 
     assertThat(result.size())
         .as("property file contains two keys")

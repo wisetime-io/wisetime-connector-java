@@ -56,17 +56,23 @@ jgitver {
     autoIncrementPatch false
 }
 
-openApiGenerate {
+tasks.openApiGenerate {
     generatorName = "jaxrs-spec"
     inputSpec = "https://raw.githubusercontent.com/wisetime-io/connect-api-spec/master/spec/openapi.yaml".toString()
     outputDir = "$projectDir".toString()
     modelPackage = "io.wisetime.generated.connect"
-}
+    generateApiTests = false
+    generateModelDocumentation = false
+    generateModelTests = false
+    verbose = false
+    
+    onlyIf {
+        // only re-generate java files if api_gen folder is missing
+        return !new File(getProjectDir().getAbsolutePath() + "/src/gen/java/io/wisetime/generated/connect").exists()
+    }
 
-task buildModel(dependsOn: tasks.openApiGenerate) {
-    // creates latest jackson object model
-    // after creating latest auto-generated object model, delete irrelevant files
     doLast {
+        // after creating latest auto-generated object model, delete irrelevant files
         delete "${projectDir}/.openapi-generator"
         delete "${projectDir}/pom.xml"
         delete "${projectDir}/src/gen/java/org"
@@ -75,7 +81,6 @@ task buildModel(dependsOn: tasks.openApiGenerate) {
     }
 }
 
-compileJava.dependsOn buildModel
 tasks.jib.dependsOn compileJava
 
 sourceSets {
