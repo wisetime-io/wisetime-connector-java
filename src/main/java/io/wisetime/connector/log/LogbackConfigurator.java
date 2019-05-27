@@ -41,6 +41,9 @@ public class LogbackConfigurator {
     });
   }
 
+  /**
+   * @deprecated in favour of managed config.
+   */
   @Deprecated
   @VisibleForTesting
   static Optional<Appender<ILoggingEvent>> createLocalAdapter() {
