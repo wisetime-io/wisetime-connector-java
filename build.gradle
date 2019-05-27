@@ -68,7 +68,7 @@ tasks.openApiGenerate {
     
     onlyIf {
         // only re-generate java files if api_gen folder is missing
-        return !new File(getProjectDir().getAbsolutePath() + "/src/gen/java/io/wisetime/generated/connect").exists()
+        return !new File(getProjectDir().getAbsolutePath() + "/src/gen/java").exists()
     }
 
     doLast {
@@ -82,6 +82,7 @@ tasks.openApiGenerate {
 }
 
 tasks.jib.dependsOn compileJava
+tasks.compileJava.dependsOn tasks.openApiGenerate
 
 sourceSets {
     main {
