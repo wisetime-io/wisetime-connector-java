@@ -83,17 +83,15 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
    */
   @Override
   public void start() throws Exception {
-    initWiseTimeConnector();
     shutdownFunction = Thread.currentThread()::interrupt;
     healthRunner.setShutdownFunction(shutdownFunction);
-
-    timePoster.start();
-
     Timer healthCheckTimer = new Timer("health-check-timer", true);
-    healthCheckTimer.scheduleAtFixedRate(healthRunner, TimeUnit.SECONDS.toMillis(5), TimeUnit.SECONDS.toMillis(3));
-
-    // start thread to monitor and upload new tags
     Timer tagTimer = new Timer("tag-check-timer", true);
+
+    initWiseTimeConnector();
+    timePoster.start();
+    healthCheckTimer.scheduleAtFixedRate(healthRunner, TimeUnit.SECONDS.toMillis(5), TimeUnit.SECONDS.toMillis(3));
+    // start thread to monitor and upload new tags
     tagTimer.scheduleAtFixedRate(tagRunner, TimeUnit.SECONDS.toMillis(15), TimeUnit.MINUTES.toMillis(5));
 
     while (timePoster.isRunning()) {
