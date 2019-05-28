@@ -102,16 +102,16 @@ class AppenderPipe extends UnsynchronizedAppenderBase<ILoggingEvent> {
       return;
     }
 
-    LogEntryCW logEntry = createLogEvent(eventObject);
+    LogQueueCW.LogEntryCW logEntry = createLogEvent(eventObject);
     bridge.writeMessage(logEntry);
   }
 
-  private LogEntryCW createLogEvent(ILoggingEvent eventObject) {
+  private LogQueueCW.LogEntryCW createLogEvent(ILoggingEvent eventObject) {
     final InputLogEvent msg = new InputLogEvent();
     msg.setTimestamp(eventObject.getTimeStamp());
     String jsonStr = layoutEngine.doLayout(eventObject);
     msg.setMessage(jsonStr);
-    return new LogEntryCW(
+    return new LogQueueCW.LogEntryCW(
         eventObject.getLevel(),
         eventObject.getLoggerName(),
         msg

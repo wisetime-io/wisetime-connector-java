@@ -5,7 +5,7 @@ package io.wisetime.connector.log;
  */
 public interface LoggingBridge {
 
-  void writeMessage(LogEntryCW msg);
+  void writeMessage(LogQueueCW.LogEntryCW msg);
 
   void flushMessages();
 

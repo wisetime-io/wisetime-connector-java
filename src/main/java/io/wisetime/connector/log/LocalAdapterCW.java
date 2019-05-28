@@ -17,15 +17,11 @@ import com.amazonaws.services.logs.model.PutLogEventsResult;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import io.wisetime.connector.config.RuntimeConfig;
@@ -38,7 +34,8 @@ import lombok.ToString;
  */
 @SuppressWarnings("Duplicates")
 public class LocalAdapterCW implements LoggingBridge {
-  private final ConcurrentLinkedQueue<LogEntryCW> messageQueue = new ConcurrentLinkedQueue<>();
+  private final ConcurrentLinkedQueue<LogQueueCW.LogEntryCW> messageQueue = new ConcurrentLinkedQueue<>();
+  private final LogQueueCW logQueueCW = new LogQueueCW();
 
   private AWSLogsWrapper awsLogWrapper;
   private String logGroupName = "wise-prod";
@@ -55,7 +52,7 @@ public class LocalAdapterCW implements LoggingBridge {
   }
 
   @Override
-  public void writeMessage(LogEntryCW logEntryCW) {
+  public void writeMessage(LogQueueCW.LogEntryCW logEntryCW) {
     if (awsLogWrapper.writer().isPresent()) {
       messageQueue.offer(logEntryCW);
     }
@@ -85,12 +82,11 @@ public class LocalAdapterCW implements LoggingBridge {
     } while (sentLimit);
   }
 
-
   private boolean processToLimit(AWSLogsAsync awsLog, String logStreamName) {
     // process up to X messages per POST
-    AtomicBoolean limitReached = new AtomicBoolean(false);
 
-    List<InputLogEvent> eventList = createListFromQueue(limitReached);
+    final LogQueueCW.PutLogEventList logEventResult = logQueueCW.createListFromQueue(messageQueue);
+    List<InputLogEvent> eventList = logEventResult.getEventList();
 
     if (!eventList.isEmpty()) {
       // The log events in the batch must be in chronological ordered by their time stamp.
@@ -109,59 +105,7 @@ public class LocalAdapterCW implements LoggingBridge {
       );
       cloudWatchNextSequenceToken = result.getNextSequenceToken();
     }
-    return limitReached.get();
-  }
-
-  /**
-   * <pre>
-   *   a. The maximum batch size is 1,048,576 bytes, and this size is calculated as the sum of all event messages in UTF-8,
-   *      plus 26 bytes for each log event.
-   *   b.
-   * <pre>
-   * @param limitReached Set to true if limit reached
-   * @return List to send to AWS
-   */
-  private List<InputLogEvent> createListFromQueue(AtomicBoolean limitReached) {
-
-
-    final List<InputLogEvent> eventList = new ArrayList<>();
-    // The maximum number of log events in a batch is 10,000.
-    final int maxLogEvents = 8000;
-    final AtomicInteger byteCount = new AtomicInteger();
-
-    LogEntryCW logEntry;
-    while ((logEntry = messageQueue.poll()) != null) {
-      InputLogEvent logEvent = logEntry.getInputLogEvent();
-      if (logEvent.getMessage() != null) {
-        eventList.add(logEvent);
-        if (eventList.size() >= maxLogEvents) {
-          // log row limit reached
-          limitReached.set(true);
-          return eventList;
-        }
-
-        int logBundleSize = byteCount.addAndGet(logEvent.getMessage().getBytes(StandardCharsets.UTF_8).length + 26);
-
-        final int maxAwsPutSize = getMaxAwsPutSize();
-
-        if (logBundleSize > maxAwsPutSize) {
-          // message size in bytes limit reached
-          limitReached.set(true);
-          return eventList;
-        }
-      }
-    }
-
-    return eventList;
-  }
-
-  private int getMaxAwsPutSize() {
-    final int officialAwsMaxPutSize = 1_048_576;
-
-    // we set limit to ~5% less than actual limit, in case some overhead we didn't factor in max determining size
-    final int conservativeLimit = 48_000;
-
-    return officialAwsMaxPutSize - conservativeLimit;
+    return logEventResult.isLimitReached();
   }
 
   private AWSLogsWrapper createLocalConfigLogger() {

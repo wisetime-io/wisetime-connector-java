@@ -58,10 +58,10 @@ class AppenderPipeTest {
 
     appenderPipe.append(eventMock);
 
-    ArgumentCaptor<LogEntryCW> logEntryCaptor = ArgumentCaptor.forClass(LogEntryCW.class);
+    ArgumentCaptor<LogQueueCW.LogEntryCW> logEntryCaptor = ArgumentCaptor.forClass(LogQueueCW.LogEntryCW.class);
     verify(bridgeMock, times(1)).writeMessage(logEntryCaptor.capture());
 
-    LogEntryCW result = logEntryCaptor.getValue();
+    LogQueueCW.LogEntryCW result = logEntryCaptor.getValue();
 
     assertThat(result.getInputLogEvent().getMessage())
         .isEqualTo(theMsg);
