@@ -75,7 +75,7 @@ public class LocalAdapterCW implements LoggingBridge {
    * Send log entries
    */
   @SuppressWarnings("RightCurly")
-  void processLogEntries(AWSLogsAsync awsLog, String logStreamName) {
+  synchronized void processLogEntries(AWSLogsAsync awsLog, String logStreamName) {
     boolean sentLimit;
     do {
       sentLimit = processToLimit(awsLog, logStreamName);
