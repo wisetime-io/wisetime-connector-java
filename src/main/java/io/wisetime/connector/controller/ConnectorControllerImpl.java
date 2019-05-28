@@ -75,18 +75,14 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
   @Override
   public void start() throws Exception {
     healthRunner.setShutdownFunction(Thread.currentThread()::interrupt);
-    Timer healthCheckTimer = new Timer("health-check-timer", true);
+    Timer healthCheckTimer = new Timer("health-check-timer", false);
     Timer tagTimer = new Timer("tag-check-timer", true);
 
     initWiseTimeConnector();
     timePoster.start();
 
-    // this is a user thread (non-daemon), as health check should prolong VM shutdown
-    Timer healthCheckTimer = new Timer("health-check-timer", false);
     healthCheckTimer.scheduleAtFixedRate(healthRunner, TimeUnit.SECONDS.toMillis(5), TimeUnit.SECONDS.toMillis(3));
 
-    // start thread to monitor and upload new tags
-    Timer tagTimer = new Timer("tag-check-timer", true);
     // TODO(Dev) this should run in executor to prevent thread exhaustion
     tagTimer.scheduleAtFixedRate(tagRunner, TimeUnit.SECONDS.toMillis(15), TimeUnit.MINUTES.toMillis(5));
 
@@ -111,13 +107,13 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
 
   @Override
   public void stop() {
+    healthRunner.cancel();
     try {
-      healthRunner.cancel();
       timePoster.stop();
-      wiseTimeConnector.shutdown();
     } catch (Exception e) {
       log.error("Exception while stopping the connector", e);
     }
+    wiseTimeConnector.shutdown();
   }
 
   @Override
