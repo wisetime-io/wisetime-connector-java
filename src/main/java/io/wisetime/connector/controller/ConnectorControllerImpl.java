@@ -43,7 +43,6 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
   private final TagRunner tagRunner;
   private final HealthCheck healthRunner;
   private final MetricService metricService;
-  private Runnable shutdownFunction;
 
   public ConnectorControllerImpl(ConnectorControllerConfiguration configuration) {
     healthRunner = new HealthCheck();
@@ -83,15 +82,15 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
    */
   @Override
   public void start() throws Exception {
-    shutdownFunction = Thread.currentThread()::interrupt;
-    healthRunner.setShutdownFunction(shutdownFunction);
+    healthRunner.setShutdownFunction(Thread.currentThread()::interrupt);
     Timer healthCheckTimer = new Timer("health-check-timer", true);
     Timer tagTimer = new Timer("tag-check-timer", true);
 
     initWiseTimeConnector();
     timePoster.start();
+
     healthCheckTimer.scheduleAtFixedRate(healthRunner, TimeUnit.SECONDS.toMillis(5), TimeUnit.SECONDS.toMillis(3));
-    // start thread to monitor and upload new tags
+    // Start thread to monitor and upload new tags
     tagTimer.scheduleAtFixedRate(tagRunner, TimeUnit.SECONDS.toMillis(15), TimeUnit.MINUTES.toMillis(5));
 
     while (timePoster.isRunning()) {
@@ -115,10 +114,13 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
 
   @Override
   public void stop() {
-    if (shutdownFunction == null) {
-      throw new IllegalStateException("Connector hasn't been started");
+    try {
+      healthRunner.cancel();
+      timePoster.stop();
+      wiseTimeConnector.shutdown();
+    } catch (Exception e) {
+      log.error("Exception while stopping the connector", e);
     }
-    shutdownFunction.run();
   }
 
   @Override
@@ -131,7 +133,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     return metricService.getMetrics();
   }
 
-  //visible for testing
+  // Visible for testing
   void initWiseTimeConnector() {
     wiseTimeConnector.init(connectorModule);
   }
