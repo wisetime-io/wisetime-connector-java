@@ -29,7 +29,6 @@ plugins {
     id 'maven-publish'
     id 'application'
     id 'com.google.cloud.tools.jib' version '1.1.2'
-    id 'com.github.kt3k.coveralls' version '2.8.2'
     id "com.github.ben-manes.versions" version '0.21.0'
     id "fr.brouillard.oss.gradle.jgitver" version "0.8.0"
 
@@ -56,17 +55,23 @@ jgitver {
     autoIncrementPatch false
 }
 
-openApiGenerate {
+tasks.openApiGenerate {
     generatorName = "jaxrs-spec"
     inputSpec = "https://raw.githubusercontent.com/wisetime-io/connect-api-spec/master/spec/openapi.yaml".toString()
     outputDir = "$projectDir".toString()
     modelPackage = "io.wisetime.generated.connect"
-}
+    generateApiTests = false
+    generateModelDocumentation = false
+    generateModelTests = false
+    verbose = false
+    
+    onlyIf {
+        // only re-generate java files if api_gen folder is missing
+        return !new File(getProjectDir().getAbsolutePath() + "/src/gen/java").exists()
+    }
 
-task buildModel(dependsOn: tasks.openApiGenerate) {
-    // creates latest jackson object model
-    // after creating latest auto-generated object model, delete irrelevant files
     doLast {
+        // after creating latest auto-generated object model, delete irrelevant files
         delete "${projectDir}/.openapi-generator"
         delete "${projectDir}/pom.xml"
         delete "${projectDir}/src/gen/java/org"
@@ -75,8 +80,8 @@ task buildModel(dependsOn: tasks.openApiGenerate) {
     }
 }
 
-compileJava.dependsOn buildModel
 tasks.jib.dependsOn compileJava
+tasks.compileJava.dependsOn tasks.openApiGenerate
 
 sourceSets {
     main {
@@ -101,10 +106,6 @@ if (taskRequestString.contains("dependencyUpdates") || taskRequestString.contain
 }
 
 dependencies {
-    compile('io.wisetime:wise-log-aws:3.1.0') {
-        exclude group: 'com.fasterxml.jackson.core', module: 'jackson-databind'
-        exclude group: 'com.fasterxml.jackson.dataformat', module: 'jackson-dataformat-cbor'
-    }
 
     compileOnly 'org.projectlombok:lombok:1.18.6'
     annotationProcessor 'org.projectlombok:lombok:1.18.6'
@@ -117,10 +118,23 @@ dependencies {
     }
     compile 'org.thymeleaf:thymeleaf:3.0.11.RELEASE'
 
+    compile 'joda-time:joda-time:2.9.9'
+
     compile 'org.apache.commons:commons-configuration2:2.4'
     compile 'org.apache.commons:commons-lang3:3.9'
     compile 'net.jodah:failsafe:1.1.0'
 
+    compile ('com.amazonaws:aws-java-sdk-logs:1.11.442') {
+        exclude group: 'commons-logging', module: 'commons-logging'
+        exclude group: 'commons-codec', module: 'commons-codec'
+        exclude group: 'joda-time', module: 'joda-time'
+        exclude group: 'org.apache.httpcomponents', module: 'httpclient'
+    }
+
+    //  required by AWS SDK to log to logback via slf4j
+    compile 'org.slf4j:jcl-over-slf4j:1.7.25'
+    compile 'org.slf4j:jul-to-slf4j:1.7.25'
+    
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
     compile 'com.fasterxml.jackson.core:jackson-core:2.9.8'
     compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.8'
@@ -132,8 +146,15 @@ dependencies {
     compile 'org.xerial:sqlite-jdbc:3.27.2.1'
     compile 'org.codejargon:fluentjdbc:1.8.3'
 
+    compile ('org.apache.httpcomponents:httpclient:4.5.8') {
+        exclude group: 'commons-logging', module: 'commons-logging'
+        exclude group: 'commons-codec', module: 'commons-codec'
+        exclude group: 'org.apache.httpcomponents', module: 'httpcore'
+    }
+
     compile 'org.apache.httpcomponents:httpcore:4.4.11'
     compile('org.apache.httpcomponents:fluent-hc:4.5.8') {
+        exclude group: 'commons-logging', module: 'commons-logging'
         exclude group: 'commons-codec', module: 'commons-codec'
     }
     compile 'commons-codec:commons-codec:1.12'
@@ -152,10 +173,11 @@ dependencies {
     testCompile('com.github.javafaker:javafaker:0.17.2') {
         exclude group: 'org.apache.commons', module: 'commons-lang3'
     }
-
+    testCompile 'org.skyscreamer:jsonassert:1.5.0'
     testCompile 'org.junit.jupiter:junit-jupiter:5.4.2'
     testCompile 'org.mockito:mockito-core:2.27.0'
     testCompile 'org.assertj:assertj-core:3.12.2'
+    testCompile 'io.github.benas:random-beans:3.9.0'
 }
 
 test {

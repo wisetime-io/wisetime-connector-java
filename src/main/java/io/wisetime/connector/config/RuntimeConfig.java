@@ -27,17 +27,22 @@ import static io.wisetime.connector.config.ConnectorConfigKey.CONNECTOR_PROPERTI
 /**
  * Provides runtime configuration for WiseTime connectors
  *
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
+ * @author shane.xie
+ * @author vadym.sukolenvo
+ * @author yehor.lashkul
  */
 @SuppressWarnings("WeakerAccess")
 public class RuntimeConfig {
 
+  // TODO(TH) discuss with Yehor
   // Don't remove this logger!!!
   // Because our logback configurations depends on RuntimeConfig instance, first logger creation
   // shouldn't happen during RuntimeConfig construction. To be sure this doesn't happen we initialize logger here
   // and use lazy RuntimeConfig instance creation.
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(RuntimeConfig.class);
+
   private final CompositeConfiguration config;
   private final MapConfiguration inMemoryConfig;
 
@@ -52,6 +57,7 @@ public class RuntimeConfig {
 
     String connectorPropertyFilePath = config.getString(CONNECTOR_PROPERTIES_FILE.getConfigKey());
     if (StringUtils.isNotBlank(connectorPropertyFilePath)) {
+
       // add property file if provided (also passed to logback for additional logging context)
       config.addConfiguration(
           new MapConfiguration(new CaseInsensitiveMap<>(addUserPropertyFile(connectorPropertyFilePath))));
