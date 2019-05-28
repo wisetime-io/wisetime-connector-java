@@ -141,7 +141,9 @@ public class LocalAdapterCW implements LoggingBridge {
         }
 
         int logBundleSize = byteCount.addAndGet(logEvent.getMessage().getBytes(StandardCharsets.UTF_8).length + 26);
-        final int maxAwsPutSize = 1_048_576 - 48_000;
+
+        final int maxAwsPutSize = getMaxAwsPutSize();
+
         if (logBundleSize > maxAwsPutSize) {
           // message size in bytes limit reached
           limitReached.set(true);
@@ -151,6 +153,15 @@ public class LocalAdapterCW implements LoggingBridge {
     }
 
     return eventList;
+  }
+
+  private int getMaxAwsPutSize() {
+    final int officialAwsMaxPutSize = 1_048_576;
+
+    // we set limit to ~5% less than actual limit, in case some overhead we didn't factor in max determining size
+    final int conservativeLimit = 48_000;
+
+    return officialAwsMaxPutSize - conservativeLimit;
   }
 
   private AWSLogsWrapper createLocalConfigLogger() {
