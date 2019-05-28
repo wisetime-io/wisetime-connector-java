@@ -4,6 +4,8 @@
 
 package io.wisetime.connector.time_poster.webhook;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.apache.commons.lang3.StringUtils;
@@ -17,11 +19,13 @@ import java.util.stream.Collectors;
 
 import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.api_client.PostResult;
-import io.wisetime.connector.config.TolerantObjectMapper;
 import io.wisetime.connector.metric.MetricService;
+import io.wisetime.connector.utils.SparkUtil;
 import io.wisetime.generated.connect.Tag;
 import io.wisetime.generated.connect.TimeGroup;
+import spark.ExceptionHandler;
 import spark.ModelAndView;
+import spark.Route;
 import spark.servlet.SparkApplication;
 import spark.template.thymeleaf.ThymeleafTemplateEngine;
 
@@ -41,15 +45,16 @@ class WebhookApplication implements SparkApplication {
 
   private static final Logger log = LoggerFactory.getLogger(WebhookApplication.class);
   static final String PING_RESPONSE = "pong";
+  static final String UNEXPECTED_ERROR = "Unexpected error";
 
   private final ObjectMapper om;
   private final WiseTimeConnector wiseTimeConnector;
   private final MetricService metricService;
 
-  WebhookApplication(WiseTimeConnector wiseTimeConnector, MetricService metricService) {
+  WebhookApplication(ObjectMapper objectMapper, WiseTimeConnector wiseTimeConnector, MetricService metricService) {
     this.wiseTimeConnector = wiseTimeConnector;
     this.metricService = metricService;
-    om = TolerantObjectMapper.create();
+    om = objectMapper;
   }
 
   @Override
@@ -78,25 +83,45 @@ class WebhookApplication implements SparkApplication {
       throw new UnsupportedOperationException("WiseTime Connector was not configured in server builder");
     }
 
-    post("/receiveTimePostedEvent", (request, response) -> {
+    // until https://github.com/perwendel/spark/issues/1062 is fixed
+    // we can't use spark exception handlers when it's in servlet mode
+    // so use custom approach instead
+    post("/receiveTimePostedEvent", withExceptionMapping((request, response) -> {
       final TimeGroup timeGroup = om.readValue(request.body(), TimeGroup.class);
       final PostResult postResult = wiseTimeConnector.postTime(request, timeGroup);
       log(timeGroup, postResult);
 
       response.type("plain/text");
+      response.status(postResult.getStatus().getStatusCode());
       switch (postResult.getStatus()) {
         case SUCCESS:
-          response.status(postResult.getStatus().getStatusCode());
           return "Success";
         case PERMANENT_FAILURE:
-          response.status(postResult.getStatus().getStatusCode());
-          return "Invalid request";
         case TRANSIENT_FAILURE:
+          return postResult.getMessage().orElse(UNEXPECTED_ERROR);
         default:
-          response.status(postResult.getStatus().getStatusCode());
-          return "Unexpected error";
+          log.warn("Unexpected posting time result: {}", postResult.getStatus());
+          return UNEXPECTED_ERROR;
       }
-    });
+    }));
+  }
+
+  private Route withExceptionMapping(Route route) {
+    ExceptionHandler<Exception> badRequestHandler = (ex, req, res) -> {
+      log.error("Invalid request to {} with error {}", req.pathInfo(), ex.getMessage());
+      res.status(400);
+      res.type("plain/text");
+      res.body("Invalid request");
+    };
+    return SparkUtil.withExceptionHandlers(route)
+        .exception(JsonParseException.class, badRequestHandler)
+        .exception(JsonMappingException.class, badRequestHandler)
+        .exception(Exception.class, (ex, req, res) -> {
+          log.error("Unhandled exception requesting " + req.pathInfo(), ex);
+          res.status(500);
+          res.type("plain/text");
+          res.body("Unexpected error");
+        });
   }
 
   private void log(final TimeGroup timeGroup, final PostResult postResult) {

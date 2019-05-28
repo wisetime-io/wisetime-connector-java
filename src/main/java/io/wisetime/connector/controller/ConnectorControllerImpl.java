@@ -11,6 +11,7 @@ import io.wisetime.connector.ConnectorController;
 import io.wisetime.connector.ConnectorModule;
 import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.api_client.ApiClient;
+import io.wisetime.connector.config.TolerantObjectMapper;
 import io.wisetime.connector.metric.ApiClientMetricWrapper;
 import io.wisetime.connector.metric.WiseTimeConnectorMetricWrapper;
 import io.wisetime.connector.datastore.FileStore;
@@ -69,7 +70,8 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
         return new FetchClientTimePoster(wiseTimeConnector, apiClient, healthRunner,
             sqLiteHelper, configuration.getFetchClientLimit(), configuration.getLongPollingThreads());
       case WEBHOOK:
-        return new WebhookTimePoster(configuration.getWebhookPort(), wiseTimeConnector, metricService);
+        return new WebhookTimePoster(configuration.getWebhookPort(),
+            TolerantObjectMapper.create(), wiseTimeConnector, metricService);
       case TAGS_ONLY:
       default:
         return new NoOpTimePoster();
