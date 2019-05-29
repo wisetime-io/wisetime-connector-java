@@ -20,25 +20,26 @@ import javax.sql.DataSource;
 
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
+import lombok.extern.slf4j.Slf4j;
 
 import static io.wisetime.connector.config.ConnectorConfigKey.DATA_DIR;
 
 /**
- * @author galya.bogdanova@staff.wisetime.io
+ * @author galya.bogdanova
  */
+@Slf4j
 public class SQLiteHelper {
 
-  private static final String JDBC_DRIVER = "jdbc:sqlite:%s?journal_mode=WAL&synchronous=OFF&journal_size_limit=500";
-
-  private static final String DEFAULT_LOCAL_DB_FILENAME = "wisetime.sqlite";
-  private static final String DEFAULT_TEMP_DIR_NAME = "wt-sqlite";
-
-  private FluentJdbc fluentJdbc;
+  private final FluentJdbc fluentJdbc;
 
   public SQLiteHelper(File databaseFile) {
-    setupDataSource(databaseFile);
+    this.fluentJdbc = setupDataSource(databaseFile);
   }
 
+  /**
+   * @param persistentStorageOnly TODO(Dev) Improve explanation of use case for not using location by convention if no
+   *                              explicit location is provided via config.
+   */
   public SQLiteHelper(boolean persistentStorageOnly) {
     final String persistentStoreDirPath = RuntimeConfig.getString(DATA_DIR).orElse(null);
     if (persistentStorageOnly && StringUtils.isBlank(persistentStoreDirPath)) {
@@ -47,18 +48,27 @@ public class SQLiteHelper {
           ConnectorConfigKey.DATA_DIR.getConfigKey()));
     }
 
-    final File persistentStoreDir = new File(StringUtils.isNotBlank(persistentStoreDirPath) ?
-        persistentStoreDirPath : createTempDir().getAbsolutePath());
+    final File persistentStoreDir = getPersistentStorageDir(persistentStoreDirPath);
     if (!persistentStoreDir.exists() && !persistentStoreDir.mkdirs()) {
-      throw new IllegalArgumentException(String.format("Store directory does not exist: '%s'",
-          persistentStoreDir.getAbsolutePath()));
+      throw new IllegalArgumentException(
+          String.format("Store directory does not exist: '%s'", persistentStoreDir.getAbsolutePath()));
     }
-    setupDataSource(new File(persistentStoreDir, DEFAULT_LOCAL_DB_FILENAME));
+    this.fluentJdbc = setupDataSource(new File(persistentStoreDir, "wisetime.sqlite"));
+  }
+
+  private File getPersistentStorageDir(String persistentStoreDirPath) {
+    if (StringUtils.isNotBlank(persistentStoreDirPath)) {
+      return new File(persistentStoreDirPath.trim());
+    }
+
+    File tempDir = createTempDir();
+    log.info("using temporary storage directory {}", tempDir.getAbsolutePath());
+    return tempDir;
   }
 
   private File createTempDir() {
     try {
-      File tempDir = Files.createTempDirectory(DEFAULT_TEMP_DIR_NAME).toFile();
+      File tempDir = Files.createTempDirectory("wt-sqlite").toFile();
       if (!tempDir.exists()) {
         if (!tempDir.mkdirs()) {
           throw new IllegalStateException("Failed to create data directory: " + tempDir);
@@ -70,15 +80,16 @@ public class SQLiteHelper {
     }
   }
 
-  private void setupDataSource(File databaseFile) {
-    this.fluentJdbc = new FluentJdbcBuilder()
+  private FluentJdbc setupDataSource(File databaseFile) {
+    return new FluentJdbcBuilder()
         .connectionProvider(fileToDataSource(databaseFile))
         .build();
   }
 
   private DataSource fileToDataSource(File databaseFile) {
     final SQLiteDataSource sqLiteDataSource = new SQLiteDataSource();
-    sqLiteDataSource.setUrl(String.format(JDBC_DRIVER, databaseFile.getAbsolutePath()));
+    String jdbcUrl = "jdbc:sqlite:%s?journal_mode=WAL&synchronous=OFF&journal_size_limit=500";
+    sqLiteDataSource.setUrl(String.format(jdbcUrl, databaseFile.getAbsolutePath()));
     return sqLiteDataSource;
   }
 
@@ -87,7 +98,7 @@ public class SQLiteHelper {
     fluentJdbc.query()
         .update("CREATE TABLE IF NOT EXISTS " + table.getName() + " ( " + table.getSchema() + " ) ")
         .run();
-    for (LocalDbTable.Modification modification: table.getModifications()) {
+    for (LocalDbTable.Modification modification : table.getModifications()) {
       boolean alreadyPresent = fluentJdbc.query()
           .select("PRAGMA table_info(" + table.getName() + ")")
           .listResult(rs -> rs.getString("name"))

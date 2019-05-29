@@ -101,13 +101,17 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
 
   @Override
   public ConnectorController build() {
-    Preconditions.checkNotNull(wiseTimeConnector, "an implementation of '%s' interface must be supplied",
+    Preconditions.checkNotNull(wiseTimeConnector,
+        "an implementation of '%s' interface must be supplied",
         WiseTimeConnector.class.getSimpleName());
 
     if (apiClient == null) {
-      String apiKey = RuntimeConfig.getString(ConnectorConfigKey.API_KEY).orElse(this.apiKey);
-      Preconditions.checkNotNull(apiKey, "an apiKey must be supplied via constructor"
-          + " or environment parameter to use with the default apiClient");
+      String apiKey = RuntimeConfig.getString(ConnectorConfigKey.API_KEY)
+          .orElse(this.apiKey);
+
+      Preconditions.checkNotNull(apiKey,
+          "an apiKey must be supplied via constructor or environment parameter to use with the default apiClient");
+
       apiClient = new DefaultApiClient(apiKey);
     }
     return new ConnectorControllerImpl(this);

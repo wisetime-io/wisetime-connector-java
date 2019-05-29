@@ -1,9 +1,7 @@
 apply plugin: "jacoco"
-// https://plugins.gradle.org/plugin/com.github.kt3k.coveralls
-apply plugin: "com.github.kt3k.coveralls"
 
 jacoco {
-    toolVersion = "0.8.2"
+    toolVersion = "0.8.3"
 }
 
 jacocoTestReport {
@@ -12,102 +10,66 @@ jacocoTestReport {
         csv.enabled false
         html.enabled true
     }
-    afterEvaluate {
-        // https://stackoverflow.com/questions/29887805/filter-jacoco-coverage-reports-with-gradle
-        classDirectories = files(classDirectories.files.collect {
-            fileTree(dir: it,
-                    exclude: ['**/generated/**',
-                              '**/example/**',
-                              '**/config/**',
-                              '**/support/**',
-                              '**/Main.class'
-                    ])
-        })
-    }
-    doLast {
-        def xmlReport = file("${jacoco.reportsDir}/test/jacocoTestReport.xml")
-        //logger.lifecycle("Checking coverage results: ${xmlReport}")
+}
 
-        def parser = new XmlParser()
-        parser.setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false);
-        parser.setFeature("http://apache.org/xml/features/disallow-doctype-decl", false)
-        def results = parser.parse(xmlReport)
-
-        def percentage = {
-            if (it) {
-                def covered = it.'@covered' as Double
-                def missed = it.'@missed' as Double
-                ((covered / (covered + missed)) * 100).round(2)
-            } else {
-                100
+jacocoTestCoverageVerification {
+    violationRules {
+        rule {
+            // https://docs.gradle.org/4.10/javadoc/org/gradle/testing/jacoco/tasks/rules/JacocoViolationRule.html
+            element = 'PACKAGE'
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.7
             }
+            excludes = [
+                    'io.wisetime.connector.log',
+                    'io.wisetime.connector.api_client.support',
+                    'io.wisetime.connector.datastore',
+                    'io.wisetime.connector.time_poster',
+                    
+                    // code coverage candidates:
+                    'io.wisetime.connector.controller',
+                    'io.wisetime.connector',
+                    'io.wisetime.generated.connect'
+            ]
         }
-
-        def counters = results.counter
-        def metrics = [:]
-        metrics << [
-                'instruction': percentage(counters.find { it.'@type'.equals('INSTRUCTION') }),
-                'line'       : percentage(counters.find { it.'@type'.equals('LINE') }),
-                'method'     : percentage(counters.find { it.'@type'.equals('METHOD') }),
-                'class'      : percentage(counters.find { it.'@type'.equals('CLASS') })
-
-                // branch and complexity measures of current version of jacoco tool perform poorly
-                // when using functional style of programming under Java 8, and are no longer mandatory targets
-                // 'branch'     : percentage(counters.find { it.'@type'.equals('BRANCH') }),
-                // 'complexity' : percentage(counters.find { it.'@type'.equals('COMPLEXITY') }),
-        ]
-
-        def failures = []
-        def coverageRates = []
-        metrics.each {
-            def limit = jacocoLimits[it.key]
-            if (it.value < limit) {
-                failures.add("- ${it.key} coverage rate is: ${it.value}%, minimum is ${limit}%")
+        rule {
+            element = 'PACKAGE'
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.6
             }
-            coverageRates.add("- ${it.key} coverage rate is: ${it.value}%, minimum is ${limit}%")
+            includes = [
+                    'io.wisetime.connector.datastore'
+            ]
         }
-
-        def htmlReport = file("${jacoco.reportsDir}/test/html/index.html")
-        if (failures) {
-            logger.quiet("------------------ Code Coverage Failed -----------------------")
-            failures.each {
-                logger.quiet(it)
+        rule {
+            element = 'PACKAGE'
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.5
             }
-            logger.quiet("------------------ All Code Coverage Rates --------------------")
-            coverageRates.each {
-                logger.quiet(it)
-            }
-            logger.quiet("---------------------------------------------------------------")
-            logger.quiet("For updating your Jacoco limits, please copy the following:")
-            logger.quiet("\next.jacocoLimits = [")
-            metrics.eachWithIndex { item, index ->
-                if (index < metrics.size() - 1) {
-                    logger.quiet("        '${item.key}': ${item.value},")
-                } else {
-                    logger.quiet("        '${item.key}': ${item.value}")
-                }
-            }
-            logger.quiet("]\n")
-            logger.quiet("---------------------------------------------------------------")
-            logger.lifecycle("Please check coverage report: ${htmlReport}")
-            throw new GradleException("Code coverage failed")
-        } else {
-            logger.quiet("------------------ Code Coverage Passed -----------------------")
-            coverageRates.each {
-                logger.quiet(it)
-            }
-            logger.quiet("---------------------------------------------------------------")
-            logger.quiet("Passed Code Coverage Checks: ${htmlReport}")
+            includes = [
+                    'io.wisetime.connector.log'
+            ]
         }
+        rule {
+            element = 'PACKAGE'
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = 0.2
+            }
+            includes = [
+                    'io.wisetime.connector.api_client.support'
+            ]
+        }
+        
     }
 }
-check.dependsOn jacocoTestReport
 
-test {
-    jacoco {
-        append = false
-        destinationFile = file("$buildDir/jacoco/jacocoTest.exec")
-        classDumpDir = file("$buildDir/jacoco/classpathdumps")
-    }
-    finalizedBy jacocoTestReport
-}
+test.finalizedBy jacocoTestReport
+check.dependsOn jacocoTestCoverageVerification

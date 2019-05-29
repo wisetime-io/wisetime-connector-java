@@ -12,15 +12,16 @@ import io.wisetime.connector.ConnectorModule;
 import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.config.TolerantObjectMapper;
-import io.wisetime.connector.metric.ApiClientMetricWrapper;
-import io.wisetime.connector.metric.WiseTimeConnectorMetricWrapper;
 import io.wisetime.connector.datastore.FileStore;
 import io.wisetime.connector.datastore.SQLiteHelper;
 import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.health.HealthIndicator;
 import io.wisetime.connector.health.WisetimeConnectorHealthIndicator;
+import io.wisetime.connector.log.LogbackConfigurator;
+import io.wisetime.connector.metric.ApiClientMetricWrapper;
 import io.wisetime.connector.metric.MetricInfo;
 import io.wisetime.connector.metric.MetricService;
+import io.wisetime.connector.metric.WiseTimeConnectorMetricWrapper;
 import io.wisetime.connector.tag.TagRunner;
 import io.wisetime.connector.time_poster.NoOpTimePoster;
 import io.wisetime.connector.time_poster.TimePoster;
@@ -32,7 +33,8 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * Implementation of {@link ConnectorController}
  *
- * @author thomas.haines@practiceinsight.io, pascal.filippi@staff.wisetime.com
+ * @author thomas.haines
+ * @author pascal.filippi
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -44,13 +46,15 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
   private final TagRunner tagRunner;
   private final HealthCheck healthRunner;
   private final MetricService metricService;
-  private Runnable shutdownFunction;
 
   public ConnectorControllerImpl(ConnectorControllerConfiguration configuration) {
     healthRunner = new HealthCheck();
     metricService = new MetricService();
     wiseTimeConnector = new WiseTimeConnectorMetricWrapper(configuration.getWiseTimeConnector(), metricService);
     ApiClient apiClient = new ApiClientMetricWrapper(configuration.getApiClient(), metricService);
+
+    // add base runtime logging to standard logging output
+    LogbackConfigurator.configureBaseLogging(apiClient);
 
     final SQLiteHelper sqLiteHelper = new SQLiteHelper(configuration.isForcePersistentStorage());
     connectorModule = new ConnectorModule(apiClient, new FileStore(sqLiteHelper));
@@ -62,40 +66,25 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
         new WisetimeConnectorHealthIndicator(wiseTimeConnector));
   }
 
-  private TimePoster createTimePoster(ConnectorControllerConfiguration configuration, ApiClient apiClient,
-                                      SQLiteHelper sqLiteHelper) {
-    ConnectorControllerBuilderImpl.LaunchMode launchMode = configuration.getLaunchMode();
-    switch (launchMode) {
-      case LONG_POLL:
-        return new FetchClientTimePoster(wiseTimeConnector, apiClient, healthRunner,
-            sqLiteHelper, configuration.getFetchClientLimit(), configuration.getLongPollingThreads());
-      case WEBHOOK:
-        return new WebhookTimePoster(configuration.getWebhookPort(),
-            TolerantObjectMapper.create(), wiseTimeConnector, metricService);
-      case TAGS_ONLY:
-      default:
-        return new NoOpTimePoster();
-    }
-  }
-
   /**
-   * Start the runner. This will run scheduled tasks for tag updates and health checks.
-   * <p>
-   * This method call is blocking, meaning that the current thread will wait until the application stops.
+   * <pre>
+   *  Start the runner.
+   *  This will run tasks connected to tag updates, posted time and health checks.
+   *  This method call is blocking, meaning that the current thread will wait until the application stops.
+   * </pre>
    */
   @Override
   public void start() throws Exception {
-    initWiseTimeConnector();
-    shutdownFunction = Thread.currentThread()::interrupt;
-    healthRunner.setShutdownFunction(shutdownFunction);
+    healthRunner.setShutdownFunction(Thread.currentThread()::interrupt);
+    Timer healthCheckTimer = new Timer("health-check-timer", false);
+    Timer tagTimer = new Timer("tag-check-timer", true);
 
+    initWiseTimeConnector();
     timePoster.start();
 
-    Timer healthCheckTimer = new Timer("health-check-timer", true);
     healthCheckTimer.scheduleAtFixedRate(healthRunner, TimeUnit.SECONDS.toMillis(5), TimeUnit.SECONDS.toMillis(3));
 
-    // start thread to monitor and upload new tags
-    Timer tagTimer = new Timer("tag-check-timer", true);
+    // TODO(Dev) this should run in executor to prevent thread exhaustion
     tagTimer.scheduleAtFixedRate(tagRunner, TimeUnit.SECONDS.toMillis(15), TimeUnit.MINUTES.toMillis(5));
 
     while (timePoster.isRunning()) {
@@ -119,10 +108,13 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
 
   @Override
   public void stop() {
-    if (shutdownFunction == null) {
-      throw new IllegalStateException("Connector hasn't been started");
+    healthRunner.cancel();
+    try {
+      timePoster.stop();
+    } catch (Exception e) {
+      log.error("Exception while stopping the connector", e);
     }
-    shutdownFunction.run();
+    wiseTimeConnector.shutdown();
   }
 
   @Override
@@ -135,8 +127,37 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     return metricService.getMetrics();
   }
 
-  //visible for testing
+  // Visible for testing
   void initWiseTimeConnector() {
     wiseTimeConnector.init(connectorModule);
   }
+
+
+  private TimePoster createTimePoster(ConnectorControllerConfiguration configuration,
+                                      ApiClient apiClient,
+                                      SQLiteHelper sqLiteHelper) {
+    final ConnectorControllerBuilderImpl.LaunchMode launchMode = configuration.getLaunchMode();
+    switch (launchMode) {
+      case LONG_POLL:
+        return new FetchClientTimePoster(
+            wiseTimeConnector,
+            apiClient,
+            healthRunner,
+            sqLiteHelper,
+            configuration.getFetchClientLimit(),
+            configuration.getLongPollingThreads());
+      case WEBHOOK:
+        return new WebhookTimePoster(
+            configuration.getWebhookPort(),
+            TolerantObjectMapper.create(),
+            wiseTimeConnector,
+            metricService);
+      case TAGS_ONLY:
+        return new NoOpTimePoster();
+      default:
+        log.error("unknown launchMode={}, defaulting to {}", launchMode, NoOpTimePoster.class.getName());
+        return new NoOpTimePoster();
+    }
+  }
+
 }
