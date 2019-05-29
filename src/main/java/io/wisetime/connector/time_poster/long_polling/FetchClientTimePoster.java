@@ -41,7 +41,6 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
   private final TimeGroupStatusUpdater timeGroupStatusUpdater;
   private final TimeGroupIdStore timeGroupIdStore;
   private final int timeGroupsFetchLimit;
-  private final int longPollingThreads;
   private final ApiClient apiClient;
   private final WiseTimeConnector wiseTimeConnector;
 
@@ -49,19 +48,18 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
 
   @SuppressWarnings("ParameterNumber")
   public FetchClientTimePoster(WiseTimeConnector wiseTimeConnector, ApiClient apiClient, HealthCheck healthCheck,
-                               SQLiteHelper sqLiteHelper, int timeGroupsFetchLimit, int longPollingThreads) {
+                               SQLiteHelper sqLiteHelper, int timeGroupsFetchLimit) {
     this(wiseTimeConnector, apiClient, healthCheck, new TimeGroupIdStore(sqLiteHelper),
-        timeGroupsFetchLimit, longPollingThreads);
+        timeGroupsFetchLimit);
   }
 
   @SuppressWarnings("ParameterNumber")
   public FetchClientTimePoster(WiseTimeConnector wiseTimeConnector, ApiClient apiClient, HealthCheck healthCheck,
-                               TimeGroupIdStore timeGroupIdStore, int timeGroupsFetchLimit, int longPollingThreads) {
+                               TimeGroupIdStore timeGroupIdStore, int timeGroupsFetchLimit) {
     this.wiseTimeConnector = wiseTimeConnector;
     this.apiClient = apiClient;
     this.timeGroupIdStore = timeGroupIdStore;
     this.timeGroupsFetchLimit = timeGroupsFetchLimit;
-    this.longPollingThreads = longPollingThreads;
     /*
        The thread pool processes each time row that is returned from the batch fetch.
        Only one concurrent post is allowed until WiseTimeConnector#postTime is guaranteed to be thread safe.
@@ -119,10 +117,8 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
     if (fetchClientExecutor != null) {
       throw new IllegalStateException("Fetch Client already running");
     }
-    fetchClientExecutor = Executors.newFixedThreadPool(longPollingThreads);
-    for (int i = 0; i < longPollingThreads; i++) {
-      fetchClientExecutor.submit(this);
-    }
+    fetchClientExecutor = Executors.newSingleThreadExecutor();
+    fetchClientExecutor.submit(this);
     timeGroupStatusUpdater.startScheduler();
   }
 

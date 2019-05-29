@@ -25,6 +25,4 @@ public interface ConnectorControllerConfiguration {
   int getWebhookPort();
 
   int getFetchClientLimit();
-
-  int getLongPollingThreads();
 }

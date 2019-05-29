@@ -143,8 +143,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
             apiClient,
             healthRunner,
             sqLiteHelper,
-            configuration.getFetchClientLimit(),
-            configuration.getLongPollingThreads());
+            configuration.getFetchClientLimit());
       case WEBHOOK:
         return new WebhookTimePoster(
             configuration.getWebhookPort(),

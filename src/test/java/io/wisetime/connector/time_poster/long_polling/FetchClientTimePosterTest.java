@@ -50,7 +50,7 @@ class FetchClientTimePosterTest {
     wiseTimeConnectorMock = mock(WiseTimeConnector.class);
     timeGroupIdStoreMock = mock(TimeGroupIdStore.class);
     fetchClient = new FetchClientTimePoster(wiseTimeConnectorMock, apiClientMock,
-        mock(HealthCheck.class), timeGroupIdStoreMock, 25, 2);
+        mock(HealthCheck.class), timeGroupIdStoreMock, 25);
   }
 
   @Test

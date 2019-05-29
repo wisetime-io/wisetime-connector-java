@@ -134,11 +134,6 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
     return RuntimeConfig.getInt(ConnectorConfigKey.LONG_POLL_BATCH_SIZE).orElse(fetchClientFetchLimit);
   }
 
-  @Override
-  public int getLongPollingThreads() {
-    return RuntimeConfig.getInt(ConnectorConfigKey.LONG_POLL_THREADS).orElse(longPollingThreads);
-  }
-
   public enum LaunchMode {
     LONG_POLL, WEBHOOK, TAGS_ONLY
   }
