@@ -107,9 +107,10 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
       tagTimer.cancel();
       tagTimer.purge();
       timePoster.stop();
-      wiseTimeConnector.shutdown();
     } catch (Exception e) {
       log.warn("There was an error while stopping the connector", e);
+    } finally {
+      wiseTimeConnector.shutdown();
     }
     status = Status.STOPPED;
   }
