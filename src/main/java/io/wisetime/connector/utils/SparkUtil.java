@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018 Practice Insight Pty Ltd. All Rights Reserved.
+ * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
 package io.wisetime.connector.utils;
