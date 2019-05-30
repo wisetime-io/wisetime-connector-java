@@ -20,12 +20,14 @@ import java.util.stream.Collectors;
 import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.metric.MetricService;
-import io.wisetime.connector.utils.SparkUtil;
 import io.wisetime.generated.connect.Tag;
 import io.wisetime.generated.connect.TimeGroup;
 import spark.ExceptionHandler;
+import spark.ExceptionHandlerImpl;
+import spark.ExceptionMapper;
 import spark.ModelAndView;
-import spark.Route;
+import spark.Request;
+import spark.Response;
 import spark.servlet.SparkApplication;
 import spark.template.thymeleaf.ThymeleafTemplateEngine;
 
@@ -61,6 +63,7 @@ class WebhookApplication implements SparkApplication {
   public void init() {
     staticFileLocation("/public");
     addEndpoints();
+    addExceptionMapping();
   }
 
   /**
@@ -83,10 +86,7 @@ class WebhookApplication implements SparkApplication {
       throw new UnsupportedOperationException("WiseTime Connector was not configured in server builder");
     }
 
-    // until https://github.com/perwendel/spark/issues/1062 is fixed
-    // we can't use spark exception handlers when it's in servlet mode
-    // so use custom approach instead
-    post("/receiveTimePostedEvent", withExceptionMapping((request, response) -> {
+    post("/receiveTimePostedEvent", (request, response) -> {
       final TimeGroup timeGroup = om.readValue(request.body(), TimeGroup.class);
       final PostResult postResult = wiseTimeConnector.postTime(request, timeGroup);
       log(timeGroup, postResult);
@@ -103,25 +103,45 @@ class WebhookApplication implements SparkApplication {
           log.warn("Unexpected posting time result: {}", postResult.getStatus());
           return UNEXPECTED_ERROR;
       }
-    }));
+    });
   }
 
-  private Route withExceptionMapping(Route route) {
+  private void addExceptionMapping() {
     ExceptionHandler<Exception> badRequestHandler = (ex, req, res) -> {
       log.error("Invalid request to {} with error {}", req.pathInfo(), ex.getMessage());
       res.status(400);
       res.type("plain/text");
       res.body("Invalid request");
     };
-    return SparkUtil.withExceptionHandlers(route)
-        .exception(JsonParseException.class, badRequestHandler)
-        .exception(JsonMappingException.class, badRequestHandler)
-        .exception(Exception.class, (ex, req, res) -> {
-          log.error("Unhandled exception requesting " + req.pathInfo(), ex);
-          res.status(500);
-          res.type("plain/text");
-          res.body("Unexpected error");
-        });
+
+    exception(JsonParseException.class, badRequestHandler);
+    exception(JsonMappingException.class, badRequestHandler);
+    exception(Exception.class, (ex, req, res) -> {
+      log.error("Unhandled exception requesting " + req.pathInfo(), ex);
+      res.status(500);
+      res.type("plain/text");
+      res.body("Unexpected error");
+    });
+  }
+
+  /**
+   * Maps an exception handler to be executed when an exception occurs during routing. Copied from {@link
+   * spark.Service#exception(Class, ExceptionHandler)} But modified to use the Servlet instance of ExceptionMapper.
+   * Details here: https://github.com/perwendel/spark/issues/1062
+   *
+   * @param exceptionClass the exception class
+   * @param handler        The handler
+   */
+  private <T extends Exception> void exception(Class<T> exceptionClass, ExceptionHandler<? super T> handler) {
+    // wrap
+    ExceptionHandlerImpl wrapper = new ExceptionHandlerImpl<T>(exceptionClass) {
+      @Override
+      public void handle(T exception, Request request, Response response) {
+        handler.handle(exception, request, response);
+      }
+    };
+
+    ExceptionMapper.getServletInstance().map(exceptionClass, wrapper);
   }
 
   private void log(final TimeGroup timeGroup, final PostResult postResult) {
