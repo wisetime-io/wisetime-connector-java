@@ -45,6 +45,9 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
   private final TagRunner tagRunner;
   private final HealthCheck healthRunner;
   private final MetricService metricService;
+  private final Timer healthCheckTimer;
+  private final Timer tagTimer;
+  private Status status = Status.STOPPED;
 
   public ConnectorControllerImpl(ConnectorControllerConfiguration configuration) {
     healthRunner = new HealthCheck();
@@ -61,8 +64,9 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     timePoster = createTimePoster(configuration, apiClient, sqLiteHelper);
 
     tagRunner = new TagRunner(wiseTimeConnector);
-    healthRunner.addHealthIndicator(tagRunner, timePoster,
-        new WisetimeConnectorHealthIndicator(wiseTimeConnector));
+    healthRunner.addHealthIndicator(tagRunner, timePoster, new WisetimeConnectorHealthIndicator(wiseTimeConnector));
+    healthCheckTimer = new Timer("health-check-timer", false);
+    tagTimer = new Timer("tag-check-timer", true);
   }
 
   /**
@@ -74,46 +78,48 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
    */
   @Override
   public void start() throws Exception {
-    healthRunner.setShutdownFunction(Thread.currentThread()::interrupt);
-    Timer healthCheckTimer = new Timer("health-check-timer", false);
-    Timer tagTimer = new Timer("tag-check-timer", true);
+    if (status != Status.STOPPED) {
+      log.warn("Cannot start the connector while it is still running. Start attempt ignored.");
+      return;
+    }
+    status = Status.STARTING;
 
-    initWiseTimeConnector();
-    timePoster.start();
+    if (initWiseTimeConnector()) {
+      timePoster.start();
+      healthRunner.setShutdownFunction(Thread.currentThread()::interrupt);
+      healthCheckTimer
+          .scheduleAtFixedRate(healthRunner, TimeUnit.SECONDS.toMillis(5), TimeUnit.SECONDS.toMillis(3));
+      tagTimer
+          .scheduleAtFixedRate(tagRunner, TimeUnit.SECONDS.toMillis(15), TimeUnit.MINUTES.toMillis(5));
+      status = Status.STARTED;
 
-    healthCheckTimer.scheduleAtFixedRate(healthRunner, TimeUnit.SECONDS.toMillis(5), TimeUnit.SECONDS.toMillis(3));
-
-    // TODO(Dev) this should run in executor to prevent thread exhaustion
-    tagTimer.scheduleAtFixedRate(tagRunner, TimeUnit.SECONDS.toMillis(15), TimeUnit.MINUTES.toMillis(5));
-
-    while (timePoster.isRunning()) {
-      try {
-        Thread.sleep(2000);
-      } catch (InterruptedException e) {
-        break;
+      while (timePoster.isRunning()) {
+        try {
+          Thread.sleep(2000);
+        } catch (InterruptedException e) {
+          break;
+        }
       }
+      stop();
     }
-    healthCheckTimer.cancel();
-    healthCheckTimer.purge();
-    tagTimer.cancel();
-    tagTimer.purge();
-    try {
-      timePoster.stop();
-    } catch (Exception e) {
-      log.warn("Failed to stop time poster runner", e);
-    }
-    wiseTimeConnector.shutdown();
   }
 
   @Override
   public void stop() {
-    healthRunner.cancel();
+    status = Status.STOPPING;
     try {
+      healthRunner.cancel();
+      healthCheckTimer.cancel();
+      healthCheckTimer.purge();
+      tagTimer.cancel();
+      tagTimer.purge();
       timePoster.stop();
     } catch (Exception e) {
-      log.error("Exception while stopping the connector", e);
+      log.warn("There was an error while stopping the connector", e);
+    } finally {
+      wiseTimeConnector.shutdown();
+      status = Status.STOPPED;
     }
-    wiseTimeConnector.shutdown();
   }
 
   @Override
@@ -126,11 +132,19 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     return metricService.getMetrics();
   }
 
-  // Visible for testing
-  void initWiseTimeConnector() {
-    wiseTimeConnector.init(connectorModule);
+  private boolean initWiseTimeConnector() {
+    try {
+      wiseTimeConnector.init(connectorModule);
+      return true;
+    } catch (Exception e) {
+      if (status == Status.STOPPING) {
+        log.debug("Connector initialisation aborted. Connector is stopping.", e);
+      } else {
+        log.error("Failed to initialise the connector", e);
+      }
+      return false;
+    }
   }
-
 
   private TimePoster createTimePoster(ConnectorControllerConfiguration configuration,
                                       ApiClient apiClient,
@@ -157,4 +171,10 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     }
   }
 
+  private enum Status {
+    STARTING,
+    STARTED,
+    STOPPING,
+    STOPPED
+  }
 }
