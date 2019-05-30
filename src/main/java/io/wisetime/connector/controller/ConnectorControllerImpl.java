@@ -64,7 +64,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     timePoster = createTimePoster(configuration, apiClient, sqLiteHelper);
 
     tagRunner = new TagRunner(wiseTimeConnector);
-    healthRunner.setShutdownFunction(Thread.currentThread()::interrupt);
+    healthRunner.setShutdownFunction(() -> Thread.currentThread().interrupt());
     healthRunner.addHealthIndicator(tagRunner, timePoster, new WisetimeConnectorHealthIndicator(wiseTimeConnector));
     healthCheckTimer = new Timer("health-check-timer", false);
     tagTimer = new Timer("tag-check-timer", true);
@@ -118,8 +118,8 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
       log.warn("There was an error while stopping the connector", e);
     } finally {
       wiseTimeConnector.shutdown();
+      status = Status.STOPPED;
     }
-    status = Status.STOPPED;
   }
 
   @Override
