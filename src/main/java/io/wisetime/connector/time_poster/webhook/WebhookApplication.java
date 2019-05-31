@@ -120,7 +120,7 @@ class WebhookApplication implements SparkApplication {
       log.error("Unhandled exception requesting " + req.pathInfo(), ex);
       res.status(500);
       res.type("plain/text");
-      res.body("Unexpected error");
+      res.body(UNEXPECTED_ERROR);
     });
   }
 
