@@ -67,8 +67,6 @@ public class LocalAdapterCW implements LoggingBridge {
     awsLogWrapper.writer().ifPresent(awsLog -> {
       processLogEntries(awsLog, awsLogWrapper.getLogStreamName());
     });
-
-    throw new UnsupportedOperationException();
   }
 
   /**
