@@ -57,7 +57,7 @@ public class LogbackConfigurator {
       thresholdFilter.setExcludedLogPrefixList("io.wisetime.");
       thresholdFilter.setLevel(Level.WARN.toString());
       localConfigAppender.addFilter(thresholdFilter);
-
+      localConfigAppender.start();
       return Optional.of(localConfigAppender);
     } catch (Throwable throwable) {
       log.warn(throwable.getMessage(), throwable);
