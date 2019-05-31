@@ -190,8 +190,8 @@ test {
 
 ext.jacocoLimits = [
         'instruction': 70,
-        'line'       : 69,
-        'method'     : 69,
+        'line'       : 70,
+        'method'     : 70,
         'class'      : 80
 ]
 

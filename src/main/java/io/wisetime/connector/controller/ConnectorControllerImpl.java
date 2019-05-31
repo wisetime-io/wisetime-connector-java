@@ -11,6 +11,7 @@ import io.wisetime.connector.ConnectorController;
 import io.wisetime.connector.ConnectorModule;
 import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.api_client.ApiClient;
+import io.wisetime.connector.config.TolerantObjectMapper;
 import io.wisetime.connector.datastore.FileStore;
 import io.wisetime.connector.datastore.SQLiteHelper;
 import io.wisetime.connector.health.HealthCheck;
@@ -161,6 +162,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
       case WEBHOOK:
         return new WebhookTimePoster(
             configuration.getWebhookPort(),
+            TolerantObjectMapper.create(),
             wiseTimeConnector,
             metricService);
       case TAGS_ONLY:
