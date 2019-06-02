@@ -6,8 +6,6 @@ package io.wisetime.connector.time_poster.long_polling;
 
 import org.apache.commons.lang3.tuple.Pair;
 import org.joda.time.DateTime;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Timer;
@@ -22,6 +20,7 @@ import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.health.HealthIndicator;
 import io.wisetime.generated.connect.TimeGroupStatus;
+import lombok.extern.slf4j.Slf4j;
 
 import static io.wisetime.connector.time_poster.long_polling.TimeGroupIdStore.PERMANENT_FAILURE_AND_SENT;
 import static io.wisetime.connector.time_poster.long_polling.TimeGroupIdStore.SUCCESS_AND_SENT;
@@ -29,9 +28,9 @@ import static io.wisetime.connector.time_poster.long_polling.TimeGroupIdStore.SU
 /**
  * @author pascal.filippi@gmail.com
  */
+@Slf4j
 public class TimeGroupStatusUpdater extends TimerTask implements HealthIndicator {
 
-  private static final Logger log = LoggerFactory.getLogger(TimeGroupStatusUpdater.class);
   private static final int MAX_MINS_SINCE_SUCCESS = 10;
   private final TimeGroupIdStore timeGroupIdStore;
   private final ApiClient apiClient;
@@ -59,7 +58,7 @@ public class TimeGroupStatusUpdater extends TimerTask implements HealthIndicator
         }
         lastSuccessfulRun.set(DateTime.now());
       } catch (Exception e) {
-        log.error(e.getMessage(), e);
+        log.error("Failed to update time group status", e);
       } finally {
         // ensure lock is released
         runLock.set(false);

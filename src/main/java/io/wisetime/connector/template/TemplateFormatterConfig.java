@@ -54,7 +54,6 @@ public class TemplateFormatterConfig {
     return new Builder().build();
   }
 
-
   /**
    * @return whether or not use Windows-style CLR (\r\n) instead of \n.
    */

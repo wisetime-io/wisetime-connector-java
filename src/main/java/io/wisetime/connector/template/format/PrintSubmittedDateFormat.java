@@ -11,20 +11,19 @@ import freemarker.template.TemplateNumberModel;
 
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import lombok.extern.slf4j.Slf4j;
 
 /**
- * Freemarker formatter to convert {@link io.wisetime.generated.connect.TimeRow#submittedDate} to human readable string.
+ * Freemarker formatter to convert {@link io.wisetime.generated.connect.TimeRow#getSubmittedDate()} to human readable string.
  * To print hour:minutes use ${timeRow.getSubmittedDate()?string.@printSubmittedDate_HH\:mm}. You can set own date pattern.
  * See {@link DateTimeFormat} for pattern syntax.
  *
  * @author vadym
  */
+@Slf4j
 public class PrintSubmittedDateFormat extends TemplateNumberFormat {
 
-  private static final Logger log = LoggerFactory.getLogger(PrintSubmittedDateFormat.class);
   private static final DateTimeFormatter SUBMITTED_TIME_FOMATTER = DateTimeFormat.forPattern("yyyyMMddHHmmssSSS");
   private final DateTimeFormatter outputFormatter;
 

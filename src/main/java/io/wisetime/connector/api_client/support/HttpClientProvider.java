@@ -61,7 +61,7 @@ class HttpClientProvider {
         sslcontext.init(null, null, null);
         ssl = new SSLConnectionSocketFactory(sslcontext);
       } catch (Exception except) {
-        log.error(except.getMessage(), except);
+        log.error("Failed to initialise SSL context", except);
       }
     }
 

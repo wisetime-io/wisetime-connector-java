@@ -4,9 +4,6 @@
 
 package io.wisetime.connector.health;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -15,6 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.config.ConnectorConfigKey;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Task that will automatically stop application after 3 consecutive health check failures. Application considered to be
@@ -28,9 +26,8 @@ import io.wisetime.connector.config.ConnectorConfigKey;
  *
  * @author thomas.haines@practiceinsight.io
  */
+@Slf4j
 public class HealthCheck extends TimerTask {
-
-  private static final Logger log = LoggerFactory.getLogger(HealthCheck.class);
 
   // visible for testing
   static final int MAX_SUCCESSIVE_FAILURES = 3;
@@ -54,7 +51,7 @@ public class HealthCheck extends TimerTask {
       // increment fail count, and if more than {@link HealthCheck#MAX_SUCCESSIVE_FAILURES} successive errors,
       // call shutdown function
       if (failureCount.incrementAndGet() >= MAX_SUCCESSIVE_FAILURES) {
-        log.error("After {} successive errors, VM is assumed unhealthy, exiting", MAX_SUCCESSIVE_FAILURES);
+        log.error("After {} successive errors, Connector assumed to be unhealthy, stopping now", MAX_SUCCESSIVE_FAILURES);
         shutdownFunction.run();
       } else {
         log.warn("Number of successive health failures={}", failureCount.get());
@@ -73,8 +70,7 @@ public class HealthCheck extends TimerTask {
       }
       return allHealthy;
     } catch (Throwable t) {
-      log.error("Unhealthy state where exception occurred checking health, returning unhealthy; msg='{}'",
-          t.getMessage(), t);
+      log.error("Unhealthy state where exception occurred checking health, returning unhealthy", t);
       return false;
     }
   }

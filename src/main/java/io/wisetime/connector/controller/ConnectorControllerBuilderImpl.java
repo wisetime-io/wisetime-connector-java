@@ -25,7 +25,6 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
   @Getter
   private boolean forcePersistentStorage = false;
   private int fetchClientFetchLimit = 25;
-  private int longPollingThreads = 2;
   @Getter
   private WiseTimeConnector wiseTimeConnector;
   @Getter

@@ -74,7 +74,7 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
     while (!Thread.currentThread().isInterrupted()) {
       try {
         final List<TimeGroup> fetchedTimeGroups = apiClient.fetchTimeGroups(timeGroupsFetchLimit);
-        log.info("Received {} time groups in Thread {}.", fetchedTimeGroups.size(), Thread.currentThread().getName());
+        log.debug("Received {} for time posing", fetchedTimeGroups);
 
         for (TimeGroup timeGroup : fetchedTimeGroups) {
           if (!timeGroupAlreadyProcessed(timeGroup)) {
@@ -99,7 +99,7 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
         }
         lastSuccessfulRun.set(DateTime.now());
       } catch (Exception e) {
-        log.error("Error while fetching new time group", e);
+        log.error("Error while fetching new time groups", e);
       }
     }
   }

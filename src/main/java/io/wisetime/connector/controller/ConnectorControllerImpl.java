@@ -16,7 +16,7 @@ import io.wisetime.connector.datastore.FileStore;
 import io.wisetime.connector.datastore.SQLiteHelper;
 import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.health.HealthIndicator;
-import io.wisetime.connector.health.WisetimeConnectorHealthIndicator;
+import io.wisetime.connector.health.WiseTimeConnectorHealthIndicator;
 import io.wisetime.connector.log.LogbackConfigurator;
 import io.wisetime.connector.metric.ApiClientMetricWrapper;
 import io.wisetime.connector.metric.MetricInfo;
@@ -65,7 +65,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     timePoster = createTimePoster(configuration, apiClient, sqLiteHelper);
 
     tagRunner = new TagRunner(wiseTimeConnector);
-    healthRunner.addHealthIndicator(tagRunner, timePoster, new WisetimeConnectorHealthIndicator(wiseTimeConnector));
+    healthRunner.addHealthIndicator(tagRunner, timePoster, new WiseTimeConnectorHealthIndicator(wiseTimeConnector));
     healthCheckTimer = new Timer("health-check-timer", false);
     tagTimer = new Timer("tag-check-timer", true);
   }
