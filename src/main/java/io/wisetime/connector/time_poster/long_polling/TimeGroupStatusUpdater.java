@@ -84,6 +84,7 @@ public class TimeGroupStatusUpdater extends TimerTask implements HealthIndicator
 
   private void updateTimeGroupStatus(String timeGroupId, PostResult result) {
     try {
+      log.info("Processed time group {}, result:", timeGroupId, result);
       // TRANSIENT_FAILURE doesn't need to be handled.
       // simply sending no update is considered a transient failure after a certain timeout
       switch (result.getStatus()) {
