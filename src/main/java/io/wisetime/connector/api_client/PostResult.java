@@ -8,12 +8,15 @@ import com.google.common.base.Preconditions;
 
 import java.util.Optional;
 
+import lombok.ToString;
+
 /**
  * Indicator of posted time status.
  *
  * @author thomas.haines@practiceinsight.io
  * @author shane.xie@practiceinsight.io
  */
+@ToString
 public class PostResult {
 
   private final PostResultStatus status;

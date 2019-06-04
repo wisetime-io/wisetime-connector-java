@@ -8,19 +8,14 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
-import java.util.Optional;
-import java.util.function.BiConsumer;
-import java.util.stream.Collectors;
 
 import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.metric.MetricService;
-import io.wisetime.generated.connect.Tag;
 import io.wisetime.generated.connect.TimeGroup;
 import spark.ExceptionHandler;
 import spark.ExceptionHandlerImpl;
@@ -31,7 +26,6 @@ import spark.Response;
 import spark.servlet.SparkApplication;
 import spark.template.thymeleaf.ThymeleafTemplateEngine;
 
-import static io.wisetime.connector.api_client.PostResult.PostResultStatus;
 import static spark.Spark.get;
 import static spark.Spark.post;
 import static spark.Spark.staticFileLocation;
@@ -88,8 +82,9 @@ class WebhookApplication implements SparkApplication {
 
     post("/receiveTimePostedEvent", (request, response) -> {
       final TimeGroup timeGroup = om.readValue(request.body(), TimeGroup.class);
+      log.debug("Received {} for posting time", timeGroup);
       final PostResult postResult = wiseTimeConnector.postTime(request, timeGroup);
-      log(timeGroup, postResult);
+      log.info("Posted time group {}, result: {}", timeGroup.getGroupId(), postResult);
 
       response.type("plain/text");
       response.status(postResult.getStatus().getStatusCode());
@@ -117,7 +112,7 @@ class WebhookApplication implements SparkApplication {
     exception(JsonParseException.class, badRequestHandler);
     exception(JsonMappingException.class, badRequestHandler);
     exception(Exception.class, (ex, req, res) -> {
-      log.error("Unhandled exception requesting " + req.pathInfo(), ex);
+      log.error("Unhandled exception requesting {}", req.pathInfo(), ex);
       res.status(500);
       res.type("plain/text");
       res.body(UNEXPECTED_ERROR);
@@ -142,30 +137,6 @@ class WebhookApplication implements SparkApplication {
     };
 
     ExceptionMapper.getServletInstance().map(exceptionClass, wrapper);
-  }
-
-  private void log(final TimeGroup timeGroup, final PostResult postResult) {
-    final String message = String.format(
-        "[%s] posting time on behalf of [%s] with tags [%s]%s",
-        StringUtils.capitalize(postResult.name().replaceAll("_", " ").toLowerCase()),
-        timeGroup.getUser().getName(),
-        timeGroup.getTags().stream().map(Tag::getName).collect(Collectors.joining(", ")),
-        postResult.getMessage().map(m -> ": " + m).orElse("")
-    );
-
-    final BiConsumer<String, Optional<Throwable>> logError = (description, throwable) -> {
-      if (throwable.isPresent()) {
-        log.error(description, throwable.get());
-      } else {
-        log.error(description);
-      }
-    };
-
-    if (postResult.getStatus() == PostResultStatus.SUCCESS) {
-      log.info(message);
-    } else {
-      logError.accept(message, postResult.getError());
-    }
   }
 
   @Override

@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
  * @author vadym
  */
 @RequiredArgsConstructor
-public class WisetimeConnectorHealthIndicator implements HealthIndicator {
+public class WiseTimeConnectorHealthIndicator implements HealthIndicator {
 
   private final WiseTimeConnector wiseTimeConnector;
 

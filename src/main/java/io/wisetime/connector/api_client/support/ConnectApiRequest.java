@@ -13,21 +13,21 @@ import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
 import org.apache.http.entity.ContentType;
 import org.apache.http.util.EntityUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 import javax.annotation.Nullable;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Encapsulate a conventional http request and add authentication authentication headers
  *
  * @author pascal
  */
+@Slf4j
 public class ConnectApiRequest {
 
-  private static final Logger log = LoggerFactory.getLogger(ConnectApiRequest.class);
   private final HttpMethod method;
   private final String uri;
   private final Authorizer authorizer;

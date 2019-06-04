@@ -11,8 +11,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
 import org.eclipse.jetty.server.Server;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.URI;
@@ -21,16 +19,17 @@ import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.metric.MetricService;
 import io.wisetime.connector.time_poster.TimePoster;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Wrapper around jetty server with spark application.
  *
  * @author pascal.filippi@gmail.com
  */
+@Slf4j
 @RequiredArgsConstructor
 public class WebhookTimePoster implements TimePoster {
 
-  private static final Logger log = LoggerFactory.getLogger(WebhookTimePoster.class);
   private static final int LATENCY_TOLERANCE = 2000;
 
   private final Executor executor = Executor.newInstance();
