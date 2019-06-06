@@ -4,6 +4,8 @@
 
 package io.wisetime.connector.log;
 
+import com.google.common.annotations.VisibleForTesting;
+
 import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
@@ -11,6 +13,7 @@ import com.amazonaws.services.logs.AWSLogsAsync;
 import com.amazonaws.services.logs.AWSLogsAsyncClientBuilder;
 import com.amazonaws.services.logs.model.CreateLogStreamRequest;
 import com.amazonaws.services.logs.model.InputLogEvent;
+import com.amazonaws.services.logs.model.InvalidSequenceTokenException;
 import com.amazonaws.services.logs.model.PutLogEventsRequest;
 import com.amazonaws.services.logs.model.PutLogEventsResult;
 
@@ -94,16 +97,26 @@ public class LocalAdapterCW implements LoggingBridge {
               .collect(Collectors.toList());
 
       // send sorted group to cloud watch
+      putLogs(awsLog, logStreamName, eventListSorted);
+    }
+    return logEventResult.isLimitReached();
+  }
+
+  @VisibleForTesting
+  void putLogs(AWSLogsAsync awsLog, String logStream, List<InputLogEvent> events) {
+    try {
       PutLogEventsResult result = awsLog.putLogEvents(
           new PutLogEventsRequest()
               .withLogGroupName(logGroupName)
-              .withLogStreamName(logStreamName)
-              .withLogEvents(eventListSorted)
-              .withSequenceToken(cloudWatchNextSequenceToken)
-      );
+              .withLogStreamName(logStream)
+              .withLogEvents(events)
+              .withSequenceToken(cloudWatchNextSequenceToken));
       cloudWatchNextSequenceToken = result.getNextSequenceToken();
+    } catch (InvalidSequenceTokenException e) {
+      System.err.println("Invalid AWS sequence token detected");
+      cloudWatchNextSequenceToken = e.getExpectedSequenceToken();
+      putLogs(awsLog, logStream, events);
     }
-    return logEventResult.isLimitReached();
   }
 
   private AWSLogsWrapper createLocalConfigLogger() {
