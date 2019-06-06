@@ -29,7 +29,7 @@ class LocalAdapterCWTest {
 
 
   @Test
-  void putLogs() {
+  void putLogs_retry() {
     LocalAdapterCW localAdapterCW = Mockito.mock(LocalAdapterCW.class);
     AWSLogsAsync awsLogsAsync = Mockito.mock(AWSLogsAsync.class);
     doCallRealMethod().when(localAdapterCW).putLogs(any(), any(), any());
@@ -48,6 +48,7 @@ class LocalAdapterCWTest {
     InputLogEvent event = new InputLogEvent().withMessage(logMessage).withTimestamp(System.currentTimeMillis());
     localAdapterCW.putLogs(awsLogsAsync, logName, Collections.singletonList(event));
 
+    //retry after InvalidSequenceTokenException
     verify(awsLogsAsync, times(2)).putLogEvents(any());
   }
 }
