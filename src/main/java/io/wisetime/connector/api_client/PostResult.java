@@ -4,11 +4,12 @@
 
 package io.wisetime.connector.api_client;
 
+import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
 
-import java.util.Optional;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
-import lombok.ToString;
+import java.util.Optional;
 
 /**
  * Indicator of posted time status.
@@ -16,7 +17,6 @@ import lombok.ToString;
  * @author thomas.haines@practiceinsight.io
  * @author shane.xie@practiceinsight.io
  */
-@ToString
 public class PostResult {
 
   private final PostResultStatus status;
@@ -92,8 +92,15 @@ public class PostResult {
     return Optional.ofNullable(message);
   }
 
-  public Optional<Throwable> getError() {
-    return Optional.ofNullable(error);
+  @Override
+  public String toString() {
+    MoreObjects.ToStringHelper helper = MoreObjects.toStringHelper(this)
+        .add("status", status)
+        .add("message", message);
+    if (error != null) {
+      helper.add("error", ExceptionUtils.getStackTrace(error));
+    }
+    return helper.toString();
   }
 
   public enum PostResultStatus {
