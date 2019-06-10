@@ -92,6 +92,10 @@ public class PostResult {
     return Optional.ofNullable(message);
   }
 
+  public Optional<Throwable> getError() {
+    return Optional.ofNullable(error);
+  }
+
   @Override
   public String toString() {
     MoreObjects.ToStringHelper helper = MoreObjects.toStringHelper(this)
