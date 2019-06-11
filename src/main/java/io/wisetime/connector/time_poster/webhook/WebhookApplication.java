@@ -5,8 +5,8 @@
 package io.wisetime.connector.time_poster.webhook;
 
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 
 import io.wisetime.connector.WiseTimeConnector;
+import io.wisetime.connector.api_client.JsonPayloadService;
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.metric.MetricService;
 import io.wisetime.generated.connect.TimeGroup;
@@ -40,17 +41,20 @@ import static spark.Spark.stop;
 class WebhookApplication implements SparkApplication {
 
   private static final Logger log = LoggerFactory.getLogger(WebhookApplication.class);
+
   static final String PING_RESPONSE = "pong";
   static final String UNEXPECTED_ERROR = "Unexpected error";
+  static final String MESSAGE_KEY = "message";
 
-  private final ObjectMapper om;
+  private final JsonPayloadService payloadService;
   private final WiseTimeConnector wiseTimeConnector;
   private final MetricService metricService;
 
-  WebhookApplication(ObjectMapper objectMapper, WiseTimeConnector wiseTimeConnector, MetricService metricService) {
+  WebhookApplication(JsonPayloadService payloadService,
+                     WiseTimeConnector wiseTimeConnector, MetricService metricService) {
+    this.payloadService = payloadService;
     this.wiseTimeConnector = wiseTimeConnector;
     this.metricService = metricService;
-    om = objectMapper;
   }
 
   @Override
@@ -73,7 +77,7 @@ class WebhookApplication implements SparkApplication {
 
     get("/metric", (rq, rs) -> {
       rs.type("application/json");
-      return om.writeValueAsString(metricService.getMetrics());
+      return payloadService.write(metricService.getMetrics());
     });
 
     if (wiseTimeConnector == null) {
@@ -81,32 +85,37 @@ class WebhookApplication implements SparkApplication {
     }
 
     post("/receiveTimePostedEvent", (request, response) -> {
-      final TimeGroup timeGroup = om.readValue(request.body(), TimeGroup.class);
+      final TimeGroup timeGroup = payloadService.read(request.body(), TimeGroup.class);
       log.debug("Received {} for posting time", timeGroup);
       final PostResult postResult = wiseTimeConnector.postTime(request, timeGroup);
       log.info("Posted time group {}, result: {}", timeGroup.getGroupId(), postResult);
 
-      response.type("plain/text");
+      response.type("application/json");
       response.status(postResult.getStatus().getStatusCode());
-      switch (postResult.getStatus()) {
-        case SUCCESS:
-          return "Success";
-        case PERMANENT_FAILURE:
-        case TRANSIENT_FAILURE:
-          return postResult.getMessage().orElse(UNEXPECTED_ERROR);
-        default:
-          log.warn("Unexpected posting time result: {}", postResult.getStatus());
-          return UNEXPECTED_ERROR;
-      }
+      String message = getMessageBasedOnResult(postResult);
+      return payloadService.writeWithInfo(MESSAGE_KEY, message);
     });
+  }
+
+  private String getMessageBasedOnResult(PostResult postResult) {
+    switch (postResult.getStatus()) {
+      case SUCCESS:
+        return "Success";
+      case PERMANENT_FAILURE:
+      case TRANSIENT_FAILURE:
+        return postResult.getMessage().orElse(UNEXPECTED_ERROR);
+      default:
+        log.warn("Unexpected posting time result: {}", postResult.getStatus());
+        return UNEXPECTED_ERROR;
+    }
   }
 
   private void addExceptionMapping() {
     ExceptionHandler<Exception> badRequestHandler = (ex, req, res) -> {
       log.error("Invalid request to {} with error {}", req.pathInfo(), ex.getMessage());
       res.status(400);
-      res.type("plain/text");
-      res.body("Invalid request");
+      res.type("application/json");
+      res.body(createErrorPayload("Invalid request"));
     };
 
     exception(JsonParseException.class, badRequestHandler);
@@ -114,9 +123,18 @@ class WebhookApplication implements SparkApplication {
     exception(Exception.class, (ex, req, res) -> {
       log.error("Unhandled exception requesting {}", req.pathInfo(), ex);
       res.status(500);
-      res.type("plain/text");
-      res.body(UNEXPECTED_ERROR);
+      res.type("application/json");
+      res.body(createErrorPayload(UNEXPECTED_ERROR));
     });
+  }
+
+  private String createErrorPayload(String errorMessage) {
+    try {
+      return payloadService.writeWithInfo(MESSAGE_KEY, errorMessage);
+    } catch (JsonProcessingException e) {
+      log.error("Couldn't create response payload", e);
+      return String.format("{\"%s\":%s}", MESSAGE_KEY, errorMessage);
+    }
   }
 
   /**
