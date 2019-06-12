@@ -72,6 +72,18 @@ steps:
         - refs/heads/master
         - refs/tags/*
 
+  - name: notify
+    image: drillster/drone-email
+    settings:
+      host: email-smtp.us-east-1.amazonaws.com
+      username:
+        from_secret: smtp-user
+      from: drone-notify@practiceinsight.io
+      password:
+        from_secret: smtp-password
+    when:
+      status: failure
+
   - name: cascade-to-bamboo
     image: quay.io/wt-build-support/alpine-git-bash
     environment:
@@ -156,3 +168,17 @@ name: bamboo-pass
 get:
   path: drone/bamboo/trigger
   name: bamboo-pass
+
+---
+kind: secret
+name: smtp-password
+get:
+  path: drone/notify/smtp
+  name: password
+
+---
+kind: secret
+name: smtp-user
+get:
+  path: drone/notify/smtp
+  name: user
