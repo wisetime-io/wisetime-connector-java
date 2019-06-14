@@ -46,7 +46,7 @@ public class TagRunner extends TimerTask implements HealthIndicator {
     if (runLock.compareAndSet(false, true)) {
       try {
         connector.performTagUpdate();
-        lastSuccessfulRun = DateTime.now();
+        onSuccessfulTagUpload();
       } catch (Exception e) {
         LoggerFactory.getLogger(connector.getClass()).error(e.getMessage(), e);
       } finally {
@@ -56,6 +56,10 @@ public class TagRunner extends TimerTask implements HealthIndicator {
     } else {
       log.info("Skip tag runner timer instantiation, previous tag upload process is yet to complete");
     }
+  }
+
+  public void onSuccessfulTagUpload() {
+    lastSuccessfulRun = DateTime.now();
   }
 
   @Override

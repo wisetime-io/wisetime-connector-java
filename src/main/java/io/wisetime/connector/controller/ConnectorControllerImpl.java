@@ -4,6 +4,7 @@
 
 package io.wisetime.connector.controller;
 
+import io.wisetime.connector.tag.ApiClientTagWrapper;
 import java.util.Timer;
 import java.util.concurrent.TimeUnit;
 
@@ -54,7 +55,9 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     healthRunner = new HealthCheck();
     metricService = new MetricService();
     wiseTimeConnector = new WiseTimeConnectorMetricWrapper(configuration.getWiseTimeConnector(), metricService);
+    tagRunner = new TagRunner(wiseTimeConnector);
     ApiClient apiClient = new ApiClientMetricWrapper(configuration.getApiClient(), metricService);
+    apiClient = new ApiClientTagWrapper(apiClient, tagRunner);
 
     // add base runtime logging to standard logging output
     LogbackConfigurator.configureBaseLogging(apiClient);
@@ -64,7 +67,6 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
 
     timePoster = createTimePoster(configuration, apiClient, sqLiteHelper);
 
-    tagRunner = new TagRunner(wiseTimeConnector);
     healthRunner.addHealthIndicator(tagRunner, timePoster, new WiseTimeConnectorHealthIndicator(wiseTimeConnector));
     healthCheckTimer = new Timer("health-check-timer", false);
     tagTimer = new Timer("tag-check-timer", true);
