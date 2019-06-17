@@ -10,6 +10,8 @@
         </encoder>
     </appender>
 
+    <logger name="com.zaxxer.hikari.util.DriverDataSource" level="DEBUG"/>
+
     <root level="INFO" additivity="false">
         <appender-ref ref="STDOUT"/>
     </root>
