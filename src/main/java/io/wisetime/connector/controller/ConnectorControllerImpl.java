@@ -12,7 +12,10 @@ import io.wisetime.connector.ConnectorController;
 import io.wisetime.connector.ConnectorModule;
 import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.api_client.ApiClient;
+import io.wisetime.connector.api_client.JsonPayloadService;
 import io.wisetime.connector.config.TolerantObjectMapper;
+import io.wisetime.connector.config.info.ConnectorInfoProvider;
+import io.wisetime.connector.config.info.ConstantConnectorInfoProvider;
 import io.wisetime.connector.datastore.FileStore;
 import io.wisetime.connector.datastore.SQLiteHelper;
 import io.wisetime.connector.health.HealthCheck;
@@ -65,7 +68,8 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     final SQLiteHelper sqLiteHelper = new SQLiteHelper(configuration.isForcePersistentStorage());
     connectorModule = new ConnectorModule(apiClient, new FileStore(sqLiteHelper));
 
-    timePoster = createTimePoster(configuration, apiClient, sqLiteHelper);
+    final ConnectorInfoProvider connectorInfoProvider = new ConstantConnectorInfoProvider();
+    timePoster = createTimePoster(configuration, apiClient, sqLiteHelper, connectorInfoProvider);
 
     healthRunner.addHealthIndicator(tagRunner, timePoster, new WiseTimeConnectorHealthIndicator(wiseTimeConnector));
     healthCheckTimer = new Timer("health-check-timer", false);
@@ -151,7 +155,8 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
 
   private TimePoster createTimePoster(ConnectorControllerConfiguration configuration,
                                       ApiClient apiClient,
-                                      SQLiteHelper sqLiteHelper) {
+                                      SQLiteHelper sqLiteHelper,
+                                      ConnectorInfoProvider connectorInfoProvider) {
     final ConnectorControllerBuilderImpl.LaunchMode launchMode = configuration.getLaunchMode();
     switch (launchMode) {
       case LONG_POLL:
@@ -164,7 +169,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
       case WEBHOOK:
         return new WebhookTimePoster(
             configuration.getWebhookPort(),
-            TolerantObjectMapper.create(),
+            new JsonPayloadService(connectorInfoProvider, TolerantObjectMapper.create()),
             wiseTimeConnector,
             metricService);
       case TAGS_ONLY:

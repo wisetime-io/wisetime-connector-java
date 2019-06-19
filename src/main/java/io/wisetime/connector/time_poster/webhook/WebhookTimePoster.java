@@ -6,8 +6,6 @@ package io.wisetime.connector.time_poster.webhook;
 
 import com.google.common.annotations.VisibleForTesting;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
 import org.eclipse.jetty.server.Server;
@@ -16,6 +14,7 @@ import java.io.IOException;
 import java.net.URI;
 
 import io.wisetime.connector.WiseTimeConnector;
+import io.wisetime.connector.api_client.JsonPayloadService;
 import io.wisetime.connector.metric.MetricService;
 import io.wisetime.connector.time_poster.TimePoster;
 import lombok.RequiredArgsConstructor;
@@ -36,9 +35,9 @@ public class WebhookTimePoster implements TimePoster {
 
   private final Server server;
 
-  public WebhookTimePoster(int port, ObjectMapper objectMapper,
+  public WebhookTimePoster(int port, JsonPayloadService payloadService,
                            WiseTimeConnector wiseTimeConnector, MetricService metricService) {
-    WebhookApplication webhookApplication = new WebhookApplication(objectMapper, wiseTimeConnector, metricService);
+    WebhookApplication webhookApplication = new WebhookApplication(payloadService, wiseTimeConnector, metricService);
     server = new SparkWebApp(port, webhookApplication).getServer();
   }
 
