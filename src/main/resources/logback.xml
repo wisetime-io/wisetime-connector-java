@@ -10,6 +10,7 @@
         </encoder>
     </appender>
 
+    <logger name="com.zaxxer.hikari.pool.ProxyConnection" level="ERROR"/>
     <logger name="com.zaxxer.hikari.util.DriverDataSource" level="DEBUG"/>
 
     <root level="INFO" additivity="false">
