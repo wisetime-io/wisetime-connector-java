@@ -4,10 +4,6 @@
 
 package io.wisetime.connector.controller;
 
-import io.wisetime.connector.tag.ApiClientTagWrapper;
-import java.util.Timer;
-import java.util.concurrent.TimeUnit;
-
 import io.wisetime.connector.ConnectorController;
 import io.wisetime.connector.ConnectorModule;
 import io.wisetime.connector.WiseTimeConnector;
@@ -23,11 +19,15 @@ import io.wisetime.connector.metric.ApiClientMetricWrapper;
 import io.wisetime.connector.metric.MetricInfo;
 import io.wisetime.connector.metric.MetricService;
 import io.wisetime.connector.metric.WiseTimeConnectorMetricWrapper;
+import io.wisetime.connector.tag.ApiClientTagWrapper;
 import io.wisetime.connector.tag.TagRunner;
 import io.wisetime.connector.time_poster.NoOpTimePoster;
 import io.wisetime.connector.time_poster.TimePoster;
 import io.wisetime.connector.time_poster.long_polling.FetchClientTimePoster;
 import io.wisetime.connector.time_poster.webhook.WebhookTimePoster;
+import java.util.Timer;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -36,6 +36,7 @@ import lombok.extern.slf4j.Slf4j;
  *
  * @author thomas.haines
  * @author pascal.filippi
+ * @author shane.xie
  */
 @Slf4j
 @RequiredArgsConstructor
@@ -49,7 +50,9 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
   private final MetricService metricService;
   private final Timer healthCheckTimer;
   private final Timer tagTimer;
-  private Status status = Status.STOPPED;
+
+  // Awaitable, cancellable connector run
+  private CompletableFuture<Void> connectorRun;
 
   public ConnectorControllerImpl(ConnectorControllerConfiguration configuration) {
     healthRunner = new HealthCheck();
@@ -70,6 +73,10 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     healthRunner.addHealthIndicator(tagRunner, timePoster, new WiseTimeConnectorHealthIndicator(wiseTimeConnector));
     healthCheckTimer = new Timer("health-check-timer", false);
     tagTimer = new Timer("tag-check-timer", true);
+
+    // Connector is initially in stopped state
+    connectorRun = new CompletableFuture<>();
+    connectorRun.complete(null);
   }
 
   /**
@@ -81,35 +88,56 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
    */
   @Override
   public void start() throws Exception {
-    if (status != Status.STOPPED) {
+    if (!connectorRun.isDone()) {
       log.warn("Cannot start the connector while it is still running. Start attempt ignored.");
       return;
     }
-    status = Status.STARTING;
 
-    if (initWiseTimeConnector()) {
-      timePoster.start();
-      healthRunner.setShutdownFunction(Thread.currentThread()::interrupt);
-      healthCheckTimer
-          .scheduleAtFixedRate(healthRunner, TimeUnit.SECONDS.toMillis(5), TimeUnit.SECONDS.toMillis(3));
-      tagTimer
-          .scheduleAtFixedRate(tagRunner, TimeUnit.SECONDS.toMillis(15), TimeUnit.MINUTES.toMillis(5));
-      status = Status.STARTED;
+    connectorRun = CompletableFuture
+        .supplyAsync(() -> {
+          // Init may take a while to complete if connector runs self checks
+          wiseTimeConnector.init(connectorModule);
 
-      while (timePoster.isRunning()) {
-        try {
-          Thread.sleep(2000);
-        } catch (InterruptedException e) {
-          break;
-        }
+          try {
+            timePoster.start();
+          } catch (Exception e) {
+            throw new RuntimeException(e);
+          }
+
+          healthRunner.setShutdownFunction(() -> connectorRun.cancel(true));
+
+          healthCheckTimer.scheduleAtFixedRate(
+              healthRunner, TimeUnit.SECONDS.toMillis(5), TimeUnit.SECONDS.toMillis(3)
+          );
+          tagTimer.scheduleAtFixedRate(
+              tagRunner, TimeUnit.SECONDS.toMillis(15), TimeUnit.MINUTES.toMillis(5)
+          );
+
+          while (timePoster.isRunning()) {
+            try {
+              Thread.sleep(1000);
+            } catch (InterruptedException e) {
+              break;
+            }
+          }
+          stop();
+          return null;
+        });
+
+    // Block until stopped
+    try {
+      connectorRun.get();
+    } catch (Exception e) {
+      // Suppress errors during connector shutdown
+      if (!connectorRun.isDone()) {
+        throw e;
       }
-      stop();
     }
+    log.info("Connector stopped");
   }
 
   @Override
   public void stop() {
-    status = Status.STOPPING;
     try {
       healthRunner.cancel();
       healthCheckTimer.cancel();
@@ -121,7 +149,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
       log.warn("There was an error while stopping the connector", e);
     } finally {
       wiseTimeConnector.shutdown();
-      status = Status.STOPPED;
+      connectorRun.cancel(true);
     }
   }
 
@@ -133,20 +161,6 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
   @Override
   public MetricInfo getMetrics() {
     return metricService.getMetrics();
-  }
-
-  private boolean initWiseTimeConnector() {
-    try {
-      wiseTimeConnector.init(connectorModule);
-      return true;
-    } catch (Exception e) {
-      if (status == Status.STOPPING) {
-        log.debug("Connector initialisation aborted. Connector is stopping.", e);
-      } else {
-        log.error("Failed to initialise the connector", e);
-      }
-      return false;
-    }
   }
 
   private TimePoster createTimePoster(ConnectorControllerConfiguration configuration,
@@ -173,12 +187,5 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
         log.error("unknown launchMode={}, defaulting to {}", launchMode, NoOpTimePoster.class.getName());
         return new NoOpTimePoster();
     }
-  }
-
-  private enum Status {
-    STARTING,
-    STARTED,
-    STOPPING,
-    STOPPED
   }
 }
