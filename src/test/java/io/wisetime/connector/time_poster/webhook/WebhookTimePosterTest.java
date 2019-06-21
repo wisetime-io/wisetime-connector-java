@@ -20,9 +20,11 @@ import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 
 import io.wisetime.connector.WiseTimeConnector;
+import io.wisetime.connector.api_client.JsonPayloadService;
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.config.RuntimeConfig;
 import io.wisetime.connector.config.TolerantObjectMapper;
+import io.wisetime.connector.config.info.ConnectorInfo;
 import io.wisetime.connector.metric.MetricInfo;
 import io.wisetime.connector.metric.MetricService;
 import io.wisetime.connector.test_util.SparkTestUtil;
@@ -31,7 +33,9 @@ import io.wisetime.connector.test_util.TemporaryFolderExtension;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.User;
 
+import static io.wisetime.connector.api_client.JsonPayloadService.CONNECTOR_INFO_KEY;
 import static io.wisetime.connector.config.ConnectorConfigKey.WEBHOOK_PORT;
+import static io.wisetime.connector.time_poster.webhook.WebhookApplication.MESSAGE_KEY;
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -57,8 +61,10 @@ public class WebhookTimePosterTest {
     WiseTimeConnector mockConnector = mock(WiseTimeConnector.class);
     MetricService metricService = mock(MetricService.class);
     ObjectMapper objectMapper = spy(TolerantObjectMapper.create());
+    final ConnectorInfo connectorInfo = new ConnectorInfo("+08:00");
+    JsonPayloadService payloadService = new JsonPayloadService(() -> connectorInfo, objectMapper);
 
-    Server server = createTestServer(objectMapper, mockConnector, metricService);
+    Server server = createTestServer(payloadService, mockConnector, metricService);
     SparkTestUtil testUtil = new SparkTestUtil(server.getURI().getPort());
 
     SparkTestUtil.UrlResponse pingResponse = testUtil.doMethod("GET", "/ping", null, "plain/text");
@@ -78,6 +84,7 @@ public class WebhookTimePosterTest {
     SparkTestUtil.UrlResponse sucessResponse =
         testUtil.doMethod("POST", "/receiveTimePostedEvent", requestBody, "application/json");
     assertThat(sucessResponse.status).isEqualTo(200);
+    assertThat(sucessResponse.body).contains(CONNECTOR_INFO_KEY);
     clearInvocations(metricService);
 
     // PERMANENT_FAILURE
@@ -90,7 +97,8 @@ public class WebhookTimePosterTest {
     assertThat(permanentFailureResponse.status).isEqualTo(400);
     assertThat(permanentFailureResponse.body)
         .as("Body contains failure message from connector impl")
-        .isEqualTo("Permanent failure message");
+        .contains(CONNECTOR_INFO_KEY)
+        .contains("\""+ MESSAGE_KEY + "\":\"Permanent failure message\"");
     clearInvocations(metricService);
 
     // without failure message
@@ -101,7 +109,8 @@ public class WebhookTimePosterTest {
     assertThat(permanentFailureResponseWithoutMsg.status).isEqualTo(400);
     assertThat(permanentFailureResponseWithoutMsg.body)
         .as("Body contains default failure message")
-        .isEqualTo(WebhookApplication.UNEXPECTED_ERROR);
+        .contains(CONNECTOR_INFO_KEY)
+        .contains("\""+ MESSAGE_KEY + "\":\"" + WebhookApplication.UNEXPECTED_ERROR + "\"");
     clearInvocations(metricService);
 
     // TRANSIENT_FAILURE
@@ -114,7 +123,8 @@ public class WebhookTimePosterTest {
     assertThat(transientFailureResponse.status).isEqualTo(500);
     assertThat(transientFailureResponse.body)
         .as("Body contains failure message from connector impl")
-        .isEqualTo("Transient failure message");
+        .contains(CONNECTOR_INFO_KEY)
+        .contains("\""+ MESSAGE_KEY + "\":\"Transient failure message\"");
     clearInvocations(metricService);
 
     // without failure message
@@ -125,7 +135,8 @@ public class WebhookTimePosterTest {
     assertThat(transientFailureResponseWithoutMsg.status).isEqualTo(500);
     assertThat(transientFailureResponseWithoutMsg.body)
         .as("Body contains default failure message")
-        .isEqualTo(WebhookApplication.UNEXPECTED_ERROR);
+        .contains(CONNECTOR_INFO_KEY)
+        .contains("\""+ MESSAGE_KEY + "\":\"" + WebhookApplication.UNEXPECTED_ERROR + "\"");
     clearInvocations(metricService);
 
     // METRIC
@@ -145,7 +156,9 @@ public class WebhookTimePosterTest {
     SparkTestUtil.UrlResponse uncheckedExceptionResponse =
         testUtil.doMethod("POST", "/receiveTimePostedEvent", requestBody, "application/json");
     assertThat(uncheckedExceptionResponse.status).isEqualTo(500);
-    assertThat(uncheckedExceptionResponse.body).isEqualTo("Unexpected error");
+    assertThat(uncheckedExceptionResponse.body)
+        .contains(CONNECTOR_INFO_KEY)
+        .contains("\""+ MESSAGE_KEY + "\":\"" + WebhookApplication.UNEXPECTED_ERROR + "\"");
     clearInvocations(metricService);
 
     // Invalid request
@@ -153,7 +166,9 @@ public class WebhookTimePosterTest {
     SparkTestUtil.UrlResponse invalidRequestResponse =
         testUtil.doMethod("POST", "/receiveTimePostedEvent", requestBody, "application/json");
     assertThat(invalidRequestResponse.status).isEqualTo(400);
-    assertThat(invalidRequestResponse.body).isEqualTo("Invalid request");
+    assertThat(invalidRequestResponse.body)
+        .contains(CONNECTOR_INFO_KEY)
+        .contains("\""+ MESSAGE_KEY + "\":\"Invalid request\"");
     clearInvocations(metricService);
 
     if (System.getProperty("examine") != null) {
@@ -163,9 +178,9 @@ public class WebhookTimePosterTest {
     }
   }
 
-  private static Server createTestServer(ObjectMapper objectMapper, WiseTimeConnector mockConnector,
+  private static Server createTestServer(JsonPayloadService payloadService, WiseTimeConnector mockConnector,
                                         MetricService metricService) throws Exception {
-    WebhookTimePoster webhookTimePoster = new WebhookTimePoster(0, objectMapper, mockConnector, metricService);
+    WebhookTimePoster webhookTimePoster = new WebhookTimePoster(0, payloadService, mockConnector, metricService);
     webhookTimePoster.start();
     Server server = webhookTimePoster.getServer();
     SparkTestUtil testUtil = new SparkTestUtil(server.getURI().getPort());
