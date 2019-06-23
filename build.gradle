@@ -64,7 +64,7 @@ tasks.openApiGenerate {
     generateModelDocumentation = false
     generateModelTests = false
     verbose = false
-    
+
     onlyIf {
         // only re-generate java files if api_gen folder is missing
         return !new File(getProjectDir().getAbsolutePath() + "/src/gen/java").exists()
@@ -134,7 +134,7 @@ dependencies {
     //  required by AWS SDK to log to logback via slf4j
     compile 'org.slf4j:jcl-over-slf4j:1.7.25'
     compile 'org.slf4j:jul-to-slf4j:1.7.25'
-    
+
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
     compile 'com.fasterxml.jackson.core:jackson-core:2.9.8'
     compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.8'
