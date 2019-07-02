@@ -24,6 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import static io.wisetime.connector.time_poster.long_polling.TimeGroupIdStore.PERMANENT_FAILURE_AND_SENT;
 import static io.wisetime.connector.time_poster.long_polling.TimeGroupIdStore.SUCCESS_AND_SENT;
+import static io.wisetime.connector.time_poster.long_polling.TimeGroupIdStore.TRANSIENT_FAILURE_AND_SENT;
 
 /**
  * @author pascal.filippi@gmail.com
@@ -84,9 +85,7 @@ public class TimeGroupStatusUpdater extends TimerTask implements HealthIndicator
 
   private void updateTimeGroupStatus(String timeGroupId, PostResult result) {
     try {
-      log.info("Processed time group {}, result:", timeGroupId, result);
-      // TRANSIENT_FAILURE doesn't need to be handled.
-      // simply sending no update is considered a transient failure after a certain timeout
+      log.info("Processed time group {}, result: {}", timeGroupId, result);
       switch (result.getStatus()) {
         case SUCCESS:
           apiClient.updatePostedTimeStatus(new TimeGroupStatus()
@@ -101,9 +100,15 @@ public class TimeGroupStatusUpdater extends TimerTask implements HealthIndicator
               .message(result.getMessage().orElse("Unexpected error while posting time")));
           timeGroupIdStore.putTimeGroupId(timeGroupId, PERMANENT_FAILURE_AND_SENT, result.getMessage().orElse(""));
           break;
+        case TRANSIENT_FAILURE:
+          apiClient.updatePostedTimeStatus(new TimeGroupStatus()
+              .status(TimeGroupStatus.StatusEnum.RETRIABLE_FAILURE)
+              .timeGroupId(timeGroupId)
+              .message(result.getMessage().orElse("Unexpected error while posting time")));
+          timeGroupIdStore.putTimeGroupId(timeGroupId, TRANSIENT_FAILURE_AND_SENT, result.getMessage().orElse(""));
+          break;
         default:
-          // do nothing
-          log.debug("TRANSIENT_FAILURE for time group");
+          log.warn("Unknown post result status to update time group status: {}", result.getStatus());
       }
     } catch (Exception e) {
       log.error("Error while updating posted time status.", e);
