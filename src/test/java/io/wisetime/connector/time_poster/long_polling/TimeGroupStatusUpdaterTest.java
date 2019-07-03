@@ -4,25 +4,24 @@
 
 package io.wisetime.connector.time_poster.long_polling;
 
-import com.google.common.collect.ImmutableList;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.clearInvocations;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.github.javafaker.Faker;
-
+import com.google.common.collect.ImmutableList;
+import io.wisetime.connector.api_client.ApiClient;
+import io.wisetime.connector.api_client.PostResult;
+import io.wisetime.connector.api_client.PostResult.PostResultStatus;
+import io.wisetime.generated.connect.TimeGroupStatus;
+import io.wisetime.generated.connect.TimeGroupStatus.StatusEnum;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-
-import io.wisetime.connector.api_client.ApiClient;
-import io.wisetime.connector.api_client.PostResult;
-import io.wisetime.connector.time_poster.long_polling.TimeGroupStatusUpdater;
-import io.wisetime.generated.connect.TimeGroupStatus;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * @author pascal.filippi@gmail.com
@@ -44,17 +43,42 @@ class TimeGroupStatusUpdaterTest {
   }
 
   @Test
-  void testRun() throws Exception {
-    String id = faker.numerify("fc_######");
-    PostResult postResult = PostResult.PERMANENT_FAILURE().withMessage(faker.gameOfThrones().quote());
-    when(timeGroupIdStoreMock.getAllWithPendingStatusUpdate()).thenReturn(ImmutableList.of(Pair.of(id, postResult)));
+  @SuppressWarnings("unchecked")
+  void testRun_updatePostedTimeStatus() throws Exception {
+    when(timeGroupIdStoreMock.getAllWithPendingStatusUpdate()).thenReturn(
+        ImmutableList.of(createPendingStatus(PostResultStatus.PERMANENT_FAILURE, "permanent error")),
+        ImmutableList.of(createPendingStatus(PostResultStatus.TRANSIENT_FAILURE, "transient error")),
+        ImmutableList.of(createPendingStatus(PostResultStatus.SUCCESS)));
+    ArgumentCaptor<TimeGroupStatus> statusCaptor = ArgumentCaptor.forClass(TimeGroupStatus.class);
 
     timeGroupStatusUpdater.run();
 
-    ArgumentCaptor<TimeGroupStatus> statusCaptor = ArgumentCaptor.forClass(TimeGroupStatus.class);
-    verify(apiClientMock, times(1)).updatePostedTimeStatus(statusCaptor.capture());
-
+    verify(apiClientMock).updatePostedTimeStatus(statusCaptor.capture());
     assertThat(statusCaptor.getValue().getStatus()).isEqualTo(TimeGroupStatus.StatusEnum.FAILURE);
-    assertThat(statusCaptor.getValue().getMessage()).isEqualTo(postResult.getMessage().get());
+    assertThat(statusCaptor.getValue().getMessage()).isEqualTo("permanent error");
+
+    clearInvocations(apiClientMock);
+    timeGroupStatusUpdater.run();
+
+    verify(apiClientMock).updatePostedTimeStatus(statusCaptor.capture());
+    assertThat(statusCaptor.getValue().getStatus()).isEqualTo(TimeGroupStatus.StatusEnum.RETRIABLE_FAILURE);
+    assertThat(statusCaptor.getValue().getMessage()).isEqualTo("transient error");
+
+    clearInvocations(apiClientMock);
+    timeGroupStatusUpdater.run();
+
+    verify(apiClientMock).updatePostedTimeStatus(statusCaptor.capture());
+    assertThat(statusCaptor.getValue().getStatus()).isEqualTo(TimeGroupStatus.StatusEnum.SUCCESS);
+    assertThat(statusCaptor.getValue().getMessage()).isNull();
+  }
+
+  private Pair<String, PostResult> createPendingStatus(PostResultStatus status) {
+    return createPendingStatus(status, null);
+  }
+
+  private Pair<String, PostResult> createPendingStatus(PostResultStatus status, String error) {
+    String id = faker.numerify("fc_######");
+    PostResult postResult = PostResult.valueOf(status.name()).withMessage(StringUtils.trimToEmpty(error));
+    return Pair.of(id, postResult);
   }
 }

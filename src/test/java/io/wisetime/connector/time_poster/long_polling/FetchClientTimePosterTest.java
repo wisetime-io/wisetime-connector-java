@@ -108,8 +108,10 @@ class FetchClientTimePosterTest {
     fetchClient.start();
     Thread.sleep(100);
     fetchClient.stop();
+    ArgumentCaptor<TimeGroupStatus> statusCaptor = ArgumentCaptor.forClass(TimeGroupStatus.class);
+    verify(apiClientMock, times(1)).updatePostedTimeStatus(statusCaptor.capture());
 
-    verify(apiClientMock, never()).updatePostedTimeStatus(any());
+    assertThat(statusCaptor.getValue().getStatus()).isEqualTo(TimeGroupStatus.StatusEnum.RETRIABLE_FAILURE);
   }
 
   @Test

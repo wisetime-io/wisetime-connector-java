@@ -28,6 +28,7 @@ class TimeGroupIdStore {
   static final String IN_PROGRESS = "IN_PROGRESS";
   static final String SUCCESS_AND_SENT = "SUCCESS_AND_SENT";
   static final String PERMANENT_FAILURE_AND_SENT = "PERMANENT_FAILURE_AND_SENT";
+  static final String TRANSIENT_FAILURE_AND_SENT = "TRANSIENT_FAILURE_AND_SENT";
   private static final long MAX_IN_PROGRESS_TIME = 5;
 
   private SQLiteHelper sqLiteHelper;

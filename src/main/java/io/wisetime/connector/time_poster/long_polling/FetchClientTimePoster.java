@@ -23,7 +23,7 @@ import io.wisetime.generated.connect.TimeGroup;
 import lombok.extern.slf4j.Slf4j;
 
 import static io.wisetime.connector.time_poster.long_polling.TimeGroupIdStore.IN_PROGRESS;
-import static io.wisetime.connector.time_poster.long_polling.TimeGroupIdStore.PERMANENT_FAILURE_AND_SENT;
+import static io.wisetime.connector.time_poster.long_polling.TimeGroupIdStore.SUCCESS_AND_SENT;
 
 /**
  * Implements a fetch based approach to retrieve time groups.
@@ -74,10 +74,11 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
     while (!Thread.currentThread().isInterrupted()) {
       try {
         final List<TimeGroup> fetchedTimeGroups = apiClient.fetchTimeGroups(timeGroupsFetchLimit);
-        log.debug("Received {} for time posing", fetchedTimeGroups);
+        log.debug("Received {} for time posting", fetchedTimeGroups);
 
         for (TimeGroup timeGroup : fetchedTimeGroups) {
           if (!timeGroupAlreadyProcessed(timeGroup)) {
+            log.debug("Processing time group: {}", timeGroup);
             // save the rows to the DB synchronously
             timeGroupIdStore.putTimeGroupId(timeGroup.getGroupId(), IN_PROGRESS, "");
 
@@ -107,10 +108,11 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
   private boolean timeGroupAlreadyProcessed(TimeGroup timeGroup) {
     Optional<String> timeGroupStatus = timeGroupIdStore.alreadySeen(timeGroup.getGroupId());
     // For any failure state: Allow reprocessing. For SUCCESS and IN_PROGRESS deny reprocessing
-    return timeGroupStatus.filter(s ->
-        !PostResultStatus.TRANSIENT_FAILURE.name().equals(s)
-            && !PostResultStatus.PERMANENT_FAILURE.name().equals(s)
-            && !PERMANENT_FAILURE_AND_SENT.equals(s)).isPresent();
+    return timeGroupStatus.filter(status ->
+        PostResultStatus.SUCCESS.name().equals(status)
+            || SUCCESS_AND_SENT.equals(status)
+            || IN_PROGRESS.equals(status))
+        .isPresent();
   }
 
   public void start() {
