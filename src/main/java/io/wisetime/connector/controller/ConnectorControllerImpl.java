@@ -23,6 +23,7 @@ import io.wisetime.connector.metric.MetricInfo;
 import io.wisetime.connector.metric.MetricService;
 import io.wisetime.connector.metric.WiseTimeConnectorMetricWrapper;
 import io.wisetime.connector.tag.ApiClientTagWrapper;
+import io.wisetime.connector.tag.NoOpTagRunner;
 import io.wisetime.connector.tag.TagRunner;
 import io.wisetime.connector.time_poster.NoOpTimePoster;
 import io.wisetime.connector.time_poster.TimePoster;
@@ -61,7 +62,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     healthRunner = new HealthCheck();
     metricService = new MetricService();
     wiseTimeConnector = new WiseTimeConnectorMetricWrapper(configuration.getWiseTimeConnector(), metricService);
-    tagRunner = new TagRunner(wiseTimeConnector);
+    tagRunner = createTagRunner(configuration, wiseTimeConnector);
     ApiClient apiClient = new ApiClientMetricWrapper(configuration.getApiClient(), metricService);
     apiClient = new ApiClientTagWrapper(apiClient, tagRunner);
 
@@ -171,8 +172,8 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
                                       ApiClient apiClient,
                                       SQLiteHelper sqLiteHelper,
                                       ConnectorInfoProvider connectorInfoProvider) {
-    final ConnectorControllerBuilderImpl.LaunchMode launchMode = configuration.getLaunchMode();
-    switch (launchMode) {
+    final ConnectorControllerBuilderImpl.PostedTimeLoadMode mode = configuration.getPostedTimeLoadMode();
+    switch (mode) {
       case LONG_POLL:
         return new FetchClientTimePoster(
             wiseTimeConnector,
@@ -186,11 +187,23 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
             new JsonPayloadService(connectorInfoProvider, TolerantObjectMapper.create()),
             wiseTimeConnector,
             metricService);
-      case TAGS_ONLY:
+      case DISABLED:
         return new NoOpTimePoster();
       default:
-        log.error("unknown launchMode={}, defaulting to {}", launchMode, NoOpTimePoster.class.getName());
+        log.error("unknown posted time fetch mode={}, defaulting to {}", mode, NoOpTimePoster.class.getName());
         return new NoOpTimePoster();
+    }
+  }
+
+  private TagRunner createTagRunner(ConnectorControllerConfiguration configuration, WiseTimeConnector wiseTimeConnector) {
+    switch (configuration.getTagScanMode()) {
+      case ENABLED:
+        return new TagRunner(wiseTimeConnector);
+      case DISABLED:
+        return new NoOpTagRunner();
+      default:
+        log.error("Unexpected tag runner mode {}. Fallback to ENABLED", configuration.getTagScanMode());
+        return new TagRunner(wiseTimeConnector);
     }
   }
 }
