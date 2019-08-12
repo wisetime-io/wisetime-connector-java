@@ -2,6 +2,7 @@ package io.wisetime.connector.log;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import io.wisetime.generated.connect.ManagedConfigResponse;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
@@ -10,7 +11,6 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
-import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.config.RuntimeConfig;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,16 +20,14 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class LogbackConfigurator {
 
-  public static void configureBaseLogging(@SuppressWarnings("unused") ApiClient apiClient) {
+  public static void configureBaseLogging(ManagedConfigResponse config) {
     setLogLevel();
+
     final Logger rootLogger = (Logger) LoggerFactory.getLogger("root");
     if (rootLogger.getAppender(LocalAdapterCW.class.getSimpleName()) == null) {
-      // add deprecated persistent credentials logger
-      Optional<Appender<ILoggingEvent>> localAppender = createLocalAdapter();
+      Optional<Appender<ILoggingEvent>> localAppender = createLocalAdapter(config);
       localAppender.ifPresent(rootLogger::addAppender);
     }
-    // LoggerContext loggerContext = rootLogger.getLoggerContext();
-
   }
 
   static void setLogLevel() {
@@ -41,14 +39,23 @@ public class LogbackConfigurator {
     });
   }
 
-  /**
-   * @deprecated in favour of managed config.
-   */
-  @Deprecated
   @VisibleForTesting
-  static Optional<Appender<ILoggingEvent>> createLocalAdapter() {
+  static Optional<Appender<ILoggingEvent>> createLocalAdapter(ManagedConfigResponse config) {
     try {
-      LocalAdapterCW localAdapterCW = new LocalAdapterCW();
+      final LocalAdapterCW localAdapterCW;
+
+      if (config != null) {
+        localAdapterCW = LocalAdapterCW.builder()
+            .accessKey(config.getServiceId())
+            .secretKey(config.getServiceKey())
+            .regionName(config.getRegionName())
+            .logGroupName(config.getGroupName())
+            .build();
+
+      } else {
+        localAdapterCW = LocalAdapterCW.builder().build();
+      }
+
       AppenderPipe localConfigAppender = new AppenderPipe(localAdapterCW);
       localConfigAppender.setName(LocalAdapterCW.class.getSimpleName());
 
@@ -59,10 +66,10 @@ public class LogbackConfigurator {
       localConfigAppender.addFilter(thresholdFilter);
       localConfigAppender.start();
       return Optional.of(localConfigAppender);
+
     } catch (Throwable throwable) {
       log.warn(throwable.getMessage(), throwable);
       return Optional.empty();
     }
   }
-
 }

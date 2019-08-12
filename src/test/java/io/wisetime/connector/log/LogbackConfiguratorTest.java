@@ -4,6 +4,9 @@
 
 package io.wisetime.connector.log;
 
+import static org.mockito.Mockito.mock;
+
+import io.wisetime.generated.connect.ManagedConfigResponse;
 import org.junit.jupiter.api.Test;
 
 import java.util.Optional;
@@ -26,10 +29,11 @@ class LogbackConfiguratorTest {
 
   @Test
   void addLocalAdapter() {
+    final ManagedConfigResponse configMock = mock(ManagedConfigResponse.class);
+
     // in env without config or explicit disable, should fail quietly
     RuntimeConfig.setProperty(() -> "DISABLE_AWS_CRED_USAGE", "true");
-    Optional<Appender<ILoggingEvent>> localAdapter = LogbackConfigurator.createLocalAdapter();
+    Optional<Appender<ILoggingEvent>> localAdapter = LogbackConfigurator.createLocalAdapter(configMock);
     localAdapter.ifPresent(LifeCycle::stop);
   }
-
 }

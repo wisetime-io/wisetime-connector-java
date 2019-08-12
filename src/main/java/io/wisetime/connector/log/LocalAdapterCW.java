@@ -4,53 +4,66 @@
 
 package io.wisetime.connector.log;
 
-import com.google.common.annotations.VisibleForTesting;
-
-import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
-import com.amazonaws.services.logs.AWSLogsAsync;
+import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.services.logs.AWSLogs;
 import com.amazonaws.services.logs.AWSLogsAsyncClientBuilder;
+import com.amazonaws.services.logs.model.CreateLogGroupRequest;
 import com.amazonaws.services.logs.model.CreateLogStreamRequest;
+import com.amazonaws.services.logs.model.DescribeLogGroupsResult;
 import com.amazonaws.services.logs.model.InputLogEvent;
 import com.amazonaws.services.logs.model.InvalidSequenceTokenException;
 import com.amazonaws.services.logs.model.PutLogEventsRequest;
 import com.amazonaws.services.logs.model.PutLogEventsResult;
-
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-
+import com.amazonaws.services.logs.model.ResourceNotFoundException;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
-
-import io.wisetime.connector.config.RuntimeConfig;
+import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
+import org.apache.commons.collections4.CollectionUtils;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+import spark.utils.StringUtils;
 
 /**
  * @author thomas.haines
  */
-@SuppressWarnings("Duplicates")
-public class LocalAdapterCW implements LoggingBridge {
+@Data
+@Builder(toBuilder = true, builderClassName = "LocalAdapterCWBuilder")
+class LocalAdapterCW implements LoggingBridge {
+
   private final ConcurrentLinkedQueue<LogQueueCW.LogEntryCW> messageQueue = new ConcurrentLinkedQueue<>();
+
   private final LogQueueCW logQueueCW = new LogQueueCW();
 
+  private final String regionName;
+
+  private final String accessKey;
+
+  private final String secretKey;
+
+  private final String logGroupName;
+
   private AWSLogsWrapper awsLogWrapper;
-  private String logGroupName = "wise-prod";
 
   /**
    * The basic structure of the PutLogEvents API is you do a call to PutLogEvents and it returns to you a result that
-   * includes the sequence number. That same sequence number must be used in the subsequent put for the same (log group, log
-   * stream) pair.
+   * includes the sequence number. That same sequence number must be used in the subsequent put for the same (log group,
+   * log stream) pair.
    */
   private String cloudWatchNextSequenceToken;
 
-  LocalAdapterCW() {
+  private void init() {
     awsLogWrapper = createLocalConfigLogger();
   }
 
@@ -66,24 +79,21 @@ public class LocalAdapterCW implements LoggingBridge {
     if (messageQueue.isEmpty()) {
       return;
     }
-
-    awsLogWrapper.writer().ifPresent(awsLog -> {
-      processLogEntries(awsLog, awsLogWrapper.getLogStreamName());
-    });
+    awsLogWrapper.writer().ifPresent(awsLog -> processLogEntries(awsLog, awsLogWrapper.getLogStreamName()));
   }
 
   /**
-   * Send log entries
+   * Send log entries.
    */
   @SuppressWarnings("RightCurly")
-  synchronized void processLogEntries(AWSLogsAsync awsLog, String logStreamName) {
+  private synchronized void processLogEntries(AWSLogs awsLog, String logStreamName) {
     boolean sentLimit;
     do {
       sentLimit = processToLimit(awsLog, logStreamName);
     } while (sentLimit);
   }
 
-  private boolean processToLimit(AWSLogsAsync awsLog, String logStreamName) {
+  private boolean processToLimit(AWSLogs awsLog, String logStreamName) {
     // process up to X messages per POST
 
     final LogQueueCW.PutLogEventList logEventResult = logQueueCW.createListFromQueue(messageQueue);
@@ -103,7 +113,7 @@ public class LocalAdapterCW implements LoggingBridge {
   }
 
   @VisibleForTesting
-  void putLogs(AWSLogsAsync awsLog, String logStream, List<InputLogEvent> events) {
+  void putLogs(AWSLogs awsLog, String logStream, List<InputLogEvent> events) {
     try {
       PutLogEventsResult result = awsLog.putLogEvents(
           new PutLogEventsRequest()
@@ -111,7 +121,9 @@ public class LocalAdapterCW implements LoggingBridge {
               .withLogStreamName(logStream)
               .withLogEvents(events)
               .withSequenceToken(cloudWatchNextSequenceToken));
+
       cloudWatchNextSequenceToken = result.getNextSequenceToken();
+
     } catch (InvalidSequenceTokenException e) {
       System.err.println("Invalid AWS sequence token detected");
       cloudWatchNextSequenceToken = e.getExpectedSequenceToken();
@@ -120,65 +132,85 @@ public class LocalAdapterCW implements LoggingBridge {
   }
 
   private AWSLogsWrapper createLocalConfigLogger() {
-    if (RuntimeConfig.getString(() -> "DISABLE_AWS_CRED_USAGE").isPresent()) {
-      return AWSLogsWrapper.noConfig();
-    }
     final Optional<AWSCredentials> awsCredentials = lookupCredentials();
     if (!awsCredentials.isPresent()) {
       System.err.println("AWS credentials not found, AWS logger disabled");
       return AWSLogsWrapper.noConfig();
     }
 
-    RuntimeConfig.setProperty(() -> "accessKeyId", awsCredentials.get().getAWSAccessKeyId());
+    Preconditions.checkState(StringUtils.isNotBlank(logGroupName), "logGroupName cannot be empty!");
+    Preconditions.checkState(StringUtils.isNotBlank(regionName), "regionName cannot be empty!");
 
-    // proxy support possible via PredefinedClientConfigurations.defaultConfig()
-    // use default config
-    AWSLogsAsyncClientBuilder builder = AWSLogsAsyncClientBuilder.standard();
-    builder.withRegion("ap-southeast-1");
+    final AWSLogs awsLogs = AWSLogsAsyncClientBuilder.standard()
+        .withRegion(regionName)
+        .build();
 
-    final AWSLogsAsync awsLog = builder.build();
-
-    String logStreamName = String.format(
-        "%s/%s",
-        DateTime.now().withZone(DateTimeZone.UTC).toString("yyyyMMdd_HHmm"),
-        UUID.randomUUID().toString()
-    );
-    final String logGroupName = getLogGroupName();
+    final String logStreamName = generateLogStreamName();
 
     try {
-      awsLog.createLogStream(
+      createLogGroupIfNecessary(awsLogs, logGroupName);
+
+      awsLogs.createLogStream(
           new CreateLogStreamRequest()
               .withLogGroupName(logGroupName)
               .withLogStreamName(logStreamName)
       );
+      return new AWSLogsWrapper(awsLogs, logStreamName);
 
-      return new AWSLogsWrapper(awsLog, logStreamName);
-    } catch (com.amazonaws.services.logs.model.ResourceNotFoundException ex) {
-      System.err.println("Unable to create log stream with " +
-          "a name " + logStreamName + " for a group name " + logGroupName + ".");
+    } catch (ResourceNotFoundException ex) {
+      System.err.println("Unable to create log stream with name "
+          + logStreamName + " for a group name " + logGroupName + ".");
       return AWSLogsWrapper.noConfig();
     }
   }
 
-  private String getLogGroupName() {
-    return logGroupName;
+  private String generateLogStreamName() {
+    return String.format(
+        "%s/%s",
+        DateTime.now().withZone(DateTimeZone.UTC).toString("yyyyMMdd_HHmm"),
+        UUID.randomUUID().toString());
   }
 
-  private static Optional<AWSCredentials> lookupCredentials() {
+  private Optional<AWSCredentials> lookupCredentials() {
     try {
-      DefaultAWSCredentialsProviderChain credentialsChain = new DefaultAWSCredentialsProviderChain();
-      return Optional.ofNullable(credentialsChain.getCredentials());
-    } catch (SdkClientException sdkException) {
+      return Optional.of(
+          new BasicAWSCredentials(accessKey, secretKey));
+
+    } catch (IllegalArgumentException e) {
       return Optional.empty();
     }
   }
 
+  /**
+   * Create log group if needed.
+   */
+  @VisibleForTesting
+  static void createLogGroupIfNecessary(final AWSLogs awsLogs, final String logGroupName) {
+    Preconditions.checkArgument(awsLogs != null, "awsLogs cannot be null!");
+    Preconditions.checkArgument(StringUtils.isNotBlank(logGroupName), "logGroupName cannot be null!");
+
+    final DescribeLogGroupsResult logGroupRes = awsLogs.describeLogGroups();
+
+    if (logGroupRes == null || CollectionUtils.isEmpty(logGroupRes.getLogGroups())) {
+      awsLogs.createLogGroup(new CreateLogGroupRequest(logGroupName));
+
+    } else {
+      final boolean createLogGroup = logGroupRes.getLogGroups()
+          .stream()
+          .noneMatch(logGroup -> Objects.equals(logGroupName, logGroup.getLogGroupName()));
+
+      // No log group found, so lets created one
+      if (createLogGroup) {
+        awsLogs.createLogGroup(new CreateLogGroupRequest(logGroupName));
+      }
+    }
+  }
 
   @RequiredArgsConstructor
   @ToString
   private static class AWSLogsWrapper {
 
-    private final AWSLogsAsync awsLogsAsync;
+    private final AWSLogs awsLogs;
 
     @Getter
     private final String logStreamName;
@@ -187,9 +219,26 @@ public class LocalAdapterCW implements LoggingBridge {
       return new AWSLogsWrapper(null, "invalid");
     }
 
-    Optional<AWSLogsAsync> writer() {
-      return Optional.ofNullable(awsLogsAsync);
+    Optional<AWSLogs> writer() {
+      return Optional.ofNullable(awsLogs);
     }
   }
 
+  public static LocalAdapterCWBuilder builder() {
+    return new LocalAdapterCWBuilderImpl();
+  }
+
+  public static class LocalAdapterCWBuilderImpl extends LocalAdapterCWBuilder {
+
+    LocalAdapterCWBuilderImpl() {
+      super();
+    }
+
+    @Override
+    public LocalAdapterCW build() {
+      LocalAdapterCW adapterCW = super.build();
+      adapterCW.init();
+      return adapterCW;
+    }
+  }
 }

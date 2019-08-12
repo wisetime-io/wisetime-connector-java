@@ -28,6 +28,7 @@ import io.wisetime.connector.time_poster.NoOpTimePoster;
 import io.wisetime.connector.time_poster.TimePoster;
 import io.wisetime.connector.time_poster.long_polling.FetchClientTimePoster;
 import io.wisetime.connector.time_poster.webhook.WebhookTimePoster;
+import io.wisetime.generated.connect.ManagedConfigResponse;
 import java.util.Timer;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -57,7 +58,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
   // Awaitable, cancellable connector run
   private CompletableFuture<Void> connectorRun;
 
-  public ConnectorControllerImpl(ConnectorControllerConfiguration configuration) {
+  ConnectorControllerImpl(ConnectorControllerConfiguration configuration) {
     healthRunner = new HealthCheck();
     metricService = new MetricService();
     wiseTimeConnector = new WiseTimeConnectorMetricWrapper(configuration.getWiseTimeConnector(), metricService);
@@ -66,7 +67,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     apiClient = new ApiClientTagWrapper(apiClient, tagRunner);
 
     // add base runtime logging to standard logging output
-    LogbackConfigurator.configureBaseLogging(apiClient);
+    LogbackConfigurator.configureBaseLogging(getManagedConfigResponse());
 
     final SQLiteHelper sqLiteHelper = new SQLiteHelper(configuration.isForcePersistentStorage());
     connectorModule = new ConnectorModule(apiClient, new FileStore(sqLiteHelper));
@@ -192,5 +193,10 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
         log.error("unknown launchMode={}, defaulting to {}", launchMode, NoOpTimePoster.class.getName());
         return new NoOpTimePoster();
     }
+  }
+
+  private ManagedConfigResponse getManagedConfigResponse() {
+    // TODO(DC) integrate with https://support.practiceinsight.io/jira/browse/WT-8004
+    return null;
   }
 }
