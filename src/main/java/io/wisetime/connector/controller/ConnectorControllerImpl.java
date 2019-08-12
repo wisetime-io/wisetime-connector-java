@@ -197,6 +197,10 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
 
   private ManagedConfigResponse getManagedConfigResponse() {
     // TODO(DC) integrate with https://support.practiceinsight.io/jira/browse/WT-8004
+
+    // wiseTimeConnector.getConnectorName();
+    // wiseTimeConnector.getConnectorType();
+
     return null;
   }
 }
