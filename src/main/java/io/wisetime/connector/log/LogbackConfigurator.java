@@ -2,7 +2,10 @@ package io.wisetime.connector.log;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import com.google.common.base.Preconditions;
 import io.wisetime.generated.connect.ManagedConfigResponse;
+import java.util.Base64;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.LoggerFactory;
 
 import java.util.Optional;
@@ -13,12 +16,16 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import io.wisetime.connector.config.RuntimeConfig;
 import lombok.extern.slf4j.Slf4j;
+import spark.utils.StringUtils;
 
 /**
  * @author thomas.haines
  */
 @Slf4j
 public class LogbackConfigurator {
+
+  @VisibleForTesting
+  static final String SERVICE_ID_DELIMITER = ":";
 
   public static void configureBaseLogging(ManagedConfigResponse config) {
     setLogLevel();
@@ -45,9 +52,11 @@ public class LogbackConfigurator {
       final LocalAdapterCW localAdapterCW;
 
       if (config != null) {
+        Pair<String, String> serviceCredentials = getServiceCredentials(config.getServiceId());
+
         localAdapterCW = LocalAdapterCW.builder()
-            .accessKey(config.getServiceId())
-            .secretKey(config.getServiceKey())
+            .accessKey(serviceCredentials.getLeft())
+            .secretKey(serviceCredentials.getRight())
             .regionName(config.getRegionName())
             .logGroupName(config.getGroupName())
             .build();
@@ -71,5 +80,14 @@ public class LogbackConfigurator {
       log.warn(throwable.getMessage(), throwable);
       return Optional.empty();
     }
+  }
+
+  @VisibleForTesting
+  static Pair<String, String> getServiceCredentials(String serviceIdBase64) {
+    Preconditions.checkArgument(StringUtils.isNotBlank(serviceIdBase64));
+
+    String serviceId = new String(Base64.getDecoder().decode(serviceIdBase64.getBytes()));
+    String[] serviceIdArray = serviceId.split(SERVICE_ID_DELIMITER);
+    return Pair.of(serviceIdArray[0], serviceIdArray[1]);
   }
 }
