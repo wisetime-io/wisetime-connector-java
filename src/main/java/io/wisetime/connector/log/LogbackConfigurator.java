@@ -5,7 +5,6 @@ import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Preconditions;
 import io.wisetime.connector.config.RuntimeConfig;
 import io.wisetime.generated.connect.ManagedConfigResponse;
 import java.util.Optional;
@@ -18,7 +17,7 @@ import org.slf4j.LoggerFactory;
 @Slf4j
 public class LogbackConfigurator {
 
-  static LocalAdapterCW localAdapterCW;
+  private static LocalAdapterCW localAdapterCW;
 
   public static void configureBaseLogging(ManagedConfigResponse config) {
     setLogLevel();
@@ -65,10 +64,13 @@ public class LogbackConfigurator {
     }
   }
 
-  static void refreshLocalAdapterCW(ManagedConfigResponse config) {
-    Preconditions.checkArgument(localAdapterCW != null, "localAdapterCW has not yet been instantiated");
-
+  private static void refreshLocalAdapterCW(ManagedConfigResponse config) {
     // temporary credentials for the AWS logger
-    localAdapterCW.init(config);
+    if (localAdapterCW != null) {
+      localAdapterCW.init(config);
+
+    } else {
+      log.warn("LocalAdapterCW has not yet been instantiated, skipping");
+    }
   }
 }
