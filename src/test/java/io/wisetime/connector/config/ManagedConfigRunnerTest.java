@@ -21,8 +21,10 @@ import io.wisetime.connector.config.info.ConnectorInfo;
 import io.wisetime.connector.config.info.ConnectorInfoProvider;
 import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
-import org.apache.commons.lang3.StringUtils;
-import org.assertj.core.groups.Tuple;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Date;
 import org.joda.time.DateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,7 +50,7 @@ class ManagedConfigRunnerTest {
     apiClientMock = mock(ApiClient.class);
     connectorInfoProviderMock = mock(ConnectorInfoProvider.class);
 
-    when(connectorInfoProviderMock.get()).thenReturn(random.nextObject(ConnectorInfo.class));
+    when(connectorInfoProviderMock.get()).thenReturn(new ConnectorInfo("+08:00"));
     when(connectorMock.getConnectorType()).thenReturn("test-connector-type");
     when(apiClientMock.getTeamManagedConfig(any())).thenReturn(random.nextObject(ManagedConfigResponse.class));
 
@@ -57,10 +59,10 @@ class ManagedConfigRunnerTest {
 
   @Test
   void testRun() throws Exception {
-    managedConfigRunner.cachedServiceExpiryDate = DateTime.now();
+    managedConfigRunner.cachedServiceExpiryDate = ZonedDateTime.now();
 
     DateTime startRun = managedConfigRunner.lastSuccessfulRun;
-    DateTime expiryDate = managedConfigRunner.cachedServiceExpiryDate;
+    ZonedDateTime expiryDate = managedConfigRunner.cachedServiceExpiryDate;
 
     Thread.sleep(1);
 
@@ -70,13 +72,13 @@ class ManagedConfigRunnerTest {
 
       return expiryDate.plusHours(12);
 
-    }).when(managedConfigRunner).onManagedConfigResponse(any());
+    }).when(managedConfigRunner).onManagedConfigResponse(any(), any());
 
     managedConfigRunner.run();
 
-    assertThat(managedConfigRunner.cachedServiceExpiryDate)
+    assertThat(managedConfigRunner.cachedServiceExpiryDate.toLocalDateTime().isAfter(expiryDate.toLocalDateTime()))
         .as("expect expiry date was retrieved")
-        .isGreaterThan(expiryDate);
+        .isTrue();
 
     assertThat(managedConfigRunner.lastSuccessfulRun)
         .as("expect last success was updated")
@@ -84,7 +86,7 @@ class ManagedConfigRunnerTest {
 
     verify(apiClientMock, times(1)).getTeamManagedConfig(any());
     verify(connectorMock, times(1)).getConnectorType();
-    verify(connectorInfoProviderMock, times(1)).get();
+    verify(connectorInfoProviderMock, times(2)).get();
   }
 
   @Test
@@ -106,7 +108,7 @@ class ManagedConfigRunnerTest {
   void createManageConfigRequest() {
     final ConnectorInfo connectorInfo = connectorInfoProviderMock.get();
 
-    ManagedConfigRequest configRequest = managedConfigRunner.createManageConfigRequest();
+    final ManagedConfigRequest configRequest = managedConfigRunner.createManageConfigRequest();
     assertThat(configRequest)
         .extracting(ManagedConfigRequest::getConnectorType,
             ManagedConfigRequest::getClientTimeZoneOffset)
@@ -114,5 +116,16 @@ class ManagedConfigRunnerTest {
             connectorInfo.getClientTimeZoneOffset());
 
     assertThat(configRequest.getEnvironment()).isNotEmpty();
+  }
+
+  @Test
+  void testToExpiryZoneDateTime() {
+    final LocalDateTime serviceExpiryDate = LocalDateTime.now();
+    final Date date = Date.from(serviceExpiryDate.atZone(ZoneId.of("+08:00")).toInstant());
+
+    final ZonedDateTime zonedServiceExpiryDate = managedConfigRunner.toExpiryZoneDateTime(date, ZoneId.of("+02:00"));
+    assertThat(zonedServiceExpiryDate).isNotNull();
+    assertThat(zonedServiceExpiryDate)
+        .isEqualToIgnoringSeconds(ZonedDateTime.now(ZoneId.of("+02:00")));
   }
 }

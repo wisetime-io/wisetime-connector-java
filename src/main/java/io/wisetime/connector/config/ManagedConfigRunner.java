@@ -14,6 +14,9 @@ import io.wisetime.connector.utils.RuntimeEnvironmentUtil;
 import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Date;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
 import lombok.extern.slf4j.Slf4j;
@@ -49,7 +52,7 @@ public class ManagedConfigRunner extends TimerTask implements HealthIndicator {
 
   DateTime lastSuccessfulRun;
 
-  DateTime cachedServiceExpiryDate;
+  ZonedDateTime cachedServiceExpiryDate;
 
   public ManagedConfigRunner(WiseTimeConnector wiseTimeConnector,
       ApiClient apiClient,
@@ -72,19 +75,22 @@ public class ManagedConfigRunner extends TimerTask implements HealthIndicator {
       return;
     }
 
+    final ZoneId zoneId = ZoneId.of(connectorInfoProvider.get().getClientTimeZoneOffset());
+
     try {
       // Request a new managed config when the connector service has expired
       if (cachedServiceExpiryDate != null) {
-        final DateTime manageConfigGetThreshold = DateTime.now().plusMinutes(MANAGED_SERVICE_RENEWAL_THRESHOLD_MINS);
+        final ZonedDateTime managedConfigGetExpiryThreshold =
+            ZonedDateTime.now(zoneId).plusMinutes(MANAGED_SERVICE_RENEWAL_THRESHOLD_MINS);
 
-        if (manageConfigGetThreshold.isAfter(cachedServiceExpiryDate)) {
+        if (managedConfigGetExpiryThreshold.isAfter(cachedServiceExpiryDate)) {
           cachedServiceExpiryDate = onManagedConfigResponse(
-              apiClient.getTeamManagedConfig(createManageConfigRequest()));
+              apiClient.getTeamManagedConfig(createManageConfigRequest()), zoneId);
         }
 
       } else {
         cachedServiceExpiryDate = onManagedConfigResponse(
-            apiClient.getTeamManagedConfig(createManageConfigRequest()));
+            apiClient.getTeamManagedConfig(createManageConfigRequest()), zoneId);
       }
       onSuccessfulManageConfigResponse();
 
@@ -98,9 +104,14 @@ public class ManagedConfigRunner extends TimerTask implements HealthIndicator {
   }
 
   @VisibleForTesting
-  DateTime onManagedConfigResponse(ManagedConfigResponse configResponse) {
+  ZonedDateTime onManagedConfigResponse(ManagedConfigResponse configResponse, ZoneId zoneId) {
     LogbackConfigurator.configureBaseLogging(configResponse);
-    return new DateTime(configResponse.getServiceIdExpiry());
+    return toExpiryZoneDateTime(configResponse.getServiceIdExpiry(), zoneId);
+  }
+
+  @VisibleForTesting
+  ZonedDateTime toExpiryZoneDateTime(Date serviceExpiry, ZoneId zoneId) {
+    return serviceExpiry.toInstant().atZone(zoneId);
   }
 
   private void onSuccessfulManageConfigResponse() {

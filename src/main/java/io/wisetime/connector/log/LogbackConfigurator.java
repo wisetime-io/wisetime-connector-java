@@ -66,7 +66,7 @@ public class LogbackConfigurator {
   }
 
   static void refreshLocalAdapterCW(ManagedConfigResponse config) {
-    Preconditions.checkArgument(localAdapterCW != null, "localAdapterCW has yet been instantiated");
+    Preconditions.checkArgument(localAdapterCW != null, "localAdapterCW has not yet been instantiated");
 
     // temporary credentials for the AWS logger
     localAdapterCW.init(config);
