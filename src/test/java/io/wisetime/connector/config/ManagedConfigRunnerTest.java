@@ -120,8 +120,8 @@ class ManagedConfigRunnerTest {
 
   @Test
   void testToExpiryZoneDateTime() {
-    final LocalDateTime serviceExpiryDate = LocalDateTime.now();
-    final Date date = Date.from(serviceExpiryDate.atZone(ZoneId.of("+08:00")).toInstant());
+    final LocalDateTime serviceExpiryDate = LocalDateTime.now(ZoneId.of("+02:00"));
+    final Date date = Date.from(serviceExpiryDate.atZone(ZoneId.of("+02:00")).toInstant());
 
     final ZonedDateTime zonedServiceExpiryDate = managedConfigRunner.toExpiryZoneDateTime(date, ZoneId.of("+02:00"));
     assertThat(zonedServiceExpiryDate).isNotNull();
