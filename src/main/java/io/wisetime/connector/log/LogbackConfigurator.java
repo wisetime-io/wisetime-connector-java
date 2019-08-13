@@ -1,22 +1,16 @@
 package io.wisetime.connector.log;
 
-import com.google.common.annotations.VisibleForTesting;
-
-import com.google.common.base.Preconditions;
-import io.wisetime.generated.connect.ManagedConfigResponse;
-import java.util.Base64;
-import org.apache.commons.lang3.tuple.Pair;
-import org.slf4j.LoggerFactory;
-
-import java.util.Optional;
-
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Appender;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
 import io.wisetime.connector.config.RuntimeConfig;
+import io.wisetime.generated.connect.ManagedConfigResponse;
+import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
-import spark.utils.StringUtils;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author thomas.haines
@@ -24,8 +18,7 @@ import spark.utils.StringUtils;
 @Slf4j
 public class LogbackConfigurator {
 
-  @VisibleForTesting
-  static final String SERVICE_ID_DELIMITER = ":";
+  static LocalAdapterCW localAdapterCW;
 
   public static void configureBaseLogging(ManagedConfigResponse config) {
     setLogLevel();
@@ -34,6 +27,9 @@ public class LogbackConfigurator {
     if (rootLogger.getAppender(LocalAdapterCW.class.getSimpleName()) == null) {
       Optional<Appender<ILoggingEvent>> localAppender = createLocalAdapter(config);
       localAppender.ifPresent(rootLogger::addAppender);
+
+    } else {
+      refreshLocalAdapterCW(config);
     }
   }
 
@@ -49,21 +45,8 @@ public class LogbackConfigurator {
   @VisibleForTesting
   static Optional<Appender<ILoggingEvent>> createLocalAdapter(ManagedConfigResponse config) {
     try {
-      final LocalAdapterCW localAdapterCW;
-
-      if (config != null) {
-        Pair<String, String> serviceCredentials = getServiceCredentials(config.getServiceId());
-
-        localAdapterCW = LocalAdapterCW.builder()
-            .accessKey(serviceCredentials.getLeft())
-            .secretKey(serviceCredentials.getRight())
-            .regionName(config.getRegionName())
-            .logGroupName(config.getGroupName())
-            .build();
-
-      } else {
-        localAdapterCW = LocalAdapterCW.builder().build();
-      }
+      localAdapterCW = new LocalAdapterCW();
+      refreshLocalAdapterCW(config);
 
       AppenderPipe localConfigAppender = new AppenderPipe(localAdapterCW);
       localConfigAppender.setName(LocalAdapterCW.class.getSimpleName());
@@ -82,12 +65,10 @@ public class LogbackConfigurator {
     }
   }
 
-  @VisibleForTesting
-  static Pair<String, String> getServiceCredentials(String serviceIdBase64) {
-    Preconditions.checkArgument(StringUtils.isNotBlank(serviceIdBase64));
+  static void refreshLocalAdapterCW(ManagedConfigResponse config) {
+    Preconditions.checkArgument(localAdapterCW != null, "localAdapterCW has yet been instantiated");
 
-    String serviceId = new String(Base64.getDecoder().decode(serviceIdBase64.getBytes()));
-    String[] serviceIdArray = serviceId.split(SERVICE_ID_DELIMITER);
-    return Pair.of(serviceIdArray[0], serviceIdArray[1]);
+    // temporary credentials for the AWS logger
+    localAdapterCW.init(config);
   }
 }

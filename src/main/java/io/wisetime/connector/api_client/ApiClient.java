@@ -4,6 +4,8 @@
 
 package io.wisetime.connector.api_client;
 
+import io.wisetime.generated.connect.ManagedConfigRequest;
+import io.wisetime.generated.connect.ManagedConfigResponse;
 import java.io.IOException;
 import java.util.List;
 
@@ -124,4 +126,11 @@ public interface ApiClient {
    * @throws IOException if the request was unsuccessful
    */
   void updatePostedTimeStatus(TimeGroupStatus timeGroupStatus) throws IOException;
+
+  /**
+   * Retrieve configuration particulars to support the managed connector service.
+   * @param managedConfigRequest
+   * @return {@link ManagedConfigResponse} response result
+   */
+  ManagedConfigResponse getTeamManagedConfig(ManagedConfigRequest managedConfigRequest) throws IOException;
 }

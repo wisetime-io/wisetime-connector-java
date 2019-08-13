@@ -21,7 +21,8 @@ public enum EndpointPath {
   PostedTimeSubscribe("/postedtime/subscribe", ConnectApiRequest.HttpMethod.POST),
   PostedTimeUnsubscribe("/postedtime/unsubscribe", ConnectApiRequest.HttpMethod.POST),
   PostedTimeFetch("/postedtime?limit=:limit", ConnectApiRequest.HttpMethod.GET),
-  PostedTimeUpdateStatus("/postedtime/status", ConnectApiRequest.HttpMethod.POST);
+  PostedTimeUpdateStatus("/postedtime/status", ConnectApiRequest.HttpMethod.POST),
+  TeamManagedConfig("/team/managed/config", ConnectApiRequest.HttpMethod.POST);
 
   private final String actionPath;
   private ConnectApiRequest.HttpMethod httpMethod;

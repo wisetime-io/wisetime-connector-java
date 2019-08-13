@@ -5,6 +5,7 @@
 package io.wisetime.connector.log;
 
 import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.logs.AWSLogs;
 import com.amazonaws.services.logs.AWSLogsAsyncClientBuilder;
@@ -18,6 +19,7 @@ import com.amazonaws.services.logs.model.PutLogEventsResult;
 import com.amazonaws.services.logs.model.ResourceNotFoundException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
+import io.wisetime.generated.connect.ManagedConfigResponse;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
@@ -25,8 +27,6 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
-import lombok.Builder;
-import lombok.Data;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
@@ -38,23 +38,15 @@ import spark.utils.StringUtils;
 /**
  * @author thomas.haines
  */
-@Data
-@Builder(toBuilder = true, builderClassName = "LocalAdapterCWBuilder")
 class LocalAdapterCW implements LoggingBridge {
 
   private final ConcurrentLinkedQueue<LogQueueCW.LogEntryCW> messageQueue = new ConcurrentLinkedQueue<>();
 
   private final LogQueueCW logQueueCW = new LogQueueCW();
 
-  private final String regionName;
-
-  private final String accessKey;
-
-  private final String secretKey;
-
-  private final String logGroupName;
-
   private AWSLogsWrapper awsLogWrapper;
+
+  private String logGroupName;
 
   /**
    * The basic structure of the PutLogEvents API is you do a call to PutLogEvents and it returns to you a result that
@@ -63,8 +55,12 @@ class LocalAdapterCW implements LoggingBridge {
    */
   private String cloudWatchNextSequenceToken;
 
-  private void init() {
-    awsLogWrapper = createLocalConfigLogger();
+  /**
+   * Initialise this instance of {@code LocalAdapterCW}.
+   */
+  void init(ManagedConfigResponse config) {
+    Preconditions.checkArgument(config != null, "ManageConfigResponse is required!");
+    awsLogWrapper = createLocalConfigLogger(config);
   }
 
   @Override
@@ -131,18 +127,19 @@ class LocalAdapterCW implements LoggingBridge {
     }
   }
 
-  private AWSLogsWrapper createLocalConfigLogger() {
-    final Optional<AWSCredentials> awsCredentials = lookupCredentials();
+  private AWSLogsWrapper createLocalConfigLogger(final ManagedConfigResponse config) {
+    final Optional<AWSCredentials> awsCredentials = lookupCredentials(config);
     if (!awsCredentials.isPresent()) {
       System.err.println("AWS credentials not found, AWS logger disabled");
       return AWSLogsWrapper.noConfig();
     }
 
-    Preconditions.checkState(StringUtils.isNotBlank(logGroupName), "logGroupName cannot be empty!");
-    Preconditions.checkState(StringUtils.isNotBlank(regionName), "regionName cannot be empty!");
+    logGroupName = config.getGroupName();
+    Preconditions.checkArgument(logGroupName != null, "GroupName is required!");
 
     final AWSLogs awsLogs = AWSLogsAsyncClientBuilder.standard()
-        .withRegion(regionName)
+        .withCredentials(new AWSStaticCredentialsProvider(awsCredentials.get()))
+        .withRegion(config.getRegionName())
         .build();
 
     final String logStreamName = generateLogStreamName();
@@ -171,10 +168,10 @@ class LocalAdapterCW implements LoggingBridge {
         UUID.randomUUID().toString());
   }
 
-  private Optional<AWSCredentials> lookupCredentials() {
+  private Optional<AWSCredentials> lookupCredentials(final ManagedConfigResponse config) {
     try {
       return Optional.of(
-          new BasicAWSCredentials(accessKey, secretKey));
+          new BasicAWSCredentials(config.getServiceId(), config.getServiceKey()));
 
     } catch (IllegalArgumentException e) {
       return Optional.empty();
@@ -221,24 +218,6 @@ class LocalAdapterCW implements LoggingBridge {
 
     Optional<AWSLogs> writer() {
       return Optional.ofNullable(awsLogs);
-    }
-  }
-
-  public static LocalAdapterCWBuilder builder() {
-    return new LocalAdapterCWBuilderImpl();
-  }
-
-  public static class LocalAdapterCWBuilderImpl extends LocalAdapterCWBuilder {
-
-    LocalAdapterCWBuilderImpl() {
-      super();
-    }
-
-    @Override
-    public LocalAdapterCW build() {
-      LocalAdapterCW adapterCW = super.build();
-      adapterCW.init();
-      return adapterCW;
     }
   }
 }
