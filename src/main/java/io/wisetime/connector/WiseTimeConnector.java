@@ -45,7 +45,9 @@ public interface WiseTimeConnector {
   /**
    * @return the connector implementation type.
    */
-  String getConnectorType();
+  default String getConnectorType() {
+    return "UNSPECIFIED";
+  }
 
   /**
    * @return Whether the connector is in a healthy state; as one example, can a critical service such as a database or
