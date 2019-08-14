@@ -22,8 +22,7 @@ public enum ConnectorConfigKey implements RuntimeConfigKey {
    * - TAG_ONLY: The connector will only upload new tags to WiseTime
    *
    * Deprecated use {@link #TAG_SCAN_MODE} to enable/disable tag scanning.
-   * And {@link #POSTED_TIME_LOAD_MODE} to configure posted time fetch mode (web server/ long polling approach).
-   * This option will be removed soon. Please migrate to a new configs.
+   * And {@link #POSTED_TIME_LOAD_MODE} to configure posted time fetch mode (web server / long polling approach).
    */
   @Deprecated
   CONNECTOR_MODE("CONNECTOR_MODE"),
