@@ -8,6 +8,8 @@ import com.google.common.collect.ImmutableList;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import io.wisetime.generated.connect.ManagedConfigRequest;
+import io.wisetime.generated.connect.ManagedConfigResponse;
 import org.apache.http.message.BasicNameValuePair;
 
 import java.io.IOException;
@@ -192,5 +194,14 @@ public class DefaultApiClient implements ApiClient {
   @Override
   public void updatePostedTimeStatus(TimeGroupStatus timeGroupStatus) throws IOException {
     restRequestExecutor.executeTypedBodyRequest(Object.class, EndpointPath.PostedTimeUpdateStatus, timeGroupStatus);
+  }
+
+  @Override
+  public ManagedConfigResponse getTeamManagedConfig(ManagedConfigRequest managedConfigRequest) throws IOException {
+    return restRequestExecutor.executeTypedBodyRequest(
+        ManagedConfigResponse.class,
+        EndpointPath.TeamManagedConfig,
+        managedConfigRequest
+    );
   }
 }

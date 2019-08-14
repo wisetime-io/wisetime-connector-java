@@ -207,3 +207,11 @@ clean {
     delete "${projectDir}/pom.xml"
     delete "${projectDir}/src/gen/java"
 }
+
+jar {
+    afterEvaluate  {
+        manifest {
+            attributes 'Implementation-Version': project.version
+        }
+    }
+}

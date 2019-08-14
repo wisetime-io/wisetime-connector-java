@@ -43,6 +43,13 @@ public interface WiseTimeConnector {
   PostResult postTime(Request request, TimeGroup userPostedTime);
 
   /**
+   * @return the connector implementation type.
+   */
+  default String getConnectorType() {
+    return "UNSPECIFIED";
+  }
+
+  /**
    * @return Whether the connector is in a healthy state; as one example, can a critical service such as a database or
    * endpoint be reached at present?
    */

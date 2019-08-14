@@ -9,6 +9,7 @@ import io.wisetime.connector.ConnectorModule;
 import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.api_client.JsonPayloadService;
+import io.wisetime.connector.config.ManagedConfigRunner;
 import io.wisetime.connector.config.TolerantObjectMapper;
 import io.wisetime.connector.config.info.ConnectorInfoProvider;
 import io.wisetime.connector.config.info.ConstantConnectorInfoProvider;
@@ -17,7 +18,6 @@ import io.wisetime.connector.datastore.SQLiteHelper;
 import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.health.HealthIndicator;
 import io.wisetime.connector.health.WiseTimeConnectorHealthIndicator;
-import io.wisetime.connector.log.LogbackConfigurator;
 import io.wisetime.connector.metric.ApiClientMetricWrapper;
 import io.wisetime.connector.metric.MetricInfo;
 import io.wisetime.connector.metric.MetricService;
@@ -48,25 +48,29 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
   private final TimePoster timePoster;
   private final WiseTimeConnector wiseTimeConnector;
   private final ConnectorModule connectorModule;
+
   private final TagRunner tagRunner;
   private final HealthCheck healthRunner;
+  private final ManagedConfigRunner managedConfigRunner;
+
   private final MetricService metricService;
+
   private final Timer healthCheckTimer;
   private final Timer tagTimer;
+  private final Timer managedConfigTimer;
 
   // Awaitable, cancellable connector run
   private CompletableFuture<Void> connectorRun;
 
-  public ConnectorControllerImpl(ConnectorControllerConfiguration configuration) {
+  ConnectorControllerImpl(ConnectorControllerConfiguration configuration) {
     healthRunner = new HealthCheck();
     metricService = new MetricService();
     wiseTimeConnector = new WiseTimeConnectorMetricWrapper(configuration.getWiseTimeConnector(), metricService);
+
     tagRunner = new TagRunner(wiseTimeConnector);
+
     ApiClient apiClient = new ApiClientMetricWrapper(configuration.getApiClient(), metricService);
     apiClient = new ApiClientTagWrapper(apiClient, tagRunner);
-
-    // add base runtime logging to standard logging output
-    LogbackConfigurator.configureBaseLogging(apiClient);
 
     final SQLiteHelper sqLiteHelper = new SQLiteHelper(configuration.isForcePersistentStorage());
     connectorModule = new ConnectorModule(apiClient, new FileStore(sqLiteHelper));
@@ -74,9 +78,16 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     final ConnectorInfoProvider connectorInfoProvider = new ConstantConnectorInfoProvider();
     timePoster = createTimePoster(configuration, apiClient, sqLiteHelper, connectorInfoProvider);
 
-    healthRunner.addHealthIndicator(tagRunner, timePoster, new WiseTimeConnectorHealthIndicator(wiseTimeConnector));
+    managedConfigRunner = new ManagedConfigRunner(wiseTimeConnector, apiClient, connectorInfoProvider);
+
+    healthRunner.addHealthIndicator(tagRunner,
+        timePoster,
+        managedConfigRunner,
+        new WiseTimeConnectorHealthIndicator(wiseTimeConnector));
+
     healthCheckTimer = new Timer("health-check-timer", false);
     tagTimer = new Timer("tag-check-timer", true);
+    managedConfigTimer = new Timer("manage-config-timer", true);
 
     // Connector is initially in stopped state
     connectorRun = new CompletableFuture<>();
@@ -113,8 +124,13 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
           healthCheckTimer.scheduleAtFixedRate(
               healthRunner, TimeUnit.SECONDS.toMillis(5), TimeUnit.SECONDS.toMillis(3)
           );
+
           tagTimer.scheduleAtFixedRate(
               tagRunner, TimeUnit.SECONDS.toMillis(15), TimeUnit.MINUTES.toMillis(5)
+          );
+
+          managedConfigTimer.scheduleAtFixedRate(
+              managedConfigRunner, TimeUnit.SECONDS.toMillis(15), TimeUnit.MINUTES.toMillis(5)
           );
 
           while (timePoster.isRunning()) {
@@ -146,9 +162,14 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
       healthRunner.cancel();
       healthCheckTimer.cancel();
       healthCheckTimer.purge();
+
+      managedConfigTimer.cancel();
+      managedConfigTimer.purge();
+
       tagTimer.cancel();
       tagTimer.purge();
       timePoster.stop();
+
     } catch (Exception e) {
       log.warn("There was an error while stopping the connector", e);
     } finally {
