@@ -43,7 +43,7 @@ import spark.utils.StringUtils;
 class LocalAdapterCW implements LoggingBridge {
 
   // 2 months retention
-  private final static int LOG_GROUP_RETENTION_DURATION_DAYS = 60;
+  private static final int LOG_GROUP_RETENTION_DURATION_DAYS = 60;
 
   private final ConcurrentLinkedQueue<LogQueueCW.LogEntryCW> messageQueue = new ConcurrentLinkedQueue<>();
 

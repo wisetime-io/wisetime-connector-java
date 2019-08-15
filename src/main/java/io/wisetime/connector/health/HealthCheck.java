@@ -12,7 +12,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.config.ConnectorConfigKey;
-import java.util.logging.Logger;
 import lombok.extern.slf4j.Slf4j;
 
 /**
