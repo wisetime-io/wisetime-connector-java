@@ -133,7 +133,7 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
 
   @Override
   public PostedTimeLoadMode getPostedTimeLoadMode() {
-    final Optional<PostedTimeLoadMode> postedTimeMode = RuntimeConfig.getString(ConnectorConfigKey.POSTED_TIME_LOAD_MODE)
+    final Optional<PostedTimeLoadMode> postedTimeMode = RuntimeConfig.getString(ConnectorConfigKey.RECEIVE_POSTED_TIME)
         .map(PostedTimeLoadMode::valueOf);
     if (postedTimeMode.isPresent()) {
       return postedTimeMode.get();
@@ -163,7 +163,7 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
 
   @Override
   public TagScanMode getTagScanMode() {
-    return RuntimeConfig.getString(ConnectorConfigKey.TAG_SCAN_MODE)
+    return RuntimeConfig.getString(ConnectorConfigKey.TAG_SCAN)
         .map(TagScanMode::valueOf)
         .orElse(tagScanMode);
   }

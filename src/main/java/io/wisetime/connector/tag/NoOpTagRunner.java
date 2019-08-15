@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 /**
  * No op tag runner.
  *
- * @see io.wisetime.connector.config.ConnectorConfigKey#TAG_SCAN_MODE
+ * @see io.wisetime.connector.config.ConnectorConfigKey#TAG_SCAN
  * @author vadym
  */
 @Slf4j
