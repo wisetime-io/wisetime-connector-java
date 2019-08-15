@@ -37,8 +37,7 @@ public class ManagedConfigRunner extends TimerTask implements HealthIndicator {
 
   private static final int MAX_MINS_SINCE_SUCCESS_DEFAULT = 60;
 
-  @VisibleForTesting
-  static final int MANAGED_SERVICE_RENEWAL_THRESHOLD_MINS = 20;
+  private static final int MANAGED_SERVICE_RENEWAL_THRESHOLD_MINS = 20;
 
   private final AtomicBoolean runLock = new AtomicBoolean(false);
 

@@ -4,6 +4,9 @@
 
 package io.wisetime.connector.tag;
 
+import static io.wisetime.connector.log.LogbackConfigurator.HEART_BEAT_LOGGER_NAME;
+
+import java.util.logging.Logger;
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
 import org.slf4j.LoggerFactory;
@@ -59,6 +62,7 @@ public class TagRunner extends TimerTask implements HealthIndicator {
   }
 
   public void onSuccessfulTagUpload() {
+    Logger.getLogger(HEART_BEAT_LOGGER_NAME).info("WISE_CONNECT_HEARTBEAT success");
     lastSuccessfulRun = DateTime.now();
   }
 

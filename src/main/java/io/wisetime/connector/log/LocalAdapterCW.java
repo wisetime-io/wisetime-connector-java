@@ -16,6 +16,7 @@ import com.amazonaws.services.logs.model.InputLogEvent;
 import com.amazonaws.services.logs.model.InvalidSequenceTokenException;
 import com.amazonaws.services.logs.model.PutLogEventsRequest;
 import com.amazonaws.services.logs.model.PutLogEventsResult;
+import com.amazonaws.services.logs.model.PutRetentionPolicyRequest;
 import com.amazonaws.services.logs.model.ResourceNotFoundException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
@@ -33,12 +34,16 @@ import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
+import org.slf4j.MDC;
 import spark.utils.StringUtils;
 
 /**
  * @author thomas.haines
  */
 class LocalAdapterCW implements LoggingBridge {
+
+  // 2 months retention
+  private final static int LOG_GROUP_RETENTION_DURATION_DAYS = 60;
 
   private final ConcurrentLinkedQueue<LogQueueCW.LogEntryCW> messageQueue = new ConcurrentLinkedQueue<>();
 
@@ -60,6 +65,10 @@ class LocalAdapterCW implements LoggingBridge {
    */
   void init(ManagedConfigResponse config) {
     Preconditions.checkArgument(config != null, "ManageConfigResponse is required!");
+
+    // Put a diagnostic context value as identified with the key param in the current thread's diagnostic context map
+    // This method delegates all work to the MDC of the underlying logging system.
+    MDC.put("logGroupName", config.getGroupName());
     awsLogWrapper = createLocalConfigLogger(config);
   }
 
@@ -189,7 +198,7 @@ class LocalAdapterCW implements LoggingBridge {
     final DescribeLogGroupsResult logGroupRes = awsLogs.describeLogGroups();
 
     if (logGroupRes == null || CollectionUtils.isEmpty(logGroupRes.getLogGroups())) {
-      awsLogs.createLogGroup(new CreateLogGroupRequest(logGroupName));
+      createLogGroup(awsLogs, logGroupName);
 
     } else {
       final boolean createLogGroup = logGroupRes.getLogGroups()
@@ -198,9 +207,23 @@ class LocalAdapterCW implements LoggingBridge {
 
       // No log group found, so lets created one
       if (createLogGroup) {
-        awsLogs.createLogGroup(new CreateLogGroupRequest(logGroupName));
+        createLogGroup(awsLogs, logGroupName);
       }
     }
+  }
+
+  /**
+   * Creates a log group with the specified name and retention policy.
+   */
+  private static void createLogGroup(AWSLogs awsLogs, String logGroupName) {
+    awsLogs.createLogGroup(new CreateLogGroupRequest(logGroupName));
+
+    // Set the retention of the specified log group. A retention policy retains log events in the
+    // specified log group for given number of days.
+    // https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutRetentionPolicy.html
+    awsLogs.putRetentionPolicy(new PutRetentionPolicyRequest(
+        logGroupName,
+        LOG_GROUP_RETENTION_DURATION_DAYS));
   }
 
   @RequiredArgsConstructor
