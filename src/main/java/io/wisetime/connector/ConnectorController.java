@@ -114,6 +114,15 @@ public interface ConnectorController {
     Builder requirePersistentStorage(boolean forcePersistentStorage);
 
     /**
+     * Instructs ConnectorController do not start long polling connection to WiseTime server nor web server for webhook.
+     * Posted time will be ignored if connector is running in this mode.
+     *
+     * @see #useWebhook()
+     * @see #useFetchClient()
+     */
+    Builder disablePostedTimeFetching();
+
+    /**
      * Instructs ConnectorController to start in long polling mode (this is default value).
      * Other options are: webhook or tag only mode when posted time groups are not collected by connector.
      *
@@ -154,6 +163,11 @@ public interface ConnectorController {
      * @see #useWebhook() ()
      */
     Builder useTagsOnly();
+
+    /**
+     * Disable tag scan in external system and uploading them to WiseTime. Enabled by default.
+     */
+    Builder disableTagScan();
 
     /**
      * Build {@link ConnectorController}. Make sure to set {@link WiseTimeConnector} and apiKey or apiClient before calling

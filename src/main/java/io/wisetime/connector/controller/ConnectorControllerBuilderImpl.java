@@ -5,13 +5,14 @@
 package io.wisetime.connector.controller;
 
 import com.google.common.base.Preconditions;
-
 import io.wisetime.connector.ConnectorController;
+import io.wisetime.connector.ConnectorController.Builder;
 import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.api_client.DefaultApiClient;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
+import java.util.Optional;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -31,7 +32,8 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
   private ApiClient apiClient;
   private String apiKey;
   private int webhookPort = 8080;
-  private LaunchMode launchMode = LaunchMode.LONG_POLL;
+  private TagScanMode tagScanMode = TagScanMode.ENABLED;
+  private PostedTimeLoadMode postedTimeLoadMode = PostedTimeLoadMode.LONG_POLL;
 
   @Override
   public ConnectorController.Builder withWiseTimeConnector(WiseTimeConnector wiseTimeConnector) {
@@ -59,7 +61,7 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
 
   @Override
   public ConnectorController.Builder useFetchClient() {
-    launchMode = LaunchMode.LONG_POLL;
+    postedTimeLoadMode = PostedTimeLoadMode.LONG_POLL;
     return this;
   }
 
@@ -80,8 +82,14 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
   }
 
   @Override
+  public Builder disablePostedTimeFetching() {
+    postedTimeLoadMode = PostedTimeLoadMode.DISABLED;
+    return this;
+  }
+
+  @Override
   public ConnectorController.Builder useWebhook() {
-    launchMode = LaunchMode.WEBHOOK;
+    postedTimeLoadMode = PostedTimeLoadMode.WEBHOOK;
     return this;
   }
 
@@ -94,7 +102,14 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
 
   @Override
   public ConnectorController.Builder useTagsOnly() {
-    launchMode = LaunchMode.TAGS_ONLY;
+    this.postedTimeLoadMode = PostedTimeLoadMode.DISABLED;
+    this.tagScanMode = TagScanMode.ENABLED;
+    return this;
+  }
+
+  @Override
+  public Builder disableTagScan() {
+    this.tagScanMode = TagScanMode.DISABLED;
     return this;
   }
 
@@ -117,10 +132,40 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
   }
 
   @Override
-  public LaunchMode getLaunchMode() {
-    return RuntimeConfig.getString(ConnectorConfigKey.CONNECTOR_MODE)
-        .map(ConnectorControllerBuilderImpl.LaunchMode::valueOf)
-        .orElse(launchMode);
+  public PostedTimeLoadMode getPostedTimeLoadMode() {
+    final Optional<PostedTimeLoadMode> postedTimeMode = RuntimeConfig.getString(ConnectorConfigKey.RECEIVE_POSTED_TIME)
+        .map(PostedTimeLoadMode::valueOf);
+    if (postedTimeMode.isPresent()) {
+      return postedTimeMode.get();
+    }
+    final Optional<LaunchMode> connectorMode = RuntimeConfig.getString(ConnectorConfigKey.CONNECTOR_MODE)
+        .map(LaunchMode::valueOf);
+    if (connectorMode.isPresent()) {
+      log.warn("You are using deprecated config param CONNECTOR_MODE, please migrate to new configuration format as"
+          + " this key will be removed soon.");
+      return fromLaunchMode(connectorMode.get());
+    }
+    return postedTimeLoadMode;
+  }
+
+  private PostedTimeLoadMode fromLaunchMode(LaunchMode launchMode) {
+    switch (launchMode) {
+      case LONG_POLL:
+        return PostedTimeLoadMode.LONG_POLL;
+      case WEBHOOK:
+        return PostedTimeLoadMode.WEBHOOK;
+      case TAGS_ONLY:
+        return PostedTimeLoadMode.DISABLED;
+      default:
+        throw new UnsupportedOperationException("Unexpected launch mode");
+    }
+  }
+
+  @Override
+  public TagScanMode getTagScanMode() {
+    return RuntimeConfig.getString(ConnectorConfigKey.TAG_SCAN)
+        .map(TagScanMode::valueOf)
+        .orElse(tagScanMode);
   }
 
   @Override
@@ -133,7 +178,16 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
     return RuntimeConfig.getInt(ConnectorConfigKey.LONG_POLL_BATCH_SIZE).orElse(fetchClientFetchLimit);
   }
 
+  @Deprecated
   public enum LaunchMode {
     LONG_POLL, WEBHOOK, TAGS_ONLY
+  }
+
+  public enum PostedTimeLoadMode {
+    LONG_POLL, WEBHOOK, DISABLED
+  }
+
+  public enum TagScanMode {
+    ENABLED, DISABLED
   }
 }

@@ -20,7 +20,9 @@ public interface ConnectorControllerConfiguration {
 
   boolean isForcePersistentStorage();
 
-  ConnectorControllerBuilderImpl.LaunchMode getLaunchMode();
+  ConnectorControllerBuilderImpl.PostedTimeLoadMode getPostedTimeLoadMode();
+
+  ConnectorControllerBuilderImpl.TagScanMode getTagScanMode();
 
   int getWebhookPort();
 
