@@ -7,15 +7,21 @@ package io.wisetime.connector.api_client;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
+import io.wisetime.connector.config.info.ConnectorInfo;
+import io.wisetime.connector.utils.RuntimeEnvironmentUtil;
+import io.wisetime.generated.connect.ManagedConfigRequest;
+import io.wisetime.generated.connect.ManagedConfigResponse;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.Optional;
 
-import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
 import io.wisetime.generated.connect.AddKeywordsRequest;
@@ -29,6 +35,7 @@ import io.wisetime.generated.connect.UnsubscribeResult;
 import io.wisetime.generated.connect.UpsertTagRequest;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
 
 /**
  * <pre>
@@ -177,5 +184,24 @@ class DefaultApiClientIntegrationTest {
     unsubscribeRequest.setWebhookId("enter webhookId");
     UnsubscribeResult response = defaultApiClient.postedTimeUnsubscribe(unsubscribeRequest);
     log.info(response.toString());
+  }
+
+  @Test
+  void managedTimeConfig() throws IOException {
+    if (defaultApiClient == null) {
+      return;
+    }
+
+    ConnectorInfo connectorInfo = Mockito.mock(ConnectorInfo.class);
+    when(connectorInfo.getClientTimeZoneOffset()).thenReturn(ZoneOffset.ofHours(3).getId());
+
+    ManagedConfigRequest managedConfigRequest = new ManagedConfigRequest();
+    managedConfigRequest.clientTimeZoneOffset(connectorInfo.getClientTimeZoneOffset());
+    managedConfigRequest.setEnvironment(RuntimeEnvironmentUtil.getEnvProperties());
+    managedConfigRequest.connectorType("test_connector_type");
+    managedConfigRequest.setConnectorLibraryVersion(RuntimeEnvironmentUtil.getLibraryImplVersion());
+    managedConfigRequest.clientTimestamp((double) Instant.now().getEpochSecond());
+    ManagedConfigResponse configResponse = defaultApiClient.getTeamManagedConfig(managedConfigRequest);
+    log.info(configResponse.toString());
   }
 }
