@@ -6,7 +6,7 @@ package io.wisetime.connector.log;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.services.logs.AWSLogs;
 import com.amazonaws.services.logs.AWSLogsAsyncClientBuilder;
 import com.amazonaws.services.logs.model.CreateLogGroupRequest;
@@ -14,8 +14,10 @@ import com.amazonaws.services.logs.model.CreateLogStreamRequest;
 import com.amazonaws.services.logs.model.DescribeLogGroupsResult;
 import com.amazonaws.services.logs.model.InputLogEvent;
 import com.amazonaws.services.logs.model.InvalidSequenceTokenException;
+import com.amazonaws.services.logs.model.MetricTransformation;
 import com.amazonaws.services.logs.model.PutLogEventsRequest;
 import com.amazonaws.services.logs.model.PutLogEventsResult;
+import com.amazonaws.services.logs.model.PutMetricFilterRequest;
 import com.amazonaws.services.logs.model.PutRetentionPolicyRequest;
 import com.amazonaws.services.logs.model.ResourceNotFoundException;
 import com.google.common.annotations.VisibleForTesting;
@@ -34,7 +36,6 @@ import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import org.slf4j.MDC;
 import spark.utils.StringUtils;
 
 /**
@@ -42,7 +43,7 @@ import spark.utils.StringUtils;
  */
 class LocalAdapterCW implements LoggingBridge {
 
-  // 2 months retention
+  // 2 month retention period
   private static final int LOG_GROUP_RETENTION_DURATION_DAYS = 60;
 
   private final ConcurrentLinkedQueue<LogQueueCW.LogEntryCW> messageQueue = new ConcurrentLinkedQueue<>();
@@ -65,10 +66,6 @@ class LocalAdapterCW implements LoggingBridge {
    */
   void init(ManagedConfigResponse config) {
     Preconditions.checkArgument(config != null, "ManageConfigResponse is required!");
-
-    // Put a diagnostic context value as identified with the key param in the current thread's diagnostic context map
-    // This method delegates all work to the MDC of the underlying logging system.
-    MDC.put("logGroupName", config.getGroupName());
     awsLogWrapper = createLocalConfigLogger(config);
   }
 
@@ -120,7 +117,7 @@ class LocalAdapterCW implements LoggingBridge {
   @VisibleForTesting
   void putLogs(AWSLogs awsLog, String logStream, List<InputLogEvent> events) {
     try {
-      PutLogEventsResult result = awsLog.putLogEvents(
+      final PutLogEventsResult result = awsLog.putLogEvents(
           new PutLogEventsRequest()
               .withLogGroupName(logGroupName)
               .withLogStreamName(logStream)
@@ -146,11 +143,7 @@ class LocalAdapterCW implements LoggingBridge {
     logGroupName = config.getGroupName();
     Preconditions.checkArgument(logGroupName != null, "GroupName is required!");
 
-    final AWSLogs awsLogs = AWSLogsAsyncClientBuilder.standard()
-        .withCredentials(new AWSStaticCredentialsProvider(awsCredentials.get()))
-        .withRegion(config.getRegionName())
-        .build();
-
+    final AWSLogs awsLogs = createAWSLogs(awsCredentials.get(), config.getRegionName());
     final String logStreamName = generateLogStreamName();
 
     try {
@@ -161,6 +154,22 @@ class LocalAdapterCW implements LoggingBridge {
               .withLogGroupName(logGroupName)
               .withLogStreamName(logStreamName)
       );
+
+      // Creates or updates a metric filter for WISE_CONNECT_HEARTBEAT and associates it with the specified log group.
+      // Metric filters allow you to configure rules to extract metric data from log events ingested through
+      // PutLogEvents.
+      // http://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/PutMetricFilter
+      awsLogs.putMetricFilter(new PutMetricFilterRequest()
+          .withFilterName(logGroupName)
+          .withLogGroupName(logGroupName)
+          .withFilterPattern("WISE_CONNECT_HEARTBEAT")
+          .withMetricTransformations(new MetricTransformation()
+              .withMetricName(logGroupName)
+              .withMetricValue("1")
+              .withMetricNamespace("WiseConnectHeartBeat")
+          )
+      );
+
       return new AWSLogsWrapper(awsLogs, logStreamName);
 
     } catch (ResourceNotFoundException ex) {
@@ -168,6 +177,13 @@ class LocalAdapterCW implements LoggingBridge {
           + logStreamName + " for a group name " + logGroupName + ".");
       return AWSLogsWrapper.noConfig();
     }
+  }
+
+  private AWSLogs createAWSLogs(AWSCredentials credentials, String regionName) {
+    return AWSLogsAsyncClientBuilder.standard()
+        .withCredentials(new AWSStaticCredentialsProvider(credentials))
+        .withRegion(regionName)
+        .build();
   }
 
   private String generateLogStreamName() {
@@ -180,7 +196,7 @@ class LocalAdapterCW implements LoggingBridge {
   private Optional<AWSCredentials> lookupCredentials(final ManagedConfigResponse config) {
     try {
       return Optional.of(
-          new BasicAWSCredentials(config.getServiceId(), config.getServiceKey()));
+          new BasicSessionCredentials(config.getServiceId(), config.getServiceKey(), config.getServiceSessionToken()));
 
     } catch (IllegalArgumentException e) {
       return Optional.empty();

@@ -21,22 +21,25 @@ public class LogbackConfigurator {
 
   public static void configureBaseLogging(ManagedConfigResponse config) {
     setLogLevel();
+
     final Logger rootLogger = (Logger) LoggerFactory.getLogger("root");
     if (rootLogger.getAppender(LocalAdapterCW.class.getSimpleName()) == null) {
       Optional<Appender<ILoggingEvent>> localAppender = createLocalAdapter();
       localAppender.ifPresent(rootLogger::addAppender);
+      configBaseHeartBeatLogging(localAppender.get());
     }
-
-    configBaseHeartBeatLogging();
     refreshCredentials(config);
   }
 
   @VisibleForTesting
-  static void configBaseHeartBeatLogging() {
+  static void configBaseHeartBeatLogging(Appender<ILoggingEvent> appender) {
     final Logger heartBeatLogger = (Logger) LoggerFactory.getLogger(HEART_BEAT_LOGGER_NAME);
     if (heartBeatLogger.getAppender(LocalAdapterCW.class.getSimpleName()) == null) {
-      Optional<Appender<ILoggingEvent>> localAppender = createLocalAdapter();
-      localAppender.ifPresent(heartBeatLogger::addAppender);
+      heartBeatLogger.addAppender(appender);
+      // By default, a log message will be displayed by the logger which writes it, as well as the ancestor loggers.
+      // Since root is the ancestor of all loggers, all messages will also be displayed by the root logger. To disable
+      // this behavior set additive=false.
+      heartBeatLogger.setAdditive(false);
     }
   }
 

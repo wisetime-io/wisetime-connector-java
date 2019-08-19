@@ -47,10 +47,9 @@ class LogbackConfiguratorTest {
   @SuppressWarnings("unchecked")
   @Test
   void addHeartBeatAdapter() {
-    LogbackConfigurator.configBaseHeartBeatLogging();
-
     Optional<Appender<ILoggingEvent>> heartBeatAdapter = LogbackConfigurator.createLocalAdapter();
     heartBeatAdapter.ifPresent(LifeCycle::start);
+    LogbackConfigurator.configBaseHeartBeatLogging(heartBeatAdapter.get());
 
     final Appender<ILoggingEvent> appender = mock(Appender.class);
     final ArgumentCaptor<ILoggingEvent> captor = ArgumentCaptor.forClass(ILoggingEvent.class);
