@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
  * A wrapper class around the tag upload process, that enforces a singleton runner pattern in the event that the previous
  * upload process has not completed prior to the next scheduled check.
  *
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  */
 @Slf4j
 public class TagRunner extends TimerTask implements HealthIndicator {

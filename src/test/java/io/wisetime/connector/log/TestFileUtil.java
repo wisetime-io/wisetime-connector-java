@@ -11,7 +11,7 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 
 /**
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  */
 public class TestFileUtil {
 

@@ -15,7 +15,7 @@ import static io.wisetime.connector.datastore.CoreLocalDbTable.TABLE_KEY_MAP;
  * Sqlite implementation of {@link ConnectorStore}. If {@link io.wisetime.connector.config.ConnectorConfigKey#DATA_DIR} is
  * set - data will survive though application restarts, otherwise this is not guaranteed.
  *
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  * @author shane.xie@practiceinsight.io
  */
 public class FileStore implements ConnectorStore {

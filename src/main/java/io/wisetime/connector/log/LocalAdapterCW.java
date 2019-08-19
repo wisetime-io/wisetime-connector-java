@@ -145,6 +145,7 @@ class LocalAdapterCW implements LoggingBridge {
     final String logStreamName = generateLogStreamName();
 
     try {
+      // TODO(Dev) this code should not be here
       createLogGroupIfNecessary(awsLogs, logGroupName);
 
       awsLogs.createLogStream(

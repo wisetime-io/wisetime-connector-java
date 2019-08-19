@@ -14,7 +14,7 @@ import java.util.Optional;
 /**
  * Indicator of posted time status.
  *
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  * @author shane.xie@practiceinsight.io
  */
 public class PostResult {

@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 /**
  * Module with main WiseTime connector dependencies.
  *
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  */
 @RequiredArgsConstructor
 @Getter

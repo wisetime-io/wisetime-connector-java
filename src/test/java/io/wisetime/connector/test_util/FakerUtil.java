@@ -7,7 +7,7 @@ package io.wisetime.connector.test_util;
 import com.github.javafaker.Faker;
 
 /**
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  */
 public class FakerUtil {
 

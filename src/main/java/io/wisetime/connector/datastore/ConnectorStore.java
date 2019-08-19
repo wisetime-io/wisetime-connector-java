@@ -12,7 +12,7 @@ import io.wisetime.connector.WiseTimeConnector;
  * {@link WiseTimeConnector} implementations can use this storage to persist data between
  * iterations.
  *
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  * @author shane.xie@practiceinsight.io
  */
 public interface ConnectorStore {

@@ -14,7 +14,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  * @author shane.xie@practiceinsight.io
  */
 class FileStoreTest {
