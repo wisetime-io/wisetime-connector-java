@@ -171,7 +171,7 @@ class LocalAdapterCW implements LoggingBridge {
       return Optional.empty();
     }
   }
-  
+
   @RequiredArgsConstructor
   @ToString
   private static class AWSLogsWrapper {
