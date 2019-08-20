@@ -34,15 +34,12 @@ import org.junit.jupiter.api.Test;
  */
 class ManagedConfigRunnerTest {
 
+  private final EnhancedRandom random = aNewEnhancedRandom();
+
   private WiseTimeConnector connectorMock;
-
   private ApiClient apiClientMock;
-
   private ConnectorInfoProvider connectorInfoProviderMock;
-
   private ManagedConfigRunner managedConfigRunner;
-
-  private EnhancedRandom random = aNewEnhancedRandom();
 
   @BeforeEach
   void setup() throws Exception {
@@ -59,10 +56,10 @@ class ManagedConfigRunnerTest {
 
   @Test
   void testRun() throws Exception {
-    managedConfigRunner.cachedServiceExpiryDate = ZonedDateTime.now();
+    managedConfigRunner.setCachedServiceExpiryDate(ZonedDateTime.now());
 
-    DateTime startRun = managedConfigRunner.lastSuccessfulRun;
-    ZonedDateTime expiryDate = managedConfigRunner.cachedServiceExpiryDate;
+    DateTime startRun = managedConfigRunner.getLastSuccessfulRun();
+    ZonedDateTime expiryDate = managedConfigRunner.getCachedServiceExpiryDate();
 
     Thread.sleep(1);
 
@@ -76,11 +73,11 @@ class ManagedConfigRunnerTest {
 
     managedConfigRunner.run();
 
-    assertThat(managedConfigRunner.cachedServiceExpiryDate.toLocalDateTime().isAfter(expiryDate.toLocalDateTime()))
+    assertThat(managedConfigRunner.getCachedServiceExpiryDate().toLocalDateTime().isAfter(expiryDate.toLocalDateTime()))
         .as("expect expiry date was retrieved")
         .isTrue();
 
-    assertThat(managedConfigRunner.lastSuccessfulRun)
+    assertThat(managedConfigRunner.getLastSuccessfulRun())
         .as("expect last success was updated")
         .isGreaterThan(startRun);
 
@@ -98,7 +95,7 @@ class ManagedConfigRunnerTest {
 
   @Test
   void testIsUnHealthy() {
-    managedConfigRunner.lastSuccessfulRun = new DateTime().minusYears(1);
+    managedConfigRunner.setLastSuccessfulRun(new DateTime().minusYears(1));
     assertThat(managedConfigRunner.isHealthy())
         .as("last successful run was long time ago - expecting false")
         .isFalse();

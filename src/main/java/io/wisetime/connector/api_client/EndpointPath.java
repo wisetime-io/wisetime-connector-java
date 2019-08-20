@@ -9,7 +9,7 @@ import io.wisetime.connector.api_client.support.ConnectApiRequest;
 /**
  * Set of WiseTime API endpoints.
  *
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  */
 public enum EndpointPath {
 

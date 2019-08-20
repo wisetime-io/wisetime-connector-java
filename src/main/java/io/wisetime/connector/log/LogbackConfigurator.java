@@ -17,17 +17,18 @@ import org.slf4j.LoggerFactory;
 @Slf4j
 public class LogbackConfigurator {
 
-  private static LocalAdapterCW localAdapterCW;
+  private static LocalAdapterCW localAdapterCW = new LocalAdapterCW();
 
   public static void configureBaseLogging(ManagedConfigResponse config) {
     setLogLevel();
 
     final Logger rootLogger = (Logger) LoggerFactory.getLogger("root");
     if (rootLogger.getAppender(LocalAdapterCW.class.getSimpleName()) == null) {
+      // first time VM has received managed config for creation of LocalAdapterCW
       Optional<Appender<ILoggingEvent>> localAppender = createLocalAdapter(config);
       localAppender.ifPresent(rootLogger::addAppender);
-
     } else {
+      // managed logging config update LocalAdapterCW
       refreshLocalAdapterCW(config);
     }
   }
@@ -44,7 +45,7 @@ public class LogbackConfigurator {
   @VisibleForTesting
   static Optional<Appender<ILoggingEvent>> createLocalAdapter(ManagedConfigResponse config) {
     try {
-      localAdapterCW = new LocalAdapterCW();
+
       refreshLocalAdapterCW(config);
 
       AppenderPipe localConfigAppender = new AppenderPipe(localAdapterCW);
@@ -65,12 +66,12 @@ public class LogbackConfigurator {
   }
 
   private static void refreshLocalAdapterCW(ManagedConfigResponse config) {
-    // temporary credentials for the AWS logger
-    if (localAdapterCW != null) {
-      localAdapterCW.init(config);
-
-    } else {
-      log.warn("LocalAdapterCW has not yet been instantiated, skipping");
+    if (localAdapterCW == null) {
+      log.warn("LocalAdapterCW has not been instantiated, skipping");
+      return;
     }
+
+    // temporary credentials for the AWS logger
+    localAdapterCW.init(config);
   }
 }

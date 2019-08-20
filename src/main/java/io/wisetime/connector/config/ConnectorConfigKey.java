@@ -7,7 +7,7 @@ package io.wisetime.connector.config;
 /**
  * List of environment configuration of WiseTime connector.
  *
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  */
 public enum ConnectorConfigKey implements RuntimeConfigKey {
 

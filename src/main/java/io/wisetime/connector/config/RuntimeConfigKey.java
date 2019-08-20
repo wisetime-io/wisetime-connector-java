@@ -5,7 +5,7 @@
 package io.wisetime.connector.config;
 
 /**
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  */
 public interface RuntimeConfigKey {
 

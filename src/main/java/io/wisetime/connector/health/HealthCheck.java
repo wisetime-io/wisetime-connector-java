@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
  * <p>
  * 3. Ping request to current connector instance was unsuccessful.
  *
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  */
 @Slf4j
 public class HealthCheck extends TimerTask {

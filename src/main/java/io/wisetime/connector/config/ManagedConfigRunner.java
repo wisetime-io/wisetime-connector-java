@@ -13,12 +13,16 @@ import io.wisetime.connector.log.LogbackConfigurator;
 import io.wisetime.connector.utils.RuntimeEnvironmentUtil;
 import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicBoolean;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.joda.time.DateTime;
 import org.joda.time.Minutes;
@@ -35,24 +39,19 @@ import org.slf4j.LoggerFactory;
 @Slf4j
 public class ManagedConfigRunner extends TimerTask implements HealthIndicator {
 
-  private static final int MAX_MINS_SINCE_SUCCESS_DEFAULT = 60;
-
-  @VisibleForTesting
-  static final int MANAGED_SERVICE_RENEWAL_THRESHOLD_MINS = 20;
-
   private final AtomicBoolean runLock = new AtomicBoolean(false);
-
   private final int maxMinsSinceSuccess;
-
   private final WiseTimeConnector wiseTimeConnector;
-
   private final ApiClient apiClient;
-
   private final ConnectorInfoProvider connectorInfoProvider;
 
-  DateTime lastSuccessfulRun;
+  @Getter(AccessLevel.PACKAGE)
+  @Setter(AccessLevel.PACKAGE)
+  private DateTime lastSuccessfulRun;
 
-  ZonedDateTime cachedServiceExpiryDate;
+  @Getter(AccessLevel.PACKAGE)
+  @Setter(AccessLevel.PACKAGE)
+  private ZonedDateTime cachedServiceExpiryDate;
 
   public ManagedConfigRunner(WiseTimeConnector wiseTimeConnector,
       ApiClient apiClient,
@@ -65,7 +64,7 @@ public class ManagedConfigRunner extends TimerTask implements HealthIndicator {
     this.lastSuccessfulRun = DateTime.now();
     maxMinsSinceSuccess = RuntimeConfig
         .getInt(ConnectorConfigKey.HEALTH_MAX_MINS_SINCE_SUCCESS)
-        .orElse(MAX_MINS_SINCE_SUCCESS_DEFAULT);
+        .orElse(getMaxMinsSinceSuccessDefault());
   }
 
   @Override
@@ -79,28 +78,25 @@ public class ManagedConfigRunner extends TimerTask implements HealthIndicator {
 
     try {
       // Request a new managed config when the connector service has expired
-      if (cachedServiceExpiryDate != null) {
-        final ZonedDateTime managedConfigGetExpiryThreshold =
-            ZonedDateTime.now(zoneId).plusMinutes(MANAGED_SERVICE_RENEWAL_THRESHOLD_MINS);
-
-        if (managedConfigGetExpiryThreshold.isAfter(cachedServiceExpiryDate)) {
-          cachedServiceExpiryDate = onManagedConfigResponse(
-              apiClient.getTeamManagedConfig(createManageConfigRequest()), zoneId);
-        }
-
-      } else {
-        cachedServiceExpiryDate = onManagedConfigResponse(
-            apiClient.getTeamManagedConfig(createManageConfigRequest()), zoneId);
+      if (cachedServiceExpiryDate == null
+          || ZonedDateTime.now(zoneId).plusMinutes(getRenewalThresholdMins()).isAfter(cachedServiceExpiryDate)) {
+        cachedServiceExpiryDate = fetchManagedConfigResponse(zoneId);
       }
-      onSuccessfulManageConfigResponse();
+
+      // note config success date/time
+      lastSuccessfulRun = DateTime.now();
 
     } catch (Exception e) {
-      LoggerFactory.getLogger(LogbackConfigurator.class).error(e.getMessage(), e);
-
+      LoggerFactory.getLogger(ManagedConfigRunner.class).error(e.getMessage(), e);
     } finally {
       // ensure lock is released
       runLock.set(false);
     }
+  }
+
+  private ZonedDateTime fetchManagedConfigResponse(ZoneId zoneId) throws IOException {
+    return onManagedConfigResponse(
+        apiClient.getTeamManagedConfig(createManageConfigRequest()), zoneId);
   }
 
   @VisibleForTesting
@@ -112,10 +108,6 @@ public class ManagedConfigRunner extends TimerTask implements HealthIndicator {
   @VisibleForTesting
   ZonedDateTime toExpiryZoneDateTime(Date serviceExpiry, ZoneId zoneId) {
     return serviceExpiry.toInstant().atZone(zoneId);
-  }
-
-  private void onSuccessfulManageConfigResponse() {
-    lastSuccessfulRun = DateTime.now();
   }
 
   @Override
@@ -132,4 +124,13 @@ public class ManagedConfigRunner extends TimerTask implements HealthIndicator {
         .clientTimeZoneOffset(connectorInfoProvider.get().getClientTimeZoneOffset())
         .clientTimestamp((double) Instant.now().getEpochSecond());
   }
+
+  private static int getRenewalThresholdMins() {
+    return 20;
+  }
+
+  private static int getMaxMinsSinceSuccessDefault() {
+    return 60;
+  }
+
 }

@@ -4,26 +4,24 @@
 
 package io.wisetime.connector.log;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.amazonaws.services.logs.AWSLogsAsync;
-import com.amazonaws.services.logs.model.CreateLogGroupRequest;
-import com.amazonaws.services.logs.model.DescribeLogGroupsResult;
 import com.amazonaws.services.logs.model.InputLogEvent;
 import com.amazonaws.services.logs.model.InvalidSequenceTokenException;
-import com.amazonaws.services.logs.model.LogGroup;
 import com.amazonaws.services.logs.model.PutLogEventsRequest;
 import com.amazonaws.services.logs.model.PutLogEventsResult;
 import com.github.javafaker.Faker;
 import java.util.Collections;
+import java.util.List;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 /**
  * @author vadym
@@ -50,46 +48,20 @@ class LocalAdapterCWTest {
       return new PutLogEventsResult();
     });
 
-    InputLogEvent event = new InputLogEvent().withMessage(logMessage).withTimestamp(System.currentTimeMillis());
-    localAdapterCW.putLogs(awsLogsAsync, logName, Collections.singletonList(event));
+    final InputLogEvent event = new InputLogEvent().withMessage(logMessage).withTimestamp(System.currentTimeMillis());
+    List<InputLogEvent> logEvents = Collections.singletonList(event);
+
+    localAdapterCW.putLogs(awsLogsAsync, logName, logEvents);
 
     //retry after InvalidSequenceTokenException
-    verify(awsLogsAsync, times(2)).putLogEvents(any());
-  }
+    ArgumentCaptor<PutLogEventsRequest> logEventCaptor = ArgumentCaptor.forClass(PutLogEventsRequest.class);
 
-  @Test
-  void createLogGroup_alreadyExists() {
-    final AWSLogsAsync awsLogsAsync = mock(AWSLogsAsync.class);
-    final String logGroupName = FAKER.numerify("logGroupName####");
+    verify(awsLogsAsync, times(2)).putLogEvents(logEventCaptor.capture());
 
-    when(awsLogsAsync.describeLogGroups()).thenReturn(new DescribeLogGroupsResult()
-        .withLogGroups(new LogGroup()
-            .withLogGroupName(logGroupName)));
+    PutLogEventsRequest events = logEventCaptor.getValue();
+    assertThat(events.getLogEvents().size()).isEqualTo(logEvents.size());
 
-    LocalAdapterCW.createLogGroupIfNecessary(awsLogsAsync, logGroupName);
-
-    verify(awsLogsAsync, times(1)).describeLogGroups();
-    verify(awsLogsAsync, never()).createLogGroup(any());
-  }
-
-  @Test
-  void createLogGroup_notFound() {
-    final AWSLogsAsync awsLogsAsync = mock(AWSLogsAsync.class);
-    final String logGroupName = FAKER.numerify("logGroupName####");
-
-    LocalAdapterCW.createLogGroupIfNecessary(awsLogsAsync, logGroupName);
-
-    verify(awsLogsAsync, times(1)).describeLogGroups();
-    verify(awsLogsAsync, times(1)).createLogGroup(new CreateLogGroupRequest(logGroupName));
-
-    reset(awsLogsAsync);
-
-    when(awsLogsAsync.describeLogGroups()).thenReturn(new DescribeLogGroupsResult()
-        .withLogGroups(new LogGroup()
-            .withLogGroupName("differentLogName")));
-
-    LocalAdapterCW.createLogGroupIfNecessary(awsLogsAsync, logGroupName);
-
-    verify(awsLogsAsync, times(1)).createLogGroup(new CreateLogGroupRequest(logGroupName));
+    final InputLogEvent capturedLogEvent = logEvents.get(0);
+    assertThat(capturedLogEvent).isEqualTo(event);
   }
 }

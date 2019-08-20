@@ -45,7 +45,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
 /**
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  */
 @ExtendWith(TemporaryFolderExtension.class)
 @SuppressWarnings("WeakerAccess")
