@@ -43,7 +43,7 @@ import static org.mockito.Mockito.when;
  *   API_KEY="an-api-key-here"
  * </pre>
  *
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  */
 class DefaultApiClientIntegrationTest {
   private static final Logger log = LoggerFactory.getLogger(DefaultApiClientIntegrationTest.class);

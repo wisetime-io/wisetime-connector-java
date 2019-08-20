@@ -19,7 +19,7 @@ import static io.wisetime.connector.config.ConnectorConfigKey.CONNECTOR_PROPERTI
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  */
 @SuppressWarnings({"WeakerAccess", "ResultOfMethodCallIgnored"})
 public class RuntimeConfigTest {

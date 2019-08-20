@@ -29,7 +29,7 @@ import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
 
 /**
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  */
 public class LayoutEngineJson extends LayoutBase<ILoggingEvent> {
   private final ThrowableProxyConverter tpc;

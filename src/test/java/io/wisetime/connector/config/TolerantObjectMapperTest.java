@@ -15,7 +15,7 @@ import java.util.Optional;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  */
 class TolerantObjectMapperTest {
   private static final Logger log = LoggerFactory.getLogger(TolerantObjectMapperTest.class);

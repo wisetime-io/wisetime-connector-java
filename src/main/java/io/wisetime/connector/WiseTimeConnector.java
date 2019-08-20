@@ -12,7 +12,7 @@ import spark.Request;
  * Main extension point of application. User will have to implement this interface and provide it during building
  * with {@link ConnectorController#newBuilder()}.
  *
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  */
 public interface WiseTimeConnector {
 

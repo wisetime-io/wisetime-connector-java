@@ -14,7 +14,7 @@ import io.wisetime.connector.config.PropertyFileUtil;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  */
 class CloudWriterTest {
 

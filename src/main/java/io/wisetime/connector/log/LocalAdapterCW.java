@@ -9,23 +9,17 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.services.logs.AWSLogs;
 import com.amazonaws.services.logs.AWSLogsAsyncClientBuilder;
-import com.amazonaws.services.logs.model.CreateLogGroupRequest;
 import com.amazonaws.services.logs.model.CreateLogStreamRequest;
-import com.amazonaws.services.logs.model.DescribeLogGroupsResult;
 import com.amazonaws.services.logs.model.InputLogEvent;
 import com.amazonaws.services.logs.model.InvalidSequenceTokenException;
-import com.amazonaws.services.logs.model.MetricTransformation;
 import com.amazonaws.services.logs.model.PutLogEventsRequest;
 import com.amazonaws.services.logs.model.PutLogEventsResult;
-import com.amazonaws.services.logs.model.PutMetricFilterRequest;
-import com.amazonaws.services.logs.model.PutRetentionPolicyRequest;
 import com.amazonaws.services.logs.model.ResourceNotFoundException;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Preconditions;
 import io.wisetime.generated.connect.ManagedConfigResponse;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -33,18 +27,13 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import org.apache.commons.collections4.CollectionUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import spark.utils.StringUtils;
 
 /**
  * @author thomas.haines
  */
 class LocalAdapterCW implements LoggingBridge {
-
-  // 2 month retention period
-  private static final int LOG_GROUP_RETENTION_DURATION_DAYS = 60;
 
   private final ConcurrentLinkedQueue<LogQueueCW.LogEntryCW> messageQueue = new ConcurrentLinkedQueue<>();
 
@@ -143,31 +132,18 @@ class LocalAdapterCW implements LoggingBridge {
     logGroupName = config.getGroupName();
     Preconditions.checkArgument(logGroupName != null, "GroupName is required!");
 
-    final AWSLogs awsLogs = createAWSLogs(awsCredentials.get(), config.getRegionName());
+    final AWSLogs awsLogs = AWSLogsAsyncClientBuilder.standard()
+        .withCredentials(new AWSStaticCredentialsProvider(awsCredentials.get()))
+        .withRegion(config.getRegionName())
+        .build();
+
     final String logStreamName = generateLogStreamName();
 
     try {
-      createLogGroupIfNecessary(awsLogs, logGroupName);
-
       awsLogs.createLogStream(
           new CreateLogStreamRequest()
               .withLogGroupName(logGroupName)
               .withLogStreamName(logStreamName)
-      );
-
-      // Creates or updates a metric filter for WISE_CONNECT_HEARTBEAT and associates it with the specified log group.
-      // Metric filters allow you to configure rules to extract metric data from log events ingested through
-      // PutLogEvents.
-      // http://docs.aws.amazon.com/goto/WebAPI/logs-2014-03-28/PutMetricFilter
-      awsLogs.putMetricFilter(new PutMetricFilterRequest()
-          .withFilterName(logGroupName)
-          .withLogGroupName(logGroupName)
-          .withFilterPattern("WISE_CONNECT_HEARTBEAT")
-          .withMetricTransformations(new MetricTransformation()
-              .withMetricName(logGroupName)
-              .withMetricValue("1")
-              .withMetricNamespace("WiseConnectHeartBeat")
-          )
       );
 
       return new AWSLogsWrapper(awsLogs, logStreamName);
@@ -177,13 +153,6 @@ class LocalAdapterCW implements LoggingBridge {
           + logStreamName + " for a group name " + logGroupName + ".");
       return AWSLogsWrapper.noConfig();
     }
-  }
-
-  private AWSLogs createAWSLogs(AWSCredentials credentials, String regionName) {
-    return AWSLogsAsyncClientBuilder.standard()
-        .withCredentials(new AWSStaticCredentialsProvider(credentials))
-        .withRegion(regionName)
-        .build();
   }
 
   private String generateLogStreamName() {
@@ -202,46 +171,7 @@ class LocalAdapterCW implements LoggingBridge {
       return Optional.empty();
     }
   }
-
-  /**
-   * Create log group if needed.
-   */
-  @VisibleForTesting
-  static void createLogGroupIfNecessary(final AWSLogs awsLogs, final String logGroupName) {
-    Preconditions.checkArgument(awsLogs != null, "awsLogs cannot be null!");
-    Preconditions.checkArgument(StringUtils.isNotBlank(logGroupName), "logGroupName cannot be null!");
-
-    final DescribeLogGroupsResult logGroupRes = awsLogs.describeLogGroups();
-
-    if (logGroupRes == null || CollectionUtils.isEmpty(logGroupRes.getLogGroups())) {
-      createLogGroup(awsLogs, logGroupName);
-
-    } else {
-      final boolean createLogGroup = logGroupRes.getLogGroups()
-          .stream()
-          .noneMatch(logGroup -> Objects.equals(logGroupName, logGroup.getLogGroupName()));
-
-      // No log group found, so lets created one
-      if (createLogGroup) {
-        createLogGroup(awsLogs, logGroupName);
-      }
-    }
-  }
-
-  /**
-   * Creates a log group with the specified name and retention policy.
-   */
-  private static void createLogGroup(AWSLogs awsLogs, String logGroupName) {
-    awsLogs.createLogGroup(new CreateLogGroupRequest(logGroupName));
-
-    // Set the retention of the specified log group. A retention policy retains log events in the
-    // specified log group for given number of days.
-    // https://docs.aws.amazon.com/AmazonCloudWatchLogs/latest/APIReference/API_PutRetentionPolicy.html
-    awsLogs.putRetentionPolicy(new PutRetentionPolicyRequest(
-        logGroupName,
-        LOG_GROUP_RETENTION_DURATION_DAYS));
-  }
-
+  
   @RequiredArgsConstructor
   @ToString
   private static class AWSLogsWrapper {

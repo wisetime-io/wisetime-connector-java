@@ -41,7 +41,7 @@ import static java.util.Optional.empty;
 /**
  * Multi-thread implementation of {@link ApiClient}. {@link RestRequestExecutor} is responsible for handling authentication.
  *
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  * @author shane.xie@practiceinsight.io
  */
 public class DefaultApiClient implements ApiClient {

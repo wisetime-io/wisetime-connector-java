@@ -12,7 +12,7 @@ import spark.servlet.SparkFilter;
 /**
  * Filter to bind {@link SparkApplication} to server.
  *
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  */
 class WebhookFilter extends SparkFilter {
 

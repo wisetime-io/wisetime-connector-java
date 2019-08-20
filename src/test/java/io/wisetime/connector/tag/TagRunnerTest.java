@@ -16,7 +16,7 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
 /**
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  */
 class TagRunnerTest {
 

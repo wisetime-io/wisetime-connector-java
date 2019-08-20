@@ -7,7 +7,7 @@ package io.wisetime.connector.config;
 /**
  * List of environment configuration of WiseTime connector.
  *
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  */
 public enum ConnectorConfigKey implements RuntimeConfigKey {
 
@@ -20,8 +20,28 @@ public enum ConnectorConfigKey implements RuntimeConfigKey {
    * - LONG_POLL: The connector will continuously try to fetch posted time and upload new tags to WiseTime
    * - WEBHOOK: The connector will act as server and passively listen for posted time and upload new tags to WiseTime
    * - TAG_ONLY: The connector will only upload new tags to WiseTime
+   *
+   * Deprecated use {@link #TAG_SCAN} to enable/disable tag scanning.
+   * And {@link #RECEIVE_POSTED_TIME} to configure posted time fetch mode (web server / long polling approach).
    */
+  @Deprecated
   CONNECTOR_MODE("CONNECTOR_MODE"),
+
+  /**
+   * Set mode for scanning external system for tags and uploading to WiseTime. Possible values: ENABLED, DISABLED.
+   * Default value is ENABLED.
+   */
+  TAG_SCAN("TAG_SCAN"),
+
+  /**
+   * Set mode for fetching posted time from WiseTime and uploading to external system. Possible values:
+   * - LONG_POLL: The connector will continuously try to fetch posted time and upload new tags to WiseTime
+   * - WEBHOOK: The connector will act as server and passively listen for posted time WiseTime
+   * - DISABLED: no handling for posted time
+   *
+   * Default value is LONG_POLL.
+   */
+  RECEIVE_POSTED_TIME("RECEIVE_POSTED_TIME"),
   /**
    * The maximum amount of time groups to be fetched with each API call.
    * Will only be read when CONNECTOR_MODE is LONG_POLL

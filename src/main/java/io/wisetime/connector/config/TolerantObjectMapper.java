@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 /**
  * A static singleton of a tolerant object mapper concerning additional of new fields and the like.
  *
- * @author thomas.haines@practiceinsight.io
+ * @author thomas.haines
  */
 public class TolerantObjectMapper {
 
