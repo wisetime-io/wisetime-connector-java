@@ -87,8 +87,7 @@ public class ManagedConfigRunner extends TimerTask implements HealthIndicator {
       lastSuccessfulRun = DateTime.now();
 
     } catch (Exception e) {
-      // TODO(Dev) why is this exception logged as `LogbackConfigurator`?
-      LoggerFactory.getLogger(LogbackConfigurator.class).error(e.getMessage(), e);
+      LoggerFactory.getLogger(ManagedConfigRunner.class).error(e.getMessage(), e);
     } finally {
       // ensure lock is released
       runLock.set(false);

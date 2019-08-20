@@ -9,9 +9,7 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.logs.AWSLogs;
 import com.amazonaws.services.logs.AWSLogsAsyncClientBuilder;
-import com.amazonaws.services.logs.model.CreateLogGroupRequest;
 import com.amazonaws.services.logs.model.CreateLogStreamRequest;
-import com.amazonaws.services.logs.model.DescribeLogGroupsResult;
 import com.amazonaws.services.logs.model.InputLogEvent;
 import com.amazonaws.services.logs.model.InvalidSequenceTokenException;
 import com.amazonaws.services.logs.model.PutLogEventsRequest;
@@ -22,7 +20,6 @@ import com.google.common.base.Preconditions;
 import io.wisetime.generated.connect.ManagedConfigResponse;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
@@ -30,10 +27,8 @@ import java.util.stream.Collectors;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import org.apache.commons.collections4.CollectionUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
-import spark.utils.StringUtils;
 
 /**
  * @author thomas.haines
@@ -145,9 +140,6 @@ class LocalAdapterCW implements LoggingBridge {
     final String logStreamName = generateLogStreamName();
 
     try {
-      // TODO(Dev) this code should not be here
-      createLogGroupIfNecessary(awsLogs, logGroupName);
-
       awsLogs.createLogStream(
           new CreateLogStreamRequest()
               .withLogGroupName(logGroupName)
@@ -176,31 +168,6 @@ class LocalAdapterCW implements LoggingBridge {
 
     } catch (IllegalArgumentException e) {
       return Optional.empty();
-    }
-  }
-
-  /**
-   * Create log group if needed.
-   */
-  @VisibleForTesting
-  static void createLogGroupIfNecessary(final AWSLogs awsLogs, final String logGroupName) {
-    Preconditions.checkArgument(awsLogs != null, "awsLogs cannot be null!");
-    Preconditions.checkArgument(StringUtils.isNotBlank(logGroupName), "logGroupName cannot be null!");
-
-    final DescribeLogGroupsResult logGroupRes = awsLogs.describeLogGroups();
-
-    if (logGroupRes == null || CollectionUtils.isEmpty(logGroupRes.getLogGroups())) {
-      awsLogs.createLogGroup(new CreateLogGroupRequest(logGroupName));
-
-    } else {
-      final boolean createLogGroup = logGroupRes.getLogGroups()
-          .stream()
-          .noneMatch(logGroup -> Objects.equals(logGroupName, logGroup.getLogGroupName()));
-
-      // No log group found, so lets created one
-      if (createLogGroup) {
-        awsLogs.createLogGroup(new CreateLogGroupRequest(logGroupName));
-      }
     }
   }
 

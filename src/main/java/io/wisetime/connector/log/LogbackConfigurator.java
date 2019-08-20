@@ -17,7 +17,7 @@ import org.slf4j.LoggerFactory;
 @Slf4j
 public class LogbackConfigurator {
 
-  private static LocalAdapterCW localAdapterCW = new LocalAdapterCW();;
+  private static LocalAdapterCW localAdapterCW = new LocalAdapterCW();
 
   public static void configureBaseLogging(ManagedConfigResponse config) {
     setLogLevel();
