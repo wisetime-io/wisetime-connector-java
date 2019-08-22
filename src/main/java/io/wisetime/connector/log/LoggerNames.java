@@ -5,6 +5,7 @@ package io.wisetime.connector.log;
  */
 public enum LoggerNames {
 
+  ROOT("root"),
   HEART_BEAT_LOGGER_NAME("wt.connect.health");
 
   private final String loggerName;

@@ -1,6 +1,7 @@
 package io.wisetime.connector.log;
 
 import static io.wisetime.connector.log.LoggerNames.HEART_BEAT_LOGGER_NAME;
+import static io.wisetime.connector.log.LoggerNames.ROOT;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
@@ -22,7 +23,7 @@ public class LogbackConfigurator {
   public static void configureBaseLogging(ManagedConfigResponse config) {
     setLogLevel();
 
-    final Logger rootLogger = (Logger) LoggerFactory.getLogger("root");
+    final Logger rootLogger = (Logger) LoggerFactory.getLogger(ROOT.getName());
     if (rootLogger.getAppender(LocalAdapterCW.class.getSimpleName()) == null) {
       Optional<Appender<ILoggingEvent>> localAppender = createLocalAdapter();
       localAppender.ifPresent(rootLogger::addAppender);
@@ -44,7 +45,7 @@ public class LogbackConfigurator {
   }
 
   static void setLogLevel() {
-    final Logger rootLogger = (Logger) LoggerFactory.getLogger("root");
+    final Logger rootLogger = (Logger) LoggerFactory.getLogger(ROOT.getName());
     final Logger healthLogger = (Logger) LoggerFactory.getLogger(HEART_BEAT_LOGGER_NAME.getName());
 
     RuntimeConfig.getString(() -> "LOG_LEVEL").ifPresent(levelStr -> {
@@ -85,7 +86,7 @@ public class LogbackConfigurator {
         (Logger) LoggerFactory.getLogger(HEART_BEAT_LOGGER_NAME.getName()), config);
 
     refreshLocalAdapterCWCredentials(
-        (Logger) LoggerFactory.getLogger("root"), config);
+        (Logger) LoggerFactory.getLogger(ROOT.getName()), config);
   }
 
   @VisibleForTesting
