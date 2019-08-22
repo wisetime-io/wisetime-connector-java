@@ -4,7 +4,7 @@
 
 package io.wisetime.connector.log;
 
-import static io.wisetime.connector.log.LogbackConfigurator.HEART_BEAT_LOGGER_NAME;
+import static io.wisetime.connector.log.LoggerNames.HEART_BEAT_LOGGER_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
@@ -54,12 +54,12 @@ class LogbackConfiguratorTest {
     final Appender<ILoggingEvent> appender = mock(Appender.class);
     final ArgumentCaptor<ILoggingEvent> captor = ArgumentCaptor.forClass(ILoggingEvent.class);
 
-    final Logger heartBeatLogger = (Logger) LoggerFactory.getLogger(HEART_BEAT_LOGGER_NAME);
+    final Logger heartBeatLogger = (Logger) LoggerFactory.getLogger(HEART_BEAT_LOGGER_NAME.getName());
 
     heartBeatAdapter.ifPresent(heartBeatLogger::addAppender);
     heartBeatLogger.addAppender(appender);
 
-    LoggerFactory.getLogger(HEART_BEAT_LOGGER_NAME).info("WISE_CONNECT_HEARTBEAT success");
+    LoggerFactory.getLogger(HEART_BEAT_LOGGER_NAME.getName()).info("WISE_CONNECT_HEARTBEAT success");
     assertThat(heartBeatLogger.getAppender(heartBeatAdapter.get().getName())).isNotNull();
     verify(appender, atLeastOnce()).doAppend(captor.capture());
 

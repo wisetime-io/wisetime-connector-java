@@ -1,5 +1,7 @@
 package io.wisetime.connector.log;
 
+import static io.wisetime.connector.log.LoggerNames.HEART_BEAT_LOGGER_NAME;
+
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.spi.ILoggingEvent;
@@ -17,8 +19,6 @@ import org.slf4j.LoggerFactory;
 @Slf4j
 public class LogbackConfigurator {
 
-  public static final String HEART_BEAT_LOGGER_NAME = "wt.connect.health";
-
   public static void configureBaseLogging(ManagedConfigResponse config) {
     setLogLevel();
 
@@ -26,14 +26,14 @@ public class LogbackConfigurator {
     if (rootLogger.getAppender(LocalAdapterCW.class.getSimpleName()) == null) {
       Optional<Appender<ILoggingEvent>> localAppender = createLocalAdapter();
       localAppender.ifPresent(rootLogger::addAppender);
-      configBaseHeartBeatLogging(localAppender.get());
+      localAppender.ifPresent(LogbackConfigurator::configBaseHeartBeatLogging);
     }
     refreshCredentials(config);
   }
 
   @VisibleForTesting
   static void configBaseHeartBeatLogging(Appender<ILoggingEvent> appender) {
-    final Logger heartBeatLogger = (Logger) LoggerFactory.getLogger(HEART_BEAT_LOGGER_NAME);
+    final Logger heartBeatLogger = (Logger) LoggerFactory.getLogger(HEART_BEAT_LOGGER_NAME.getName());
     if (heartBeatLogger.getAppender(LocalAdapterCW.class.getSimpleName()) == null) {
       heartBeatLogger.addAppender(appender);
       // By default, a log message will be displayed by the logger which writes it, as well as the ancestor loggers.
@@ -45,7 +45,7 @@ public class LogbackConfigurator {
 
   static void setLogLevel() {
     final Logger rootLogger = (Logger) LoggerFactory.getLogger("root");
-    final Logger healthLogger = (Logger) LoggerFactory.getLogger(HEART_BEAT_LOGGER_NAME);
+    final Logger healthLogger = (Logger) LoggerFactory.getLogger(HEART_BEAT_LOGGER_NAME.getName());
 
     RuntimeConfig.getString(() -> "LOG_LEVEL").ifPresent(levelStr -> {
       // follow runtime specified log level for root logger
@@ -82,7 +82,7 @@ public class LogbackConfigurator {
    */
   private static void refreshCredentials(ManagedConfigResponse config) {
     refreshLocalAdapterCWCredentials(
-        (Logger) LoggerFactory.getLogger(HEART_BEAT_LOGGER_NAME), config);
+        (Logger) LoggerFactory.getLogger(HEART_BEAT_LOGGER_NAME.getName()), config);
 
     refreshLocalAdapterCWCredentials(
         (Logger) LoggerFactory.getLogger("root"), config);
