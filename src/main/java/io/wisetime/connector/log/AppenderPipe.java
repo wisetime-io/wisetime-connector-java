@@ -118,5 +118,7 @@ class AppenderPipe extends UnsynchronizedAppenderBase<ILoggingEvent> {
     );
   }
 
-
+  LoggingBridge getBridge() {
+    return bridge;
+  }
 }

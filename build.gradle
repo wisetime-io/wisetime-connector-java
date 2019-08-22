@@ -124,12 +124,15 @@ dependencies {
     compile 'org.apache.commons:commons-lang3:3.9'
     compile 'net.jodah:failsafe:1.1.0'
 
-    compile ('com.amazonaws:aws-java-sdk-logs:1.11.442') {
+    // AWS dependencies
+    compile ('com.amazonaws:aws-java-sdk-logs:1.11.611') {
         exclude group: 'commons-logging', module: 'commons-logging'
         exclude group: 'commons-codec', module: 'commons-codec'
         exclude group: 'joda-time', module: 'joda-time'
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }
+
+    compile 'com.amazonaws:aws-java-sdk-cloudwatch:1.11.611'
 
     //  required by AWS SDK to log to logback via slf4j
     compile 'org.slf4j:jcl-over-slf4j:1.7.25'

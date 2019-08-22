@@ -35,8 +35,6 @@ public class LayoutEngineJson extends LayoutBase<ILoggingEvent> {
   private final ThrowableProxyConverter tpc;
   private final ObjectMapper om;
   private final Pattern lineBreakPattern = Pattern.compile("^(.+?)\r?\n.*");
-  private static final String EMPTY = "";
-  private String moduleName = null;
   private final ObjectNode sourceNode;
 
   LayoutEngineJson() {
@@ -194,10 +192,6 @@ public class LayoutEngineJson extends LayoutBase<ILoggingEvent> {
     else if (level == Level.WARN) return "WARNING";
     else if (level == Level.ERROR) return "ERROR";
     else return "DEFAULT";
-  }
-
-  private String trimToEmpty(String str) {
-    return str == null ? EMPTY : str.trim();
   }
 
   private boolean isNotEmpty(String cs) {

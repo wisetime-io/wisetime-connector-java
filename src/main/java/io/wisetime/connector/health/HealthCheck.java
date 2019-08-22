@@ -47,6 +47,7 @@ public class HealthCheck extends TimerTask {
     if (healthy) {
       failureCount.set(0);
       log.debug("Health check successful");
+
     } else {
       // increment fail count, and if more than {@link HealthCheck#MAX_SUCCESSIVE_FAILURES} successive errors,
       // call shutdown function

@@ -6,7 +6,7 @@ package io.wisetime.connector.log;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.BasicSessionCredentials;
 import com.amazonaws.services.logs.AWSLogs;
 import com.amazonaws.services.logs.AWSLogsAsyncClientBuilder;
 import com.amazonaws.services.logs.model.CreateLogStreamRequest;
@@ -106,7 +106,7 @@ class LocalAdapterCW implements LoggingBridge {
   @VisibleForTesting
   void putLogs(AWSLogs awsLog, String logStream, List<InputLogEvent> events) {
     try {
-      PutLogEventsResult result = awsLog.putLogEvents(
+      final PutLogEventsResult result = awsLog.putLogEvents(
           new PutLogEventsRequest()
               .withLogGroupName(logGroupName)
               .withLogStreamName(logStream)
@@ -145,6 +145,7 @@ class LocalAdapterCW implements LoggingBridge {
               .withLogGroupName(logGroupName)
               .withLogStreamName(logStreamName)
       );
+
       return new AWSLogsWrapper(awsLogs, logStreamName);
 
     } catch (ResourceNotFoundException ex) {
@@ -164,7 +165,7 @@ class LocalAdapterCW implements LoggingBridge {
   private Optional<AWSCredentials> lookupCredentials(final ManagedConfigResponse config) {
     try {
       return Optional.of(
-          new BasicAWSCredentials(config.getServiceId(), config.getServiceKey()));
+          new BasicSessionCredentials(config.getServiceId(), config.getServiceKey(), config.getServiceSessionToken()));
 
     } catch (IllegalArgumentException e) {
       return Optional.empty();
