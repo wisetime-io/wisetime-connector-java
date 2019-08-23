@@ -28,5 +28,9 @@ class DurationNumberFormatTest {
 
     assertThat(numberFormatter.formatToPlainText(new SimpleNumber(10000)))
         .isEqualTo("2h 46m 40s");
+
+    assertThat(numberFormatter.formatToPlainText(new SimpleNumber(193.2)))
+        .as("expecting to round up")
+        .isEqualTo("3m 14s");
   }
 }
