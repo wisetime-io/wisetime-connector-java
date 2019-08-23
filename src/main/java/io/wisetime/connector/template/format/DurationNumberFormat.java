@@ -10,8 +10,6 @@ import freemarker.core.TemplateValueFormatException;
 import freemarker.core.UnformattableValueException;
 import freemarker.template.TemplateModelException;
 import freemarker.template.TemplateNumberModel;
-import freemarker.template.utility.NumberUtil;
-
 import org.joda.time.Period;
 import org.joda.time.format.PeriodFormatter;
 import org.joda.time.format.PeriodFormatterBuilder;
@@ -39,7 +37,7 @@ public class DurationNumberFormat extends TemplateNumberFormat {
       throws TemplateValueFormatException, TemplateModelException {
     Number number = TemplateFormatUtil.getNonNullNumber(numberModel);
     try {
-      return PERIOD_FORMATTER.print(Period.seconds(NumberUtil.toIntExact(number)).normalizedStandard());
+      return PERIOD_FORMATTER.print(Period.seconds((int) Math.round(number.doubleValue())).normalizedStandard());
     } catch (ArithmeticException e) {
       throw new UnformattableValueException(number + " doesn't fit into an int");
     }
