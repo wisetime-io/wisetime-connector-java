@@ -49,7 +49,7 @@ public interface WiseTimeConnector {
    * @return the type of connector
    */
   default String getConnectorType() {
-    return null;
+    return "";
   }
 
   /**
