@@ -43,10 +43,12 @@ public interface WiseTimeConnector {
   PostResult postTime(Request request, TimeGroup userPostedTime);
 
   /**
-   * @return the connector implementation type.
+   * Identifies the type of the connector.  A non-empty string value would be assigned by the implementation.
+   *
+   * @return the type of connector
    */
   default String getConnectorType() {
-    return "UNSPECIFIED";
+    return "";
   }
 
   /**

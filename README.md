@@ -69,6 +69,15 @@ public class HelloConnector implements WiseTimeConnector {
     // records in the connected system.
     return PostResult.SUCCESS;
   }
+  
+  /**
+   * Identifies the type of the connector.
+   */
+  @Override
+  public String getConnectorType() {
+    // Custom implementation type 
+    return "HELLO";
+  }
 }
 
 ```
