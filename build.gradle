@@ -18,7 +18,6 @@ buildscript {
     dependencies {
         classpath "org.openapitools:openapi-generator-gradle-plugin:3.3.4"
         classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.20.0"
-        classpath "io.wisetime:validate-version:[0.5.3,)"
     }
 }
 
@@ -27,11 +26,11 @@ plugins {
     id 'maven'
     id 'maven-publish'
     id 'application'
-    id("io.freefair.lombok").version("3.8.4")
+    id "io.freefair.lombok" version "3.8.4"
     id 'com.google.cloud.tools.jib' version '1.1.2'
-    id "com.github.ben-manes.versions" version '0.22.0'
     id "fr.brouillard.oss.gradle.jgitver" version "0.9.1"
-
+    id "com.github.ben-manes.versions" version "0.22.0"
+    id "io.wisetime.versionChecker" version "0.7.9"
 }
 
 repositories {
@@ -100,11 +99,6 @@ if (taskRequestString.contains("closeAndReleaseRepository")) {
     apply from: "$rootDir/gradle/publish_s3_repo.gradle"
 }
 
-if (taskRequestString.contains("dependencyUpdates") || taskRequestString.contains("versionCheck")) {
-    // add exclusions for reporting on updates and vulnerabilities
-    apply from: "$rootDir/gradle/versionPluginConfig.gradle"
-}
-
 dependencies {
 
     compileOnly 'org.projectlombok:lombok:1.18.8'
@@ -120,7 +114,9 @@ dependencies {
 
     compile 'joda-time:joda-time:2.9.9'
 
-    compile 'org.apache.commons:commons-configuration2:2.4'
+    compile ('org.apache.commons:commons-configuration2:2.4') {
+        exclude group: 'commons-logging', module: 'commons-logging'
+    }
     compile 'org.apache.commons:commons-lang3:3.9'
     compile 'net.jodah:failsafe:1.1.0'
 
@@ -132,11 +128,13 @@ dependencies {
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }
 
-    compile 'com.amazonaws:aws-java-sdk-cloudwatch:1.11.611'
+    compile ('com.amazonaws:aws-java-sdk-cloudwatch:1.11.611') {
+        exclude group: 'commons-logging', module: 'commons-logging'
+    }
 
     //  required by AWS SDK to log to logback via slf4j
-    compile 'org.slf4j:jcl-over-slf4j:1.7.25'
-    compile 'org.slf4j:jul-to-slf4j:1.7.25'
+    compile 'org.slf4j:jcl-over-slf4j:1.7.26'
+    compile 'org.slf4j:jul-to-slf4j:1.7.26'
 
     compile 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
     compile 'com.fasterxml.jackson.core:jackson-core:2.9.8'

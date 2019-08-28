@@ -28,7 +28,7 @@ steps:
       GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false
     commands:
       - echo ${DRONE_MACHINE}
-      - ./gradlew test check
+      - ./gradlew test depCheck check
 
   - name: check-versions
     image: openjdk:8-jdk
@@ -36,7 +36,7 @@ steps:
       GRADLE_USER_HOME: .gcache
       GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false
     commands:
-      - ./gradlew versionCheck
+      - ./gradlew dependencyUpdates -DoutputFormatter=json versionCheck
     when:
       branch:
         exclude:
