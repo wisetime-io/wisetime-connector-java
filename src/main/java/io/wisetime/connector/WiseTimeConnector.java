@@ -43,8 +43,7 @@ public interface WiseTimeConnector {
   PostResult postTime(Request request, TimeGroup userPostedTime);
 
   /**
-   * Identifies the type of the connector which may or may not contain a non-null value.  A non-null value would be
-   * assigned by the implementation.
+   * Identifies the type of the connector.  A non-empty string value would be assigned by the implementation.
    *
    * @return the type of connector
    */
