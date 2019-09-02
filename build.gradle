@@ -30,7 +30,7 @@ plugins {
     id 'com.google.cloud.tools.jib' version '1.1.2'
     id "fr.brouillard.oss.gradle.jgitver" version "0.9.1"
     id "com.github.ben-manes.versions" version "0.22.0"
-    id "io.wisetime.versionChecker" version "0.7.9"
+    id "io.wisetime.versionChecker" version "0.7.10"
 }
 
 repositories {
