@@ -4,7 +4,10 @@
 
 package io.wisetime.connector.tag;
 
+import static io.wisetime.connector.log.LoggerNames.HEART_BEAT_LOGGER_NAME;
+
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.LoggerFactory;
 
 /**
  * No op tag runner.
@@ -21,7 +24,7 @@ public class NoOpTagRunner extends TagRunner {
 
   @Override
   public void run() {
-
+    LoggerFactory.getLogger(HEART_BEAT_LOGGER_NAME.getName()).info("WISE_CONNECT_HEARTBEAT success");
   }
 
   public void onSuccessfulTagUpload() {
