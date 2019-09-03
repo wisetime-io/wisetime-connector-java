@@ -21,7 +21,7 @@ public class NoOpTagRunner extends TagRunner {
 
   @Override
   public void run() {
-
+    logWiseConnectHeartbeat();
   }
 
   public void onSuccessfulTagUpload() {
