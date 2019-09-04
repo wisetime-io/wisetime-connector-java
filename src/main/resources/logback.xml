@@ -3,6 +3,11 @@
     <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
     <include resource="logback-extra.xml" optional="true"/>
 
+    <define name="logLevel" class="io.wisetime.connector.utils.RuntimeConfigPropertyDefiner">
+        <key>LOG_LEVEL</key>
+        <defaultValue>INFO</defaultValue>
+    </define>
+
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <!-- default ch.qos.logback.classic.encoder.PatternLayoutEncoder -->
         <encoder>
@@ -13,7 +18,7 @@
     <logger name="com.zaxxer.hikari.pool.ProxyConnection" level="ERROR"/>
     <logger name="com.zaxxer.hikari.util.DriverDataSource" level="DEBUG"/>
 
-    <root level="INFO" additivity="false">
+    <root level="${logLevel}" additivity="false">
         <appender-ref ref="STDOUT"/>
     </root>
 </configuration>
