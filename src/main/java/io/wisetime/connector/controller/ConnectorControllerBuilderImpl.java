@@ -119,6 +119,10 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
         "an implementation of '%s' interface must be supplied",
         WiseTimeConnector.class.getSimpleName());
 
+    checkDeprecatedKey(ConnectorConfigKey.AWS_ACCESS_KEY_ID);
+    checkDeprecatedKey(ConnectorConfigKey.AWS_SECRET_ACCESS_KEY);
+    checkDeprecatedKey(ConnectorConfigKey.AWS_REGION);
+
     if (apiClient == null) {
       String apiKey = RuntimeConfig.getString(ConnectorConfigKey.API_KEY)
           .orElse(this.apiKey);
@@ -176,6 +180,14 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
   @Override
   public int getFetchClientLimit() {
     return RuntimeConfig.getInt(ConnectorConfigKey.LONG_POLL_BATCH_SIZE).orElse(fetchClientFetchLimit);
+  }
+
+  private void checkDeprecatedKey(ConnectorConfigKey configKey) {
+    if (RuntimeConfig.getString(configKey).isPresent()) {
+      log.warn("{} configuration setting has been deprecated and no longer have any effect. "
+          + "Please remove these from the connector configuration. "
+          + "Connector logging is now automatically set up via Connect API.", configKey);
+    }
   }
 
   @Deprecated
