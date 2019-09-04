@@ -1,24 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
-    <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
-    <include resource="logback-extra.xml" optional="true"/>
+  <shutdownHook class="ch.qos.logback.core.hook.DelayingShutdownHook"/>
+  <include resource="logback-extra.xml" optional="true"/>
 
-    <define name="logLevel" class="io.wisetime.connector.utils.RuntimeConfigPropertyDefiner">
-        <key>LOG_LEVEL</key>
-        <defaultValue>INFO</defaultValue>
-    </define>
+  <define name="logLevel" class="io.wisetime.connector.utils.RuntimeConfigPropertyDefiner">
+    <key>LOG_LEVEL</key>
+    <defaultValue>INFO</defaultValue>
+  </define>
 
-    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <!-- default ch.qos.logback.classic.encoder.PatternLayoutEncoder -->
-        <encoder>
-            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-        </encoder>
-    </appender>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <!-- default ch.qos.logback.classic.encoder.PatternLayoutEncoder -->
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+    </encoder>
+  </appender>
 
-    <logger name="com.zaxxer.hikari.pool.ProxyConnection" level="ERROR"/>
-    <logger name="com.zaxxer.hikari.util.DriverDataSource" level="DEBUG"/>
+  <logger name="com.zaxxer.hikari.pool.ProxyConnection" level="ERROR"/>
 
-    <root level="${logLevel}" additivity="false">
-        <appender-ref ref="STDOUT"/>
-    </root>
+  <!-- DriverDataSource is set to DEBUG to provide log output of database runtime connection URL -->
+  <logger name="com.zaxxer.hikari.util.DriverDataSource" level="DEBUG"/>
+
+  <root level="${logLevel}" additivity="false">
+    <appender-ref ref="STDOUT"/>
+  </root>
 </configuration>
