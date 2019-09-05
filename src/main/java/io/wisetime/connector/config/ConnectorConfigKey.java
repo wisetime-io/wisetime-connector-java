@@ -76,7 +76,20 @@ public enum ConnectorConfigKey implements RuntimeConfigKey {
   /**
    * Level of root logger. Default value is INFO.
    */
-  LOG_LEVEL("LOG_LEVEL");
+  LOG_LEVEL("LOG_LEVEL"),
+
+  /**
+   * Config keys for deprecated AWS credentials.
+   * Used to verify, that they are not set and display a deprecation warning during start up if present
+   */
+  @Deprecated
+  AWS_ACCESS_KEY_ID("AWS_ACCESS_KEY_ID"),
+
+  @Deprecated
+  AWS_SECRET_ACCESS_KEY("AWS_SECRET_ACCESS_KEY"),
+
+  @Deprecated
+  AWS_REGION("AWS_REGION");
 
   private final String configKey;
 
