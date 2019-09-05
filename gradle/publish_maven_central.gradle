@@ -83,3 +83,9 @@ nexusStaging {
     username = project.hasProperty('ossrhUsername') ? ossrhUsername : ""
     password = project.hasProperty('ossrhPassword') ? ossrhPassword : ""
 }
+
+nexusPublishing {
+    repositories {
+        sonatype()
+    }
+}
