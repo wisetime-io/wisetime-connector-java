@@ -11,6 +11,6 @@ echo "${GITHUB_SSH_KEY_B64}" | base64 -d > /tmp/.ssh/github.key
 chmod 600 /tmp/.ssh/github.key
 # Push to GitHub mirror
 git remote add github git@github.com:wisetime-io/wisetime-connector-java.git
-GIT_SSH_COMMAND='ssh -i /tmp/.ssh/github.key' git push github master --tags
+GIT_SSH_COMMAND='ssh -i /tmp/.ssh/github.key' git push github master -f --tags
 rm -rf /tmp/.ssh
 echo "Push to GitHub mirror complete"
