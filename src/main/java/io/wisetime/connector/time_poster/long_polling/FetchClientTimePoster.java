@@ -4,6 +4,10 @@
 
 package io.wisetime.connector.time_poster.long_polling;
 
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
 import org.joda.time.DateTime;
 
 import java.util.List;
@@ -44,6 +48,8 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
   private final ApiClient apiClient;
   private final WiseTimeConnector wiseTimeConnector;
 
+  private final RetryPolicy retryPolicy;
+
   private ExecutorService fetchClientExecutor = null;
 
   @SuppressWarnings("ParameterNumber")
@@ -67,13 +73,23 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
     this.postTimeExecutor = Executors.newSingleThreadExecutor();
     timeGroupStatusUpdater = new TimeGroupStatusUpdater(timeGroupIdStore, apiClient);
     healthCheck.addHealthIndicator(timeGroupStatusUpdater);
+
+    // retry on all exceptions that either indicate failed http status or general connectivity issue
+    // exponential backoff starting with 10 seconds max 600 seconds
+    // after 10 retries we consider it terminally failed.
+    // the health check for the connector will have failed at that point anyways, so it should already be shutting down
+    retryPolicy = new RetryPolicy()
+        .retryOn(IOException.class)
+        .withBackoff(10, 600, TimeUnit.SECONDS)
+        .withMaxRetries(10);
   }
 
   @Override
   public void run() {
     while (!Thread.currentThread().isInterrupted()) {
       try {
-        final List<TimeGroup> fetchedTimeGroups = apiClient.fetchTimeGroups(timeGroupsFetchLimit);
+        final List<TimeGroup> fetchedTimeGroups = Failsafe.with(retryPolicy)
+            .get(() -> apiClient.fetchTimeGroups(timeGroupsFetchLimit));
         log.debug("Received {} for time posting", fetchedTimeGroups);
 
         for (TimeGroup timeGroup : fetchedTimeGroups) {
