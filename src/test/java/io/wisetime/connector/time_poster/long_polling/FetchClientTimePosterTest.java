@@ -6,6 +6,7 @@ package io.wisetime.connector.time_poster.long_polling;
 
 import com.google.common.collect.ImmutableList;
 
+import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -73,6 +74,25 @@ class FetchClientTimePosterTest {
         .thenReturn(ImmutableList.of());
     fetchClient.start();
     Thread.sleep(100);
+    fetchClient.stop();
+    ArgumentCaptor<TimeGroupStatus> statusCaptor = ArgumentCaptor.forClass(TimeGroupStatus.class);
+    verify(apiClientMock, times(1)).updatePostedTimeStatus(statusCaptor.capture());
+
+    assertThat(statusCaptor.getValue().getStatus()).isEqualTo(TimeGroupStatus.StatusEnum.SUCCESS);
+  }
+
+  @Test
+  void successfulTimeGroup_retry() throws Exception {
+    TimeGroup timeGroup = fakeEntities.randomTimeGroup();
+    when(timeGroupIdStoreMock.alreadySeen(timeGroup.getGroupId())).thenReturn(Optional.empty());
+    when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.SUCCESS());
+    // should still work thanks to RetryPolicy
+    when(apiClientMock.fetchTimeGroups(anyInt()))
+        .thenThrow(new IOException())
+        .thenReturn(ImmutableList.of(timeGroup))
+        .thenReturn(ImmutableList.of());
+    fetchClient.start();
+    Thread.sleep(11000);
     fetchClient.stop();
     ArgumentCaptor<TimeGroupStatus> statusCaptor = ArgumentCaptor.forClass(TimeGroupStatus.class);
     verify(apiClientMock, times(1)).updatePostedTimeStatus(statusCaptor.capture());
