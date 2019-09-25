@@ -8,6 +8,9 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
+import io.wisetime.connector.api_client.PostResult.PostResultStatus;
+import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
+import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,12 +52,14 @@ class WebhookApplication implements SparkApplication {
   private final JsonPayloadService payloadService;
   private final WiseTimeConnector wiseTimeConnector;
   private final MetricService metricService;
+  private final TimeGroupIdStore timeGroupIdStore;
 
-  WebhookApplication(JsonPayloadService payloadService,
-                     WiseTimeConnector wiseTimeConnector, MetricService metricService) {
+  WebhookApplication(JsonPayloadService payloadService, WiseTimeConnector wiseTimeConnector,
+                     MetricService metricService, TimeGroupIdStore timeGroupIdStore) {
     this.payloadService = payloadService;
     this.wiseTimeConnector = wiseTimeConnector;
     this.metricService = metricService;
+    this.timeGroupIdStore = timeGroupIdStore;
   }
 
   @Override
@@ -87,7 +92,16 @@ class WebhookApplication implements SparkApplication {
     post("/receiveTimePostedEvent", (request, response) -> {
       final TimeGroup timeGroup = payloadService.read(request.body(), TimeGroup.class);
       log.debug("Received {} for posting time", timeGroup);
+      Optional<PostResult> timeGroupStatus = timeGroupIdStore.alreadySeenWebHook(timeGroup.getGroupId());
+      // we only care to deduplicate successful time posts. No harm in retrying failures
+      if (timeGroupStatus.isPresent() && PostResultStatus.SUCCESS == timeGroupStatus.get().getStatus()) {
+        return payloadService.writeWithInfo(MESSAGE_KEY, getMessageBasedOnResult(timeGroupStatus.get()));
+      }
       final PostResult postResult = wiseTimeConnector.postTime(request, timeGroup);
+      if (PostResultStatus.SUCCESS == postResult.getStatus()) {
+        timeGroupIdStore.putTimeGroupId(timeGroup.getGroupId(), postResult.getStatus().name(),
+            postResult.getMessage().orElse(""));
+      }
       log.info("Posted time group {}, result: {}", timeGroup.getGroupId(), postResult);
 
       response.type("application/json");

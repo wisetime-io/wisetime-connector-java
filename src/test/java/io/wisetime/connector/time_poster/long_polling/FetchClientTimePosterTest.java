@@ -6,6 +6,7 @@ package io.wisetime.connector.time_poster.long_polling;
 
 import com.google.common.collect.ImmutableList;
 
+import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
 import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,7 +68,7 @@ class FetchClientTimePosterTest {
   @Test
   void successfulTimeGroup() throws Exception {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();
-    when(timeGroupIdStoreMock.alreadySeen(timeGroup.getGroupId())).thenReturn(Optional.empty());
+    when(timeGroupIdStoreMock.alreadySeenFetchClient(timeGroup.getGroupId())).thenReturn(Optional.empty());
     when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.SUCCESS());
     when(apiClientMock.fetchTimeGroups(anyInt()))
         .thenReturn(ImmutableList.of(timeGroup))
@@ -84,7 +85,7 @@ class FetchClientTimePosterTest {
   @Test
   void successfulTimeGroup_retry() throws Exception {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();
-    when(timeGroupIdStoreMock.alreadySeen(timeGroup.getGroupId())).thenReturn(Optional.empty());
+    when(timeGroupIdStoreMock.alreadySeenFetchClient(timeGroup.getGroupId())).thenReturn(Optional.empty());
     when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.SUCCESS());
     // should still work thanks to RetryPolicy
     when(apiClientMock.fetchTimeGroups(anyInt()))
@@ -103,7 +104,7 @@ class FetchClientTimePosterTest {
   @Test
   void failedTimeGroup() throws Exception {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();
-    when(timeGroupIdStoreMock.alreadySeen(timeGroup.getGroupId())).thenReturn(Optional.empty());
+    when(timeGroupIdStoreMock.alreadySeenFetchClient(timeGroup.getGroupId())).thenReturn(Optional.empty());
     when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.PERMANENT_FAILURE());
     when(apiClientMock.fetchTimeGroups(anyInt()))
         .thenReturn(ImmutableList.of(timeGroup))
@@ -120,7 +121,7 @@ class FetchClientTimePosterTest {
   @Test
   void transientlyFailedTimeGroup() throws Exception {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();
-    when(timeGroupIdStoreMock.alreadySeen(timeGroup.getGroupId())).thenReturn(Optional.empty());
+    when(timeGroupIdStoreMock.alreadySeenFetchClient(timeGroup.getGroupId())).thenReturn(Optional.empty());
     when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.TRANSIENT_FAILURE());
     when(apiClientMock.fetchTimeGroups(anyInt()))
         .thenReturn(ImmutableList.of(timeGroup))
@@ -137,7 +138,7 @@ class FetchClientTimePosterTest {
   @Test
   void alreadySeenTimeGroup() throws Exception {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();
-    when(timeGroupIdStoreMock.alreadySeen(timeGroup.getGroupId())).thenReturn(Optional.of("SUCCESS"));
+    when(timeGroupIdStoreMock.alreadySeenFetchClient(timeGroup.getGroupId())).thenReturn(Optional.of("SUCCESS"));
     when(apiClientMock.fetchTimeGroups(anyInt()))
         .thenReturn(ImmutableList.of(timeGroup))
         .thenReturn(ImmutableList.of());

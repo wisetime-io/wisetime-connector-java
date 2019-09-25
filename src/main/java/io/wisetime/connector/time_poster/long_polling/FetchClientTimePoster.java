@@ -4,6 +4,7 @@
 
 package io.wisetime.connector.time_poster.long_polling;
 
+import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
 import net.jodah.failsafe.Failsafe;
@@ -26,8 +27,8 @@ import io.wisetime.connector.time_poster.TimePoster;
 import io.wisetime.generated.connect.TimeGroup;
 import lombok.extern.slf4j.Slf4j;
 
-import static io.wisetime.connector.time_poster.long_polling.TimeGroupIdStore.IN_PROGRESS;
-import static io.wisetime.connector.time_poster.long_polling.TimeGroupIdStore.SUCCESS_AND_SENT;
+import static io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore.IN_PROGRESS;
+import static io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore.SUCCESS_AND_SENT;
 
 /**
  * Implements a fetch based approach to retrieve time groups.
@@ -122,7 +123,7 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
   }
 
   private boolean timeGroupAlreadyProcessed(TimeGroup timeGroup) {
-    Optional<String> timeGroupStatus = timeGroupIdStore.alreadySeen(timeGroup.getGroupId());
+    Optional<String> timeGroupStatus = timeGroupIdStore.alreadySeenFetchClient(timeGroup.getGroupId());
     // For any failure state: Allow reprocessing. For SUCCESS and IN_PROGRESS deny reprocessing
     return timeGroupStatus.filter(status ->
         PostResultStatus.SUCCESS.name().equals(status)

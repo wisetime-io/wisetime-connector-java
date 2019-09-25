@@ -207,7 +207,8 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
             configuration.getWebhookPort(),
             new JsonPayloadService(connectorInfoProvider, TolerantObjectMapper.create()),
             wiseTimeConnector,
-            metricService);
+            metricService,
+            sqLiteHelper);
       case DISABLED:
         return new NoOpTimePoster();
       default:
