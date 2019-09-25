@@ -30,13 +30,22 @@ public class TimeGroupIdStore {
   public static final String SUCCESS_AND_SENT = "SUCCESS_AND_SENT";
   public static final String PERMANENT_FAILURE_AND_SENT = "PERMANENT_FAILURE_AND_SENT";
   public static final String TRANSIENT_FAILURE_AND_SENT = "TRANSIENT_FAILURE_AND_SENT";
+  // Time in minutes
   private static final long MAX_IN_PROGRESS_TIME = 5;
+  // Time in days
+  private static final long MAX_STATUS_STORAGE_TIME = 7;
 
   private SQLiteHelper sqLiteHelper;
 
   public TimeGroupIdStore(SQLiteHelper sqLiteHelper) {
     this.sqLiteHelper = sqLiteHelper;
     sqLiteHelper.createTable(TABLE_TIME_GROUPS_RECEIVED);
+  }
+
+  private void deleteOldRecords() {
+    sqLiteHelper.query().update("DELETE FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
+        " WHERE received_timestamp > ?")
+        .params(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(MAX_STATUS_STORAGE_TIME));
   }
 
   public Optional<String> alreadySeenFetchClient(String timeGroupId) {
@@ -74,6 +83,8 @@ public class TimeGroupIdStore {
   }
 
   public void putTimeGroupId(String timeGroupId, String postResult, String message) {
+    // purge old records when inserting new ones
+    deleteOldRecords();
     final Query query = sqLiteHelper.query();
     query.transaction().inNoResult(() -> {
       long timeStamp = System.currentTimeMillis();
