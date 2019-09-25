@@ -44,8 +44,9 @@ public class TimeGroupIdStore {
 
   private void deleteOldRecords() {
     sqLiteHelper.query().update("DELETE FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
-        " WHERE received_timestamp > ?")
-        .params(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(MAX_STATUS_STORAGE_TIME));
+        " WHERE received_timestamp < ?")
+        .params(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(MAX_STATUS_STORAGE_TIME))
+        .run();
   }
 
   public Optional<String> alreadySeenFetchClient(String timeGroupId) {
