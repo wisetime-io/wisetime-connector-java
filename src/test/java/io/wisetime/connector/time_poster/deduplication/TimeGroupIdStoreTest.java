@@ -6,8 +6,6 @@ package io.wisetime.connector.time_poster.deduplication;
 
 import com.github.javafaker.Faker;
 
-import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
@@ -71,8 +69,8 @@ class TimeGroupIdStoreTest {
     final String oldId = faker.numerify("tg##########");
     sqLiteHelper.query().update("INSERT INTO " + TABLE_TIME_GROUPS_RECEIVED.getName() +
         " (time_group_id, post_result, received_timestamp, created_ts, message) VALUES (?,?,?,?,?)")
-        .params(oldId, PostResultStatus.SUCCESS.name(), System.currentTimeMillis() - TimeUnit.DAYS.toMillis(8),
-            System.currentTimeMillis() - TimeUnit.DAYS.toMillis(8), "")
+        .params(oldId, PostResultStatus.SUCCESS.name(), System.currentTimeMillis() - TimeUnit.DAYS.toMillis(70),
+            System.currentTimeMillis() - TimeUnit.DAYS.toMillis(70), "")
         .run();
     final String id = faker.numerify("tg##########");
 

@@ -94,7 +94,8 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
         log.debug("Received {} for time posting", fetchedTimeGroups);
 
         for (TimeGroup timeGroup : fetchedTimeGroups) {
-          if (!timeGroupAlreadyProcessed(timeGroup)) {
+          Optional<String> timeGroupStatus = timeGroupIdStore.alreadySeenFetchClient(timeGroup.getGroupId());
+          if (!timeGroupStatus.map(this::timeGroupAlreadyProcessed).orElse(false)) {
             log.debug("Processing time group: {}", timeGroup);
             // save the rows to the DB synchronously
             timeGroupIdStore.putTimeGroupId(timeGroup.getGroupId(), IN_PROGRESS, "");
@@ -113,6 +114,8 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
               timeGroupIdStore.putTimeGroupId(timeGroup.getGroupId(), result.name(), result.getMessage().orElse(""));
               timeGroupStatusUpdater.processSingle(timeGroup.getGroupId(), result);
             });
+          } else if (timeGroupStatus.map(this::resendSuccessMessage).orElse(false)) {
+            timeGroupStatusUpdater.processSingle(timeGroup.getGroupId(), PostResult.SUCCESS());
           }
         }
         lastSuccessfulRun.set(DateTime.now());
@@ -122,14 +125,17 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
     }
   }
 
-  private boolean timeGroupAlreadyProcessed(TimeGroup timeGroup) {
-    Optional<String> timeGroupStatus = timeGroupIdStore.alreadySeenFetchClient(timeGroup.getGroupId());
+  private boolean timeGroupAlreadyProcessed(String status) {
     // For any failure state: Allow reprocessing. For SUCCESS and IN_PROGRESS deny reprocessing
-    return timeGroupStatus.filter(status ->
-        PostResultStatus.SUCCESS.name().equals(status)
+    return PostResultStatus.SUCCESS.name().equals(status)
             || SUCCESS_AND_SENT.equals(status)
-            || IN_PROGRESS.equals(status))
-        .isPresent();
+            || IN_PROGRESS.equals(status);
+  }
+
+  private boolean resendSuccessMessage(String status) {
+    // If we got an already successful time group: Immediately send the status update to connect-api-server
+    return PostResultStatus.SUCCESS.name().equals(status)
+        || SUCCESS_AND_SENT.equals(status);
   }
 
   public void start() {

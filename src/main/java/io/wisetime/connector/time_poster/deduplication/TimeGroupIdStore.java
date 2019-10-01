@@ -33,7 +33,7 @@ public class TimeGroupIdStore {
   // Time in minutes
   private static final long MAX_IN_PROGRESS_TIME = 5;
   // Time in days
-  private static final long MAX_STATUS_STORAGE_TIME = 7;
+  private static final long MAX_STATUS_STORAGE_TIME = 60;
 
   private SQLiteHelper sqLiteHelper;
 
