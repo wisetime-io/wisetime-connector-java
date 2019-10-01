@@ -4,6 +4,7 @@
 
 package io.wisetime.connector.time_poster.long_polling;
 
+import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
 import org.apache.commons.lang3.tuple.Pair;
 import org.joda.time.DateTime;
 
@@ -22,9 +23,9 @@ import io.wisetime.connector.health.HealthIndicator;
 import io.wisetime.generated.connect.TimeGroupStatus;
 import lombok.extern.slf4j.Slf4j;
 
-import static io.wisetime.connector.time_poster.long_polling.TimeGroupIdStore.PERMANENT_FAILURE_AND_SENT;
-import static io.wisetime.connector.time_poster.long_polling.TimeGroupIdStore.SUCCESS_AND_SENT;
-import static io.wisetime.connector.time_poster.long_polling.TimeGroupIdStore.TRANSIENT_FAILURE_AND_SENT;
+import static io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore.PERMANENT_FAILURE_AND_SENT;
+import static io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore.SUCCESS_AND_SENT;
+import static io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore.TRANSIENT_FAILURE_AND_SENT;
 
 /**
  * @author pascal.filippi@gmail.com

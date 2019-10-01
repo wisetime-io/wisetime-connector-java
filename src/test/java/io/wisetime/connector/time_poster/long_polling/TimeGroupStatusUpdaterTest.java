@@ -15,8 +15,8 @@ import com.google.common.collect.ImmutableList;
 import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.api_client.PostResult.PostResultStatus;
+import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
 import io.wisetime.generated.connect.TimeGroupStatus;
-import io.wisetime.generated.connect.TimeGroupStatus.StatusEnum;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,7 +30,7 @@ class TimeGroupStatusUpdaterTest {
 
   private TimeGroupStatusUpdater timeGroupStatusUpdater;
 
-  private  TimeGroupIdStore timeGroupIdStoreMock;
+  private TimeGroupIdStore timeGroupIdStoreMock;
   private ApiClient apiClientMock;
 
   private Faker faker = new Faker();

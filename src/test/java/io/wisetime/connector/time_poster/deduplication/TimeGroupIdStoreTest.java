@@ -2,10 +2,13 @@
  * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector.time_poster.long_polling;
+package io.wisetime.connector.time_poster.deduplication;
 
 import com.github.javafaker.Faker;
 
+import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.Test;
 
@@ -15,6 +18,7 @@ import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.api_client.PostResult.PostResultStatus;
 import io.wisetime.connector.datastore.SQLiteHelper;
 
+import static io.wisetime.connector.datastore.CoreLocalDbTable.TABLE_TIME_GROUPS_RECEIVED;
 import static org.assertj.core.api.Assertions.assertThat;
 
 /**
@@ -23,45 +27,82 @@ import static org.assertj.core.api.Assertions.assertThat;
 class TimeGroupIdStoreTest {
 
   private final TimeGroupIdStore timeGroupIdStore;
+  private final SQLiteHelper sqLiteHelper;
   private final Faker faker = new Faker();
 
   TimeGroupIdStoreTest() {
-    final SQLiteHelper sqLiteHelper = new SQLiteHelper(new File("temp.db"));
+    sqLiteHelper = new SQLiteHelper(new File("temp.db"));
     this.timeGroupIdStore = new TimeGroupIdStore(sqLiteHelper);
   }
 
   @Test
-  void putAndVerifyId() {
+  void putAndVerifyIdFetchClient() {
     final String id = faker.numerify("tg##########");
 
-    assertThat(timeGroupIdStore.alreadySeen(id))
+    assertThat(timeGroupIdStore.alreadySeenFetchClient(id))
         .as("random id should be absent")
         .isNotPresent();
 
     // store a value
     timeGroupIdStore.putTimeGroupId(id, PostResultStatus.SUCCESS.name(), "");
-    assertThat(timeGroupIdStore.alreadySeen(id))
+    assertThat(timeGroupIdStore.alreadySeenFetchClient(id))
         .as("persisted id should be found")
         .hasValue(PostResultStatus.SUCCESS.name());
+  }
+
+  @Test
+  void putAndVerifyIdWebHook() {
+    final String id = faker.numerify("tg##########");
+
+    assertThat(timeGroupIdStore.alreadySeenWebHook(id))
+        .as("random id should be absent")
+        .isNotPresent();
+
+    // store a value
+    timeGroupIdStore.putTimeGroupId(id, PostResultStatus.SUCCESS.name(), "");
+    assertThat(timeGroupIdStore.alreadySeenWebHook(id))
+        .as("persisted id should be found")
+        .usingFieldByFieldValueComparator()
+        .hasValue(PostResult.SUCCESS().withMessage(""));
+  }
+
+  @Test
+  void deleteOldOnInsert() {
+    final String oldId = faker.numerify("tg##########");
+    sqLiteHelper.query().update("INSERT INTO " + TABLE_TIME_GROUPS_RECEIVED.getName() +
+        " (time_group_id, post_result, received_timestamp, created_ts, message) VALUES (?,?,?,?,?)")
+        .params(oldId, PostResultStatus.SUCCESS.name(), System.currentTimeMillis() - TimeUnit.DAYS.toMillis(8),
+            System.currentTimeMillis() - TimeUnit.DAYS.toMillis(8), "")
+        .run();
+    final String id = faker.numerify("tg##########");
+
+    assertThat(timeGroupIdStore.alreadySeenFetchClient(oldId))
+        .as("old id should be found")
+        .isPresent();
+
+    // store a value
+    timeGroupIdStore.putTimeGroupId(id, PostResultStatus.SUCCESS.name(), "");
+    assertThat(timeGroupIdStore.alreadySeenFetchClient(oldId))
+        .isNotPresent();
   }
 
   @Test
   void putAndDeleteId() {
     final String id = faker.numerify("tg##########");
 
-    assertThat(timeGroupIdStore.alreadySeen(id))
+    assertThat(timeGroupIdStore.alreadySeenFetchClient(id))
         .as("random id should be absent")
         .isNotPresent();
 
     // store a value
     timeGroupIdStore.putTimeGroupId(id, PostResultStatus.PERMANENT_FAILURE.name(), "");
-    assertThat(timeGroupIdStore.alreadySeen(id))
+    assertThat(timeGroupIdStore.alreadySeenFetchClient(id))
         .as("persisted id should be found")
         .hasValue(PostResultStatus.PERMANENT_FAILURE.name());
 
     // delete a value
     timeGroupIdStore.deleteTimeGroupId(id);
-    assertThat(timeGroupIdStore.alreadySeen(id))
+    assertThat(timeGroupIdStore.alreadySeenFetchClient(id))
         .as("persisted id should be found")
         .isNotPresent();
   }
@@ -70,7 +111,7 @@ class TimeGroupIdStoreTest {
   void doublePutAndVerifyId() {
     final String id = faker.numerify("tg##########");
 
-    assertThat(timeGroupIdStore.alreadySeen(id))
+    assertThat(timeGroupIdStore.alreadySeenFetchClient(id))
         .as("random id should be absent")
         .isNotPresent();
 
@@ -78,7 +119,7 @@ class TimeGroupIdStoreTest {
     timeGroupIdStore.putTimeGroupId(id, PostResultStatus.PERMANENT_FAILURE.name(), "");
     // second put should update status
     timeGroupIdStore.putTimeGroupId(id, PostResultStatus.SUCCESS.name(), "");
-    assertThat(timeGroupIdStore.alreadySeen(id))
+    assertThat(timeGroupIdStore.alreadySeenFetchClient(id))
         .as("persisted id should be found")
         .hasValue(PostResultStatus.SUCCESS.name());
   }

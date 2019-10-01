@@ -7,6 +7,9 @@ package io.wisetime.connector.time_poster.webhook;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.wisetime.connector.api_client.PostResult.PostResultStatus;
+import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
+import java.util.Optional;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 
@@ -39,9 +42,13 @@ import static io.wisetime.connector.time_poster.webhook.WebhookApplication.MESSA
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.clearInvocations;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 /**
@@ -60,11 +67,12 @@ public class WebhookTimePosterTest {
     log.info(testExtension.newFolder().getAbsolutePath());
     WiseTimeConnector mockConnector = mock(WiseTimeConnector.class);
     MetricService metricService = mock(MetricService.class);
+    TimeGroupIdStore timeGroupIdStoreMock = mock(TimeGroupIdStore.class);
     ObjectMapper objectMapper = spy(TolerantObjectMapper.create());
     final ConnectorInfo connectorInfo = new ConnectorInfo("+08:00");
     JsonPayloadService payloadService = new JsonPayloadService(() -> connectorInfo, objectMapper);
 
-    Server server = createTestServer(payloadService, mockConnector, metricService);
+    Server server = createTestServer(payloadService, mockConnector, metricService, timeGroupIdStoreMock);
     SparkTestUtil testUtil = new SparkTestUtil(server.getURI().getPort());
 
     SparkTestUtil.UrlResponse pingResponse = testUtil.doMethod("GET", "/ping", null, "plain/text");
@@ -80,15 +88,28 @@ public class WebhookTimePosterTest {
     String requestBody = objectMapper.writeValueAsString(timeGroup);
 
     // SUCCESS
+    when(timeGroupIdStoreMock.alreadySeenWebHook(any())).thenReturn(Optional.empty());
     when(mockConnector.postTime(any(), any())).thenReturn(PostResult.SUCCESS());
     SparkTestUtil.UrlResponse sucessResponse =
         testUtil.doMethod("POST", "/receiveTimePostedEvent", requestBody, "application/json");
     assertThat(sucessResponse.status).isEqualTo(200);
     assertThat(sucessResponse.body).contains(CONNECTOR_INFO_KEY);
-    clearInvocations(metricService);
+    verify(timeGroupIdStoreMock).putTimeGroupId(any(), eq(PostResultStatus.SUCCESS.name()), any());
+    clearInvocations(metricService, timeGroupIdStoreMock, mockConnector);
+
+    // SUCCESS deduplication
+    when(timeGroupIdStoreMock.alreadySeenWebHook(any())).thenReturn(Optional.of(PostResult.SUCCESS()));
+    SparkTestUtil.UrlResponse dedupSuccessResponse =
+        testUtil.doMethod("POST", "/receiveTimePostedEvent", requestBody, "application/json");
+    assertThat(dedupSuccessResponse.status).isEqualTo(200);
+    assertThat(dedupSuccessResponse.body).contains(CONNECTOR_INFO_KEY);
+    verifyZeroInteractions(mockConnector);
+    clearInvocations(metricService, timeGroupIdStoreMock);
+    reset(timeGroupIdStoreMock);
 
     // PERMANENT_FAILURE
     // with failure message
+    when(timeGroupIdStoreMock.alreadySeenWebHook(any())).thenReturn(Optional.empty());
     when(mockConnector.postTime(any(), any()))
         .thenReturn(PostResult.PERMANENT_FAILURE()
             .withMessage("Permanent failure message"));
@@ -179,8 +200,10 @@ public class WebhookTimePosterTest {
   }
 
   private static Server createTestServer(JsonPayloadService payloadService, WiseTimeConnector mockConnector,
-                                        MetricService metricService) throws Exception {
-    WebhookTimePoster webhookTimePoster = new WebhookTimePoster(0, payloadService, mockConnector, metricService);
+                                        MetricService metricService,
+                                        TimeGroupIdStore timeGroupIdStoreMock) throws Exception {
+    WebhookTimePoster webhookTimePoster =
+        new WebhookTimePoster(0, payloadService, mockConnector, metricService, timeGroupIdStoreMock);
     webhookTimePoster.start();
     Server server = webhookTimePoster.getServer();
     SparkTestUtil testUtil = new SparkTestUtil(server.getURI().getPort());

@@ -6,6 +6,8 @@ package io.wisetime.connector.time_poster.webhook;
 
 import com.google.common.annotations.VisibleForTesting;
 
+import io.wisetime.connector.datastore.SQLiteHelper;
+import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
 import org.eclipse.jetty.server.Server;
@@ -35,9 +37,15 @@ public class WebhookTimePoster implements TimePoster {
 
   private final Server server;
 
-  public WebhookTimePoster(int port, JsonPayloadService payloadService,
-                           WiseTimeConnector wiseTimeConnector, MetricService metricService) {
-    WebhookApplication webhookApplication = new WebhookApplication(payloadService, wiseTimeConnector, metricService);
+  public WebhookTimePoster(int port, JsonPayloadService payloadService, WiseTimeConnector wiseTimeConnector,
+                           MetricService metricService, SQLiteHelper sqLiteHelper) {
+    this(port, payloadService, wiseTimeConnector, metricService, new TimeGroupIdStore(sqLiteHelper));
+  }
+
+  WebhookTimePoster(int port, JsonPayloadService payloadService, WiseTimeConnector wiseTimeConnector,
+      MetricService metricService, TimeGroupIdStore timeGroupIdStore) {
+    WebhookApplication webhookApplication = new WebhookApplication(payloadService, wiseTimeConnector,
+        metricService, timeGroupIdStore);
     server = new SparkWebApp(port, webhookApplication).getServer();
   }
 
