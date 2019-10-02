@@ -7,6 +7,7 @@ package io.wisetime.connector.time_poster.long_polling;
 import com.google.common.collect.ImmutableList;
 
 import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
+import io.wisetime.generated.connect.TimeGroupStatus.StatusEnum;
 import java.io.IOException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -147,5 +148,24 @@ class FetchClientTimePosterTest {
     fetchClient.stop();
 
     verify(wiseTimeConnectorMock, never()).postTime(isNull(), any());
+    ArgumentCaptor<TimeGroupStatus> statusCaptor = ArgumentCaptor.forClass(TimeGroupStatus.class);
+    verify(apiClientMock, times(1)).updatePostedTimeStatus(statusCaptor.capture());
+
+    assertThat(statusCaptor.getValue().getStatus()).isEqualTo(StatusEnum.SUCCESS);
+  }
+
+  @Test
+  void alreadySeenTimeGroup_inProgress() throws Exception {
+    TimeGroup timeGroup = fakeEntities.randomTimeGroup();
+    when(timeGroupIdStoreMock.alreadySeenFetchClient(timeGroup.getGroupId())).thenReturn(Optional.of("IN_PROGRESS"));
+    when(apiClientMock.fetchTimeGroups(anyInt()))
+        .thenReturn(ImmutableList.of(timeGroup))
+        .thenReturn(ImmutableList.of());
+    fetchClient.start();
+    Thread.sleep(100);
+    fetchClient.stop();
+
+    verify(wiseTimeConnectorMock, never()).postTime(isNull(), any());
+    verify(apiClientMock, never()).updatePostedTimeStatus(any());
   }
 }
