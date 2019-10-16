@@ -123,7 +123,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
           healthRunner.setShutdownFunction(() -> connectorRun.cancel(true));
 
           healthCheckTimer.scheduleAtFixedRate(
-              healthRunner, TimeUnit.SECONDS.toMillis(5), TimeUnit.SECONDS.toMillis(3)
+              healthRunner, TimeUnit.SECONDS.toMillis(5), TimeUnit.MINUTES.toMillis(1)
           );
 
           tagTimer.scheduleAtFixedRate(
