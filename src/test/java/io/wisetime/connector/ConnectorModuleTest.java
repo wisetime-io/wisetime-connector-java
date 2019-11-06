@@ -15,7 +15,9 @@ class ConnectorModuleTest {
 
   @Test
   void getTagSyncIntervalMinutes() {
-    assertThat(ConnectorModule.getTagSyncIntervalMinutes())
+    final ConnectorModule module = new ConnectorModule(null, null);
+
+    assertThat(module.getTagSyncIntervalMinutes())
         .isEqualTo(5)
         .as("Tag sync interval minutes shouldn't be changed without due consideration as it affects all " +
             "downstream connectors");
