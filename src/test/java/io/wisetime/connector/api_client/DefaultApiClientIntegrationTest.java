@@ -7,12 +7,6 @@ package io.wisetime.connector.api_client;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
-import io.wisetime.connector.config.info.ConnectorInfo;
-import io.wisetime.connector.utils.RuntimeEnvironmentUtil;
-import io.wisetime.generated.connect.ManagedConfigRequest;
-import io.wisetime.generated.connect.ManagedConfigResponse;
-import java.time.Instant;
-import java.time.ZoneOffset;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -20,13 +14,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.time.ZoneOffset;
 import java.util.Optional;
 
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
+import io.wisetime.connector.config.info.ConnectorInfo;
+import io.wisetime.connector.utils.RuntimeEnvironmentUtil;
 import io.wisetime.generated.connect.AddKeywordsRequest;
 import io.wisetime.generated.connect.DeleteKeywordRequest;
 import io.wisetime.generated.connect.DeleteTagRequest;
+import io.wisetime.generated.connect.ManagedConfigRequest;
+import io.wisetime.generated.connect.ManagedConfigResponse;
 import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.TeamInfoResult;
@@ -181,7 +181,6 @@ class DefaultApiClientIntegrationTest {
       return;
     }
     UnsubscribeRequest unsubscribeRequest = new UnsubscribeRequest();
-    unsubscribeRequest.setWebhookId("enter webhookId");
     UnsubscribeResult response = defaultApiClient.postedTimeUnsubscribe(unsubscribeRequest);
     log.info(response.toString());
   }
