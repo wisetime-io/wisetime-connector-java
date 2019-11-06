@@ -4,6 +4,10 @@
 
 package io.wisetime.connector.controller;
 
+import java.util.Timer;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
 import io.wisetime.connector.ConnectorController;
 import io.wisetime.connector.ConnectorModule;
 import io.wisetime.connector.WiseTimeConnector;
@@ -29,9 +33,6 @@ import io.wisetime.connector.time_poster.NoOpTimePoster;
 import io.wisetime.connector.time_poster.TimePoster;
 import io.wisetime.connector.time_poster.long_polling.FetchClientTimePoster;
 import io.wisetime.connector.time_poster.webhook.WebhookTimePoster;
-import java.util.Timer;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -123,15 +124,21 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
           healthRunner.setShutdownFunction(() -> connectorRun.cancel(true));
 
           healthCheckTimer.scheduleAtFixedRate(
-              healthRunner, TimeUnit.SECONDS.toMillis(5), TimeUnit.MINUTES.toMillis(1)
+              healthRunner,
+              TimeUnit.SECONDS.toMillis(5),
+              TimeUnit.MINUTES.toMillis(1)
           );
 
           tagTimer.scheduleAtFixedRate(
-              tagRunner, TimeUnit.SECONDS.toMillis(15), TimeUnit.MINUTES.toMillis(5)
+              tagRunner,
+              TimeUnit.SECONDS.toMillis(15),
+              TimeUnit.MINUTES.toMillis(connectorModule.getTagSyncIntervalMinutes())
           );
 
           managedConfigTimer.scheduleAtFixedRate(
-              managedConfigRunner, TimeUnit.SECONDS.toMillis(15), TimeUnit.MINUTES.toMillis(5)
+              managedConfigRunner,
+              TimeUnit.SECONDS.toMillis(15),
+              TimeUnit.MINUTES.toMillis(5)
           );
 
           while (timePoster.isRunning()) {
