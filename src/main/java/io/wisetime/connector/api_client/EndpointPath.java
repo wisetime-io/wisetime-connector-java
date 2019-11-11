@@ -15,6 +15,7 @@ public enum EndpointPath {
 
   TagDelete("/tag/delete", ConnectApiRequest.HttpMethod.POST),
   TagUpsert("/tag", ConnectApiRequest.HttpMethod.POST),
+  BulkTagUpsert("/tag/batch", ConnectApiRequest.HttpMethod.POST),
   TagAddKeyword("/tag/keyword", ConnectApiRequest.HttpMethod.POST),
   TagDeleteKeyword("/tag/keyword/delete", ConnectApiRequest.HttpMethod.POST),
   TeamInfo("/team/info", ConnectApiRequest.HttpMethod.GET),
