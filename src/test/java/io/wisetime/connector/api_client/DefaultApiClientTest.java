@@ -8,6 +8,8 @@ import com.google.common.collect.ImmutableList;
 
 import com.github.javafaker.Faker;
 
+import io.wisetime.generated.connect.BatchUpsertTagRequest;
+import io.wisetime.generated.connect.BatchUpsertTagResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.junit.jupiter.api.BeforeEach;
@@ -56,47 +58,14 @@ class DefaultApiClientTest {
   @Test
   void tagUpsertBatch_completes_on_no_error() throws IOException {
     when(requestExecutor.executeTypedBodyRequest(any(), any(), any()))
-        .thenReturn(new UpsertTagResponse());
+        .thenReturn(new BatchUpsertTagResponse());
 
     apiClient.tagUpsertBatch(fakeUpsertTagRequests(5));
 
-    verify(requestExecutor, times(5)).executeTypedBodyRequest(
+    verify(requestExecutor, times(1)).executeTypedBodyRequest(
         any(),
-        any(EndpointPath.TagUpsert.getClass()),
-        any(UpsertTagRequest.class)
-    );
-  }
-
-  @Test
-  void tagUpsertBatch_stops_on_error() throws IOException {
-    IOException expectedException = new IOException("Expected exception");
-    //mockito answer is not synchronised. it is not guaranteed that only 1 return will be UpsertTagResponse on thread race
-    when(requestExecutor.executeTypedBodyRequest(any(), any(), any()))
-        .thenReturn(new UpsertTagResponse())
-        .thenThrow(expectedException);
-
-    assertThatThrownBy(() -> apiClient.tagUpsertBatch(fakeUpsertTagRequests(1000)))
-        .as("we expecting first requests pass and than expected exception to be thrown")
-        .hasMessage("Failed to complete tag upsert batch. Stopped at error.")
-        .hasCause(expectedException);
-
-    // We should notice that a request has failed way before we reach the end of the list
-    // Allowance is made for requests sent in parallel before we notice an error
-    // number of requests should always be less than 2*pool_size
-    verify(requestExecutor, atMost(20)).executeTypedBodyRequest(
-        any(),
-        any(EndpointPath.TagUpsert.getClass()),
-        any(UpsertTagRequest.class)
-    );
-  }
-
-  @Test
-  void tagUpsertBatch_wraps_exceptions() throws IOException {
-    when(requestExecutor.executeTypedBodyRequest(any(), any(), any()))
-        .thenThrow(new RuntimeException());
-
-    assertThatExceptionOfType(IOException.class).isThrownBy(() ->
-        apiClient.tagUpsertBatch(fakeUpsertTagRequests(3))
+        any(EndpointPath.BulkTagUpsert.getClass()),
+        any(BatchUpsertTagRequest.class)
     );
   }
 

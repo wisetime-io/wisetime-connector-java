@@ -8,6 +8,8 @@ import com.google.common.collect.ImmutableList;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import io.wisetime.generated.connect.BatchUpsertTagRequest;
+import io.wisetime.generated.connect.BatchUpsertTagResponse;
 import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
 import org.apache.http.message.BasicNameValuePair;
@@ -67,39 +69,15 @@ public class DefaultApiClient implements ApiClient {
     );
   }
 
-  /**
-   * This implementation upserts the batch of tags in parallel. It terminates early if an error is encountered while
-   * upserting tags.
-   */
   @Override
   public void tagUpsertBatch(List<UpsertTagRequest> upsertTagRequests) throws IOException {
-
-    final Callable<Optional<Exception>> parallelUntilError = () -> upsertTagRequests
-        .parallelStream()
-        // Wrap any exception with an Optional so we can short circuit the stream on error
-        .map(request -> {
-          try {
-            tagUpsert(request);
-            return Optional.<Exception>empty();
-          } catch (Exception e) {
-            return Optional.of(e);
-          }
-        })
-        .filter(Optional::isPresent)
-        .findAny()
-        .orElse(empty());
-
-    Optional<Exception> error;
-
-    try {
-      // We use our own ForkJoinPool to have more control on the level of parallelism and
-      // because we are IO bound. We don't want to affect other tasks on the default pool.
-      error = forkJoinPool.submit(parallelUntilError).get();
-    } catch (InterruptedException | ExecutionException e) {
-      throw new IOException(e);
-    }
-    if (error.isPresent()) {
-      throw new IOException("Failed to complete tag upsert batch. Stopped at error.", error.get());
+    BatchUpsertTagResponse response = restRequestExecutor.executeTypedBodyRequest(
+        BatchUpsertTagResponse.class,
+        EndpointPath.BulkTagUpsert,
+        new BatchUpsertTagRequest().tags(upsertTagRequests)
+    );
+    if (!response.getErrors().isEmpty()) {
+      throw new IOException("Received errors while upserting tags: " + response.getErrors());
     }
   }
 
