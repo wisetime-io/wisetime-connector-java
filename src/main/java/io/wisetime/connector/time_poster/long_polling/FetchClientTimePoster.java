@@ -4,6 +4,8 @@
 
 package io.wisetime.connector.time_poster.long_polling;
 
+import io.wisetime.connector.config.ConnectorConfigKey;
+import io.wisetime.connector.config.RuntimeConfig;
 import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
 import java.io.IOException;
 import java.util.concurrent.TimeUnit;
@@ -104,7 +106,13 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
             postTimeExecutor.submit(() -> {
               PostResult result;
               try {
-                result = wiseTimeConnector.postTime(null, timeGroup);
+                Optional<String> callerKey = RuntimeConfig.getString(ConnectorConfigKey.CALLER_KEY);
+                if (callerKey.isPresent() && !callerKey.get().equals(timeGroup.getCallerKey())) {
+                  result = PostResult.PERMANENT_FAILURE()
+                      .withMessage("Invalid caller key in posted time webhook call");
+                } else {
+                  result = wiseTimeConnector.postTime(null, timeGroup);
+                }
               } catch (Exception e) {
                 // We can't rule out postTime throws runtime exceptions, in this case permanently fail the time group:
                 // most likely a bug

@@ -6,8 +6,10 @@ package io.wisetime.connector.time_poster.webhook;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.javafaker.Faker;
 
 import io.wisetime.connector.api_client.PostResult.PostResultStatus;
+import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
 import java.util.Optional;
 import net.jodah.failsafe.Failsafe;
@@ -58,7 +60,7 @@ import static org.mockito.Mockito.when;
 @SuppressWarnings("WeakerAccess")
 public class WebhookTimePosterTest {
   private static final Logger log = LoggerFactory.getLogger(WebhookTimePosterTest.class);
-
+  private static final Faker FAKER = new Faker();
   static TemporaryFolder testExtension;
 
   @Test
@@ -182,6 +184,17 @@ public class WebhookTimePosterTest {
         .contains("\""+ MESSAGE_KEY + "\":\"" + WebhookApplication.UNEXPECTED_ERROR + "\"");
     clearInvocations(metricService);
 
+    RuntimeConfig.setProperty(ConnectorConfigKey.CALLER_KEY, FAKER.lorem().word());
+    when(timeGroupIdStoreMock.alreadySeenWebHook(any())).thenReturn(Optional.empty());
+    SparkTestUtil.UrlResponse incorrectCallerIdResponse =
+        testUtil.doMethod("POST", "/receiveTimePostedEvent", requestBody, "application/json");
+    assertThat(incorrectCallerIdResponse.status).isEqualTo(400);
+    assertThat(incorrectCallerIdResponse.body)
+        .contains(CONNECTOR_INFO_KEY)
+        .contains("\""+ MESSAGE_KEY + "\":\"Invalid caller key in posted time webhook call\"");
+    RuntimeConfig.clearProperty(ConnectorConfigKey.CALLER_KEY);
+    clearInvocations(metricService);
+
     // Invalid request
     when(objectMapper.readValue(requestBody, TimeGroup.class)).thenThrow(JsonParseException.class);
     SparkTestUtil.UrlResponse invalidRequestResponse =
@@ -191,7 +204,6 @@ public class WebhookTimePosterTest {
         .contains(CONNECTOR_INFO_KEY)
         .contains("\""+ MESSAGE_KEY + "\":\"Invalid request\"");
     clearInvocations(metricService);
-
     if (System.getProperty("examine") != null) {
       server.join();
     } else {
