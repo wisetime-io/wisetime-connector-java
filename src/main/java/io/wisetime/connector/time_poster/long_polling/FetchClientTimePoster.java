@@ -128,8 +128,8 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
   private boolean timeGroupAlreadyProcessed(String status) {
     // For any failure state: Allow reprocessing. For SUCCESS and IN_PROGRESS deny reprocessing
     return PostResultStatus.SUCCESS.name().equals(status)
-            || SUCCESS_AND_SENT.equals(status)
-            || IN_PROGRESS.equals(status);
+        || SUCCESS_AND_SENT.equals(status)
+        || IN_PROGRESS.equals(status);
   }
 
   private boolean resendSuccessMessage(String status) {

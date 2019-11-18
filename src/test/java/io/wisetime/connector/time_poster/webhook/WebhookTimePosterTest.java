@@ -6,8 +6,10 @@ package io.wisetime.connector.time_poster.webhook;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.javafaker.Faker;
 
 import io.wisetime.connector.api_client.PostResult.PostResultStatus;
+import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
 import java.util.Optional;
 import net.jodah.failsafe.Failsafe;
@@ -58,12 +60,14 @@ import static org.mockito.Mockito.when;
 @SuppressWarnings("WeakerAccess")
 public class WebhookTimePosterTest {
   private static final Logger log = LoggerFactory.getLogger(WebhookTimePosterTest.class);
-
+  private static final Faker FAKER = new Faker();
   static TemporaryFolder testExtension;
 
   @Test
   void startAndQuery() throws Exception {
     RuntimeConfig.setProperty(WEBHOOK_PORT, "0");
+    String callerKey = FAKER.lorem().word();
+    RuntimeConfig.setProperty(ConnectorConfigKey.CALLER_KEY, callerKey);
     log.info(testExtension.newFolder().getAbsolutePath());
     WiseTimeConnector mockConnector = mock(WiseTimeConnector.class);
     MetricService metricService = mock(MetricService.class);
@@ -84,6 +88,7 @@ public class WebhookTimePosterTest {
 
     TimeGroup timeGroup = new TimeGroup()
         .user(new User())
+        .callerKey(callerKey)
         .tags(emptyList());
     String requestBody = objectMapper.writeValueAsString(timeGroup);
 
@@ -182,6 +187,17 @@ public class WebhookTimePosterTest {
         .contains("\""+ MESSAGE_KEY + "\":\"" + WebhookApplication.UNEXPECTED_ERROR + "\"");
     clearInvocations(metricService);
 
+    RuntimeConfig.setProperty(ConnectorConfigKey.CALLER_KEY, FAKER.lorem().word());
+    when(timeGroupIdStoreMock.alreadySeenWebHook(any())).thenReturn(Optional.empty());
+    SparkTestUtil.UrlResponse incorrectCallerIdResponse =
+        testUtil.doMethod("POST", "/receiveTimePostedEvent", requestBody, "application/json");
+    assertThat(incorrectCallerIdResponse.status).isEqualTo(400);
+    assertThat(incorrectCallerIdResponse.body)
+        .contains(CONNECTOR_INFO_KEY)
+        .contains("\""+ MESSAGE_KEY + "\":\"Invalid caller key in posted time webhook call\"");
+    RuntimeConfig.setProperty(ConnectorConfigKey.CALLER_KEY, callerKey);
+    clearInvocations(metricService);
+
     // Invalid request
     when(objectMapper.readValue(requestBody, TimeGroup.class)).thenThrow(JsonParseException.class);
     SparkTestUtil.UrlResponse invalidRequestResponse =
@@ -191,7 +207,7 @@ public class WebhookTimePosterTest {
         .contains(CONNECTOR_INFO_KEY)
         .contains("\""+ MESSAGE_KEY + "\":\"Invalid request\"");
     clearInvocations(metricService);
-
+    RuntimeConfig.clearProperty(ConnectorConfigKey.CALLER_KEY);
     if (System.getProperty("examine") != null) {
       server.join();
     } else {

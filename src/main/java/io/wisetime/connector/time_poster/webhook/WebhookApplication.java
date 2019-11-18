@@ -9,6 +9,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
 import io.wisetime.connector.api_client.PostResult.PostResultStatus;
+import io.wisetime.connector.config.ConnectorConfigKey;
+import io.wisetime.connector.config.RuntimeConfig;
 import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -97,7 +99,14 @@ class WebhookApplication implements SparkApplication {
       if (timeGroupStatus.isPresent() && PostResultStatus.SUCCESS == timeGroupStatus.get().getStatus()) {
         return payloadService.writeWithInfo(MESSAGE_KEY, getMessageBasedOnResult(timeGroupStatus.get()));
       }
-      final PostResult postResult = wiseTimeConnector.postTime(request, timeGroup);
+      Optional<String> callerKey = RuntimeConfig.getString(ConnectorConfigKey.CALLER_KEY);
+      final PostResult postResult;
+      if (!callerKey.isPresent() || !callerKey.get().equals(timeGroup.getCallerKey())) {
+        postResult = PostResult.PERMANENT_FAILURE()
+            .withMessage("Invalid caller key in posted time webhook call");
+      } else {
+        postResult = wiseTimeConnector.postTime(request, timeGroup);
+      }
       if (PostResultStatus.SUCCESS == postResult.getStatus()) {
         timeGroupIdStore.putTimeGroupId(timeGroup.getGroupId(), postResult.getStatus().name(),
             postResult.getMessage().orElse(""));
