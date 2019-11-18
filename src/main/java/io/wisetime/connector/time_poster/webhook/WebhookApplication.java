@@ -101,7 +101,7 @@ class WebhookApplication implements SparkApplication {
       }
       Optional<String> callerKey = RuntimeConfig.getString(ConnectorConfigKey.CALLER_KEY);
       final PostResult postResult;
-      if (callerKey.isPresent() && !callerKey.get().equals(timeGroup.getCallerKey())) {
+      if (!callerKey.isPresent() || !callerKey.get().equals(timeGroup.getCallerKey())) {
         postResult = PostResult.PERMANENT_FAILURE()
             .withMessage("Invalid caller key in posted time webhook call");
       } else {

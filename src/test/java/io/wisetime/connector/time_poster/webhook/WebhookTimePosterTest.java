@@ -66,6 +66,8 @@ public class WebhookTimePosterTest {
   @Test
   void startAndQuery() throws Exception {
     RuntimeConfig.setProperty(WEBHOOK_PORT, "0");
+    String callerKey = FAKER.lorem().word();
+    RuntimeConfig.setProperty(ConnectorConfigKey.CALLER_KEY, callerKey);
     log.info(testExtension.newFolder().getAbsolutePath());
     WiseTimeConnector mockConnector = mock(WiseTimeConnector.class);
     MetricService metricService = mock(MetricService.class);
@@ -86,6 +88,7 @@ public class WebhookTimePosterTest {
 
     TimeGroup timeGroup = new TimeGroup()
         .user(new User())
+        .callerKey(callerKey)
         .tags(emptyList());
     String requestBody = objectMapper.writeValueAsString(timeGroup);
 
@@ -192,7 +195,7 @@ public class WebhookTimePosterTest {
     assertThat(incorrectCallerIdResponse.body)
         .contains(CONNECTOR_INFO_KEY)
         .contains("\""+ MESSAGE_KEY + "\":\"Invalid caller key in posted time webhook call\"");
-    RuntimeConfig.clearProperty(ConnectorConfigKey.CALLER_KEY);
+    RuntimeConfig.setProperty(ConnectorConfigKey.CALLER_KEY, callerKey);
     clearInvocations(metricService);
 
     // Invalid request
@@ -204,6 +207,7 @@ public class WebhookTimePosterTest {
         .contains(CONNECTOR_INFO_KEY)
         .contains("\""+ MESSAGE_KEY + "\":\"Invalid request\"");
     clearInvocations(metricService);
+    RuntimeConfig.clearProperty(ConnectorConfigKey.CALLER_KEY);
     if (System.getProperty("examine") != null) {
       server.join();
     } else {
