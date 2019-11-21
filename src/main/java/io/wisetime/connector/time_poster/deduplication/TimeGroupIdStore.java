@@ -76,9 +76,12 @@ public class TimeGroupIdStore {
   public List<Pair<String, PostResult>> getAllWithPendingStatusUpdate() {
     return sqLiteHelper.query()
         // Get all statuses with SUCCESS or PERMANENT_FAILURE for updating
+        // give the async immediate status updater some time to complete before retrying by table sweep
         .select("SELECT time_group_id, post_result, message FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
-            " WHERE post_result = ? or post_result = ?")
-        .params(PostResultStatus.SUCCESS.name(), PostResultStatus.PERMANENT_FAILURE.name())
+            " WHERE (post_result = :success or post_result = :permFail) and received_timestamp < :ts")
+        .namedParam("success", PostResultStatus.SUCCESS.name())
+        .namedParam("permFail", PostResultStatus.PERMANENT_FAILURE.name())
+        .namedParam("ts", System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(1))
         .listResult(rs -> Pair.of(rs.getString(1),
             PostResult.valueOf(rs.getString(2)).withMessage(rs.getString(3))));
   }
@@ -98,7 +101,7 @@ public class TimeGroupIdStore {
         // new key value
         query.update("INSERT INTO " + TABLE_TIME_GROUPS_RECEIVED.getName() +
             " (time_group_id, post_result, received_timestamp, created_ts, message) VALUES (?,?,?,?,?)")
-            .params(timeGroupId, postResult, timeStamp, System.currentTimeMillis(), message)
+            .params(timeGroupId, postResult, timeStamp, timeStamp, message)
             .run();
       }
     });
