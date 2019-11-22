@@ -6,8 +6,11 @@ package io.wisetime.connector.time_poster.deduplication;
 
 import com.github.javafaker.Faker;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.tuple.Pair;
+import org.codejargon.fluentjdbc.api.query.UpdateQuery;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -129,6 +132,7 @@ class TimeGroupIdStoreTest {
     final String id3 = faker.numerify("tg##########");
     final String id4 = faker.numerify("tg##########");
     final String id5 = faker.numerify("tg##########");
+    final String id6 = faker.numerify("tg##########");
     final String message1 = faker.gameOfThrones().quote();
     final String message2 = faker.gameOfThrones().quote();
     final String message3 = faker.gameOfThrones().quote();
@@ -137,6 +141,16 @@ class TimeGroupIdStoreTest {
     timeGroupIdStore.putTimeGroupId(id3, TimeGroupIdStore.IN_PROGRESS, "");
     timeGroupIdStore.putTimeGroupId(id4, TimeGroupIdStore.SUCCESS_AND_SENT, "");
     timeGroupIdStore.putTimeGroupId(id5, PostResultStatus.SUCCESS.name(), message3);
+    // the following line should not be found, because its too new
+    timeGroupIdStore.putTimeGroupId(id6, PostResultStatus.SUCCESS.name(), "");
+
+    sqLiteHelper.query().batch("update " + TABLE_TIME_GROUPS_RECEIVED.getName()
+        + " set received_timestamp = :ts where time_group_id = :id")
+        .namedParams(ImmutableList.of(
+            ImmutableMap.of("ts", System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(2), "id", id1),
+            ImmutableMap.of("ts",System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(2), "id", id2),
+            ImmutableMap.of("ts",System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(2), "id", id5)
+        )).run();
 
     assertThat(timeGroupIdStore.getAllWithPendingStatusUpdate())
         .usingRecursiveFieldByFieldElementComparator()
