@@ -50,11 +50,11 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class ConnectorControllerImpl implements ConnectorController, HealthIndicator {
 
-  public TimerTaskSchedule healthTaskSchedule = new TimerTaskSchedule(
+  TimerTaskSchedule healthTaskSchedule = new TimerTaskSchedule(
       TimeUnit.SECONDS.toMillis(5), TimeUnit.MINUTES.toMillis(1));
-  public TimerTaskSchedule tagTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
+  TimerTaskSchedule tagTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
       TimeUnit.MINUTES.toMillis(5));
-  public TimerTaskSchedule managedConfigTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
+  TimerTaskSchedule managedConfigTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
       TimeUnit.MINUTES.toMillis(5));
 
   private final TimePoster timePoster;
@@ -132,7 +132,10 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
             throw new RuntimeException(e);
           }
 
-          healthRunner.setShutdownFunction(() -> connectorRun.cancel(false)); //task is not interrupted
+          healthRunner.setShutdownFunction(() -> {
+            //completable future can't be interrupted
+            connectorRun.cancel(false);
+          });
 
           healthCheckTimer.scheduleAtFixedRate(healthRunner,
               healthTaskSchedule.getInitialDelayMs(), healthTaskSchedule.getPeriodMs());
@@ -245,7 +248,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
 
   @Data
   @AllArgsConstructor
-  public static class TimerTaskSchedule {
+  static class TimerTaskSchedule {
 
     private long initialDelayMs;
     private long periodMs;
