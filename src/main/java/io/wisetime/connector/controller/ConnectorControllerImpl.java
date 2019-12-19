@@ -4,10 +4,6 @@
 
 package io.wisetime.connector.controller;
 
-import java.util.Timer;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-
 import io.wisetime.connector.ConnectorController;
 import io.wisetime.connector.ConnectorModule;
 import io.wisetime.connector.WiseTimeConnector;
@@ -33,6 +29,13 @@ import io.wisetime.connector.time_poster.NoOpTimePoster;
 import io.wisetime.connector.time_poster.TimePoster;
 import io.wisetime.connector.time_poster.long_polling.FetchClientTimePoster;
 import io.wisetime.connector.time_poster.webhook.WebhookTimePoster;
+import java.util.Timer;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
@@ -46,6 +49,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class ConnectorControllerImpl implements ConnectorController, HealthIndicator {
+
+  public TimerTaskSchedule healthTaskSchedule = new TimerTaskSchedule(
+      TimeUnit.SECONDS.toMillis(5), TimeUnit.MINUTES.toMillis(1));
+  public TimerTaskSchedule tagTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
+      TimeUnit.MINUTES.toMillis(5));
+  public TimerTaskSchedule managedConfigTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
+      TimeUnit.MINUTES.toMillis(5));
 
   private final TimePoster timePoster;
   private final WiseTimeConnector wiseTimeConnector;
@@ -75,7 +85,8 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     apiClient = new ApiClientTagWrapper(apiClient, tagRunner);
 
     final SQLiteHelper sqLiteHelper = new SQLiteHelper(configuration.isForcePersistentStorage());
-    connectorModule = new ConnectorModule(apiClient, new FileStore(sqLiteHelper));
+    connectorModule = new ConnectorModule(apiClient, new FileStore(sqLiteHelper),
+        (int) (tagTaskSchedule.getInitialDelayMs() / 1000));
 
     final ConnectorInfoProvider connectorInfoProvider = new ConstantConnectorInfoProvider();
     timePoster = createTimePoster(configuration, apiClient, sqLiteHelper, connectorInfoProvider);
@@ -87,7 +98,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
         managedConfigRunner,
         new WiseTimeConnectorHealthIndicator(wiseTimeConnector));
 
-    healthCheckTimer = new Timer("health-check-timer", false);
+    healthCheckTimer = new Timer("health-check-timer", true);
     tagTimer = new Timer("tag-check-timer", true);
     managedConfigTimer = new Timer("manage-config-timer", true);
 
@@ -109,7 +120,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
       log.warn("Cannot start the connector while it is still running. Start attempt ignored.");
       return;
     }
-
+    final ExecutorService executorService = Executors.newSingleThreadExecutor();
     connectorRun = CompletableFuture
         .supplyAsync(() -> {
           // Init may take a while to complete if connector runs self checks
@@ -121,25 +132,16 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
             throw new RuntimeException(e);
           }
 
-          healthRunner.setShutdownFunction(() -> connectorRun.cancel(true));
+          healthRunner.setShutdownFunction(() -> connectorRun.cancel(false)); //task is not interrupted
 
-          healthCheckTimer.scheduleAtFixedRate(
-              healthRunner,
-              TimeUnit.SECONDS.toMillis(5),
-              TimeUnit.MINUTES.toMillis(1)
-          );
+          healthCheckTimer.scheduleAtFixedRate(healthRunner,
+              healthTaskSchedule.getInitialDelayMs(), healthTaskSchedule.getPeriodMs());
 
-          tagTimer.scheduleAtFixedRate(
-              tagRunner,
-              TimeUnit.SECONDS.toMillis(15),
-              TimeUnit.MINUTES.toMillis(connectorModule.getTagSyncIntervalMinutes())
-          );
+          tagTimer.scheduleAtFixedRate(tagRunner,
+              tagTaskSchedule.getInitialDelayMs(), tagTaskSchedule.getPeriodMs());
 
-          managedConfigTimer.scheduleAtFixedRate(
-              managedConfigRunner,
-              TimeUnit.SECONDS.toMillis(15),
-              TimeUnit.MINUTES.toMillis(5)
-          );
+          managedConfigTimer.scheduleAtFixedRate(managedConfigRunner,
+              managedConfigTaskSchedule.getInitialDelayMs(), managedConfigTaskSchedule.getPeriodMs());
 
           while (timePoster.isRunning()) {
             try {
@@ -150,7 +152,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
           }
           stop();
           return null;
-        });
+        }, executorService);
 
     // Block until stopped
     try {
@@ -161,7 +163,12 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
         throw e;
       }
     }
-    log.info("Connector stopped");
+    log.info("Connector stop received");
+    executorService.shutdownNow();
+    if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
+      log.error("Failed to gracefully stop connector. Halting process now");
+      System.exit(-1);
+    }
   }
 
   @Override
@@ -234,5 +241,13 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
         log.error("Unexpected tag runner mode {}. Fallback to ENABLED", configuration.getTagScanMode());
         return new TagRunner(wiseTimeConnector);
     }
+  }
+
+  @Data
+  @AllArgsConstructor
+  public static class TimerTaskSchedule {
+
+    private long initialDelayMs;
+    private long periodMs;
   }
 }
