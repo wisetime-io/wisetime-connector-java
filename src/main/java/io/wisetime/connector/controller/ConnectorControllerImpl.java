@@ -86,7 +86,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
 
     final SQLiteHelper sqLiteHelper = new SQLiteHelper(configuration.isForcePersistentStorage());
     connectorModule = new ConnectorModule(apiClient, new FileStore(sqLiteHelper),
-        (int) (tagTaskSchedule.getInitialDelayMs() / 1000));
+        (int) TimeUnit.MILLISECONDS.toSeconds(tagTaskSchedule.getInitialDelayMs()));
 
     final ConnectorInfoProvider connectorInfoProvider = new ConstantConnectorInfoProvider();
     timePoster = createTimePoster(configuration, apiClient, sqLiteHelper, connectorInfoProvider);
