@@ -20,8 +20,9 @@ public class ConnectorModule {
 
   private final ApiClient apiClient;
   private final ConnectorStore connectorStore;
+  private final int tagSyncIntervalMinutes;
 
   public int getTagSyncIntervalMinutes() {
-    return 5;
+    return tagSyncIntervalMinutes;
   }
 }
