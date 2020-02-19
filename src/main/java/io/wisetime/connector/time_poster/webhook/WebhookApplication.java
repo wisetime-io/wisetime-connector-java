@@ -8,6 +8,7 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 
+import com.google.common.collect.ImmutableMap;
 import io.wisetime.connector.api_client.PostResult.PostResultStatus;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
@@ -50,6 +51,7 @@ class WebhookApplication implements SparkApplication {
   static final String PING_RESPONSE = "pong";
   static final String UNEXPECTED_ERROR = "Unexpected error";
   static final String MESSAGE_KEY = "message";
+  static final String EXTERNAL_ID_KEY = "externalId";
 
   private final JsonPayloadService payloadService;
   private final WiseTimeConnector wiseTimeConnector;
@@ -116,7 +118,9 @@ class WebhookApplication implements SparkApplication {
       response.type("application/json");
       response.status(postResult.getStatus().getStatusCode());
       String message = getMessageBasedOnResult(postResult);
-      return payloadService.writeWithInfo(MESSAGE_KEY, message);
+      return payloadService.writeWithInfo(ImmutableMap.of(
+          MESSAGE_KEY, message,
+          EXTERNAL_ID_KEY, postResult.getExternalId().orElse("")));
     });
   }
 
