@@ -21,6 +21,10 @@ public class PostResult {
 
   private final PostResultStatus status;
   private String message;
+  /**
+   * Id in external system to reference entity created for this time group.
+   */
+  private String externalId;
   private Throwable error;
 
   /**
@@ -80,6 +84,11 @@ public class PostResult {
     return this;
   }
 
+  public PostResult withExternalId(final String externalId) {
+    this.externalId = externalId;
+    return this;
+  }
+
   public PostResultStatus getStatus() {
     return status;
   }
@@ -94,6 +103,10 @@ public class PostResult {
 
   public Optional<Throwable> getError() {
     return Optional.ofNullable(error);
+  }
+
+  public Optional<String> getExternalId() {
+    return Optional.ofNullable(externalId);
   }
 
   @Override
