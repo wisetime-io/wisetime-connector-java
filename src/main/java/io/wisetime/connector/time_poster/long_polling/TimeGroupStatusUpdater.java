@@ -91,6 +91,7 @@ public class TimeGroupStatusUpdater extends TimerTask implements HealthIndicator
         case SUCCESS:
           apiClient.updatePostedTimeStatus(new TimeGroupStatus()
               .status(TimeGroupStatus.StatusEnum.SUCCESS)
+              .externalId(result.getExternalId().orElse(""))
               .timeGroupId(timeGroupId));
           timeGroupIdStore.putTimeGroupId(timeGroupId, SUCCESS_AND_SENT, result.getMessage().orElse(""));
           break;
