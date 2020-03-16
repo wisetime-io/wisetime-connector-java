@@ -8,8 +8,12 @@ import com.google.common.collect.ImmutableList;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import io.wisetime.generated.connect.AddSetTagPropertiesRequest;
+import io.wisetime.generated.connect.AddSetTagPropertiesResponse;
 import io.wisetime.generated.connect.BatchUpsertTagRequest;
 import io.wisetime.generated.connect.BatchUpsertTagResponse;
+import io.wisetime.generated.connect.DeleteTagPropertiesRequest;
+import io.wisetime.generated.connect.DeleteTagPropertiesResponse;
 import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
 import org.apache.http.message.BasicNameValuePair;
@@ -138,6 +142,57 @@ public class DefaultApiClient implements ApiClient {
         EndpointPath.TagDeleteKeyword,
         deleteKeywordRequest
     );
+  }
+
+  @Override
+  public void tagAddSetProperties(AddSetTagPropertiesRequest addSetTagPropertiesRequest) throws IOException {
+    restRequestExecutor.executeTypedBodyRequest(
+        AddSetTagPropertiesResponse.class,
+        EndpointPath.TagAddSetProperties,
+        addSetTagPropertiesRequest
+    );
+  }
+
+  @Override
+  public void tagDeleteProperties(DeleteTagPropertiesRequest deleteTagPropertiesRequest) throws IOException {
+    restRequestExecutor.executeTypedBodyRequest(
+        DeleteTagPropertiesResponse.class,
+        EndpointPath.TagDeleteProperties,
+        deleteTagPropertiesRequest
+    );
+  }
+
+  @Override
+  public void tagAddSetPropertiesBatch(List<AddSetTagPropertiesRequest> addSetTagPropertiesRequests)
+      throws IOException {
+
+    final Callable<Optional<Exception>> parallelUntilError = () -> addSetTagPropertiesRequests
+        .parallelStream()
+        // Wrap any exception with an Optional so we can short circuit the stream on error
+        .map(tagProperties -> {
+          try {
+            tagAddSetProperties(tagProperties);
+            return Optional.<Exception>empty();
+          } catch (Exception e) {
+            return Optional.of(e);
+          }
+        })
+        .filter(Optional::isPresent)
+        .findAny()
+        .orElse(empty());
+
+    Optional<Exception> error;
+
+    try {
+      // We use our own ForkJoinPool to have more control on the level of parallelism and
+      // because we are IO bound. We don't want to affect other tasks on the default pool.
+      error = forkJoinPool.submit(parallelUntilError).get();
+    } catch (InterruptedException | ExecutionException e) {
+      throw new IOException(e);
+    }
+    if (error.isPresent()) {
+      throw new IOException("Failed to complete tag properties upsert batch. Stopped at error.", error.get());
+    }
   }
 
   public TeamInfoResult teamInfo() throws IOException {

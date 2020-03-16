@@ -4,6 +4,8 @@
 
 package io.wisetime.connector.api_client;
 
+import io.wisetime.generated.connect.AddSetTagPropertiesRequest;
+import io.wisetime.generated.connect.DeleteTagPropertiesRequest;
 import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
 import java.io.IOException;
@@ -82,6 +84,32 @@ public interface ApiClient {
    * @throws IOException
    */
   void tagDeleteKeyword(DeleteKeywordRequest deleteKeywordRequest) throws IOException;
+
+  /**
+   * Add one or more tag properties to the tag. The default behaviour ensures that there will be no duplicate or
+   * deletion of any existing tag specific properties within WiseTime.
+   *
+   * @param addSetTagPropertiesRequest map of tag properties to be added to a tag
+   * @throws IOException
+   */
+  void tagAddSetProperties(AddSetTagPropertiesRequest addSetTagPropertiesRequest) throws IOException;
+
+  /**
+   * Delete one or more tag properties from a tag.
+   *
+   * @param deleteTagPropertiesRequest contains info about the tag properties to be deleted from a tag.
+   * @throws IOException
+   */
+  void tagDeleteProperties(DeleteTagPropertiesRequest deleteTagPropertiesRequest) throws IOException;
+
+  /**
+   * Add tag properties to a batch of tags. The default behaviour ensures that there will be no duplicate or
+   * deletion of any existing tag specific properties within WiseTime.
+   *
+   * @param addSetTagPropertiesRequests request list tag properties to be added to tag(s)
+   * @throws IOException
+   */
+  void tagAddSetPropertiesBatch(List<AddSetTagPropertiesRequest> addSetTagPropertiesRequests) throws IOException;
 
   /**
    * Get the details for the team linked to the API key making the request.
