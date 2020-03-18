@@ -10,8 +10,8 @@ import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
-import io.wisetime.generated.connect.AddSetTagPropertiesRequest;
-import io.wisetime.generated.connect.AddSetTagPropertiesResponse;
+import io.wisetime.generated.connect.TagMetadataUpdateRequest;
+import io.wisetime.generated.connect.TagMetadataUpdateResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -25,7 +25,7 @@ import org.junit.jupiter.api.Test;
 /**
  * @author dchandler
  */
-public class DefaultApiClient_TagPropertiesTest {
+public class DefaultApiClient_TagMetadataTest {
 
   private RestRequestExecutor requestExecutor;
 
@@ -38,31 +38,31 @@ public class DefaultApiClient_TagPropertiesTest {
   }
 
   @Test
-  void tagAddSetPropertiesBatch_completes_on_no_error() throws IOException {
+  void tagUpdateMetadataBatch_completes_on_no_error() throws IOException {
     when(requestExecutor.executeTypedBodyRequest(any(), any(), any(), any()))
-        .thenReturn(new AddSetTagPropertiesResponse());
+        .thenReturn(new TagMetadataUpdateResponse());
 
-    apiClient.tagAddSetPropertiesBatch(fakeAddSetPropertiesRequests(5));
+    apiClient.tagMetadataUpdateBatch(fakeTagMetadataUpdateRequestList(5));
 
     verify(requestExecutor, times(5)).executeTypedBodyRequest(
         any(),
-        any(EndpointPath.TagAddSetProperties.getClass()),
-        any(AddSetTagPropertiesRequest.class)
+        any(EndpointPath.TagMetadataUpdate.getClass()),
+        any(TagMetadataUpdateRequest.class)
     );
   }
 
   @Test
-  void tagAddSetTagPropertiesBatch_stops_on_error() throws IOException {
+  void tagUpdateMetadataBatch_stops_on_error() throws IOException {
     // mockito answer is not synchronised. it is not guaranteed that only 1 return will be AddSetTagPropertiesResponse
     // on thread race
     IOException expectedException = new IOException();
     when(requestExecutor.executeTypedBodyRequest(any(), any(), any()))
-        .thenReturn(new AddSetTagPropertiesResponse())
+        .thenReturn(new TagMetadataUpdateResponse())
         .thenThrow(expectedException);
 
-    assertThatThrownBy(() -> apiClient.tagAddSetPropertiesBatch(fakeAddSetPropertiesRequests(1000)))
+    assertThatThrownBy(() -> apiClient.tagMetadataUpdateBatch(fakeTagMetadataUpdateRequestList(1000)))
         .as("we expecting first requests pass and than expected exception to be thrown")
-        .hasMessage("Failed to complete tag properties upsert batch. Stopped at error.")
+        .hasMessage("Failed to complete tag metadata update batch. Stopped at error.")
         .hasCause(expectedException);
 
     // We should notice that a request has failed way before we reach the end of the list
@@ -70,34 +70,34 @@ public class DefaultApiClient_TagPropertiesTest {
     // number of requests should always be less than 2*pool_size
     verify(requestExecutor, atMost(20)).executeTypedBodyRequest(
         any(),
-        any(EndpointPath.TagAddSetProperties.getClass()),
-        any(AddSetTagPropertiesRequest.class)
+        any(EndpointPath.TagMetadataUpdate.getClass()),
+        any(TagMetadataUpdateRequest.class)
     );
   }
 
   @Test
-  void tagAddSetTagPropertiesBatch_wraps_exceptions() throws IOException {
+  void tagUpdateMetadataBatch_wraps_exceptions() throws IOException {
     when(requestExecutor.executeTypedBodyRequest(any(), any(), any()))
         .thenThrow(new RuntimeException());
 
     assertThatExceptionOfType(IOException.class).isThrownBy(() ->
-        apiClient.tagAddSetPropertiesBatch(fakeAddSetPropertiesRequests(3))
+        apiClient.tagMetadataUpdateBatch(fakeTagMetadataUpdateRequestList(3))
     );
   }
 
-  private List<AddSetTagPropertiesRequest> fakeAddSetPropertiesRequests(final int numberOfTags) {
-    final List<AddSetTagPropertiesRequest> requests = new ArrayList<>();
+  private List<TagMetadataUpdateRequest> fakeTagMetadataUpdateRequestList(final int numberOfTags) {
+    final List<TagMetadataUpdateRequest> requests = new ArrayList<>();
     IntStream
         .range(1, numberOfTags + 1)
         .forEach(i -> {
-          Map<String, String> tagPropertyMap = Collections.unmodifiableMap(new HashMap<String, String>() {
+          Map<String, String> metadataMap = Collections.unmodifiableMap(new HashMap<String, String>() {
             {
               put(String.valueOf(i), String.valueOf(i));
             }
           });
-          requests.add(new AddSetTagPropertiesRequest()
+          requests.add(new TagMetadataUpdateRequest()
               .tagName(String.valueOf(i))
-              .tagProperties(tagPropertyMap));
+              .metadata(metadataMap));
         });
     return requests;
   }

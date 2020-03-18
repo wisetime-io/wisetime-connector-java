@@ -8,14 +8,14 @@ import com.google.common.collect.ImmutableList;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
-import io.wisetime.generated.connect.AddSetTagPropertiesRequest;
-import io.wisetime.generated.connect.AddSetTagPropertiesResponse;
 import io.wisetime.generated.connect.BatchUpsertTagRequest;
 import io.wisetime.generated.connect.BatchUpsertTagResponse;
-import io.wisetime.generated.connect.DeleteTagPropertiesRequest;
-import io.wisetime.generated.connect.DeleteTagPropertiesResponse;
 import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
+import io.wisetime.generated.connect.TagMetadataDeleteRequest;
+import io.wisetime.generated.connect.TagMetadataDeleteResponse;
+import io.wisetime.generated.connect.TagMetadataUpdateRequest;
+import io.wisetime.generated.connect.TagMetadataUpdateResponse;
 import org.apache.http.message.BasicNameValuePair;
 
 import java.io.IOException;
@@ -145,33 +145,33 @@ public class DefaultApiClient implements ApiClient {
   }
 
   @Override
-  public void tagAddSetProperties(AddSetTagPropertiesRequest addSetTagPropertiesRequest) throws IOException {
+  public void tagMetadataUpdate(TagMetadataUpdateRequest tagMetadataUpdateRequest) throws IOException {
     restRequestExecutor.executeTypedBodyRequest(
-        AddSetTagPropertiesResponse.class,
-        EndpointPath.TagAddSetProperties,
-        addSetTagPropertiesRequest
+        TagMetadataUpdateResponse.class,
+        EndpointPath.TagMetadataUpdate,
+        tagMetadataUpdateRequest
     );
   }
 
   @Override
-  public void tagDeleteProperties(DeleteTagPropertiesRequest deleteTagPropertiesRequest) throws IOException {
+  public void tagMetadataDelete(TagMetadataDeleteRequest tagMetadataDeleteRequest) throws IOException {
     restRequestExecutor.executeTypedBodyRequest(
-        DeleteTagPropertiesResponse.class,
-        EndpointPath.TagDeleteProperties,
-        deleteTagPropertiesRequest
+        TagMetadataDeleteResponse.class,
+        EndpointPath.TagMetadataDelete,
+        tagMetadataDeleteRequest
     );
   }
 
   @Override
-  public void tagAddSetPropertiesBatch(List<AddSetTagPropertiesRequest> addSetTagPropertiesRequests)
+  public void tagMetadataUpdateBatch(List<TagMetadataUpdateRequest> tagMetadataUpdateRequestList)
       throws IOException {
 
-    final Callable<Optional<Exception>> parallelUntilError = () -> addSetTagPropertiesRequests
+    final Callable<Optional<Exception>> parallelUntilError = () -> tagMetadataUpdateRequestList
         .parallelStream()
         // Wrap any exception with an Optional so we can short circuit the stream on error
-        .map(tagProperties -> {
+        .map(tagMetadataUpdateRequest -> {
           try {
-            tagAddSetProperties(tagProperties);
+            tagMetadataUpdate(tagMetadataUpdateRequest);
             return Optional.<Exception>empty();
           } catch (Exception e) {
             return Optional.of(e);
@@ -191,7 +191,7 @@ public class DefaultApiClient implements ApiClient {
       throw new IOException(e);
     }
     if (error.isPresent()) {
-      throw new IOException("Failed to complete tag properties upsert batch. Stopped at error.", error.get());
+      throw new IOException("Failed to complete tag metadata update batch. Stopped at error.", error.get());
     }
   }
 

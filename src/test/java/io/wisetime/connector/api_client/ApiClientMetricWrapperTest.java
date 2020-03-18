@@ -6,6 +6,8 @@ package io.wisetime.connector.api_client;
 
 import com.google.common.collect.Lists;
 
+import io.wisetime.generated.connect.TagMetadataDeleteRequest;
+import io.wisetime.generated.connect.TagMetadataUpdateRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -102,6 +104,9 @@ class ApiClientMetricWrapperTest {
     apiClientMetricWrapper.tagDeleteKeyword(new DeleteKeywordRequest());
     apiClientMetricWrapper.teamInfo();
     apiClientMetricWrapper.updatePostedTimeStatus(new TimeGroupStatus());
+    apiClientMetricWrapper.tagMetadataUpdate(new TagMetadataUpdateRequest());
+    apiClientMetricWrapper.tagMetadataDelete(new TagMetadataDeleteRequest());
+    apiClientMetricWrapper.tagMetadataUpdateBatch(singletonList(new TagMetadataUpdateRequest()));
     verify(metricService, never()).increment(any());
     verify(metricService, never()).increment(any(), anyInt());
   }

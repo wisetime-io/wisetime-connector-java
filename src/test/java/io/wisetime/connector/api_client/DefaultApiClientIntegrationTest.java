@@ -7,12 +7,6 @@ package io.wisetime.connector.api_client;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 
-import com.google.common.collect.Maps;
-import io.wisetime.generated.connect.AddSetTagPropertiesRequest;
-import io.wisetime.generated.connect.DeleteTagPropertiesRequest;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -88,7 +82,6 @@ class DefaultApiClientIntegrationTest {
     request.setDescription("Tag from API");
     request.setPath("/");
     request.setAdditionalKeywords(Lists.newArrayList("ViaCreatedApi"));
-    request.setTagProperties(createTagPropertyMap());
     defaultApiClient.tagUpsert(request);
   }
 
@@ -102,7 +95,6 @@ class DefaultApiClientIntegrationTest {
     request.setDescription("Tag from API");
     request.setPath("/");
     request.setAdditionalKeywords(Lists.newArrayList("CreatedViaApi with space"));
-    request.setTagProperties(createTagPropertyMap());
     defaultApiClient.tagUpsert(request);
   }
 
@@ -116,7 +108,6 @@ class DefaultApiClientIntegrationTest {
     request.setDescription("Tag from API with slash");
     request.setPath("/");
     request.setAdditionalKeywords(Lists.newArrayList("key/word"));
-    request.setTagProperties(createTagPropertyMap());
     defaultApiClient.tagUpsert(request);
   }
 
@@ -173,49 +164,6 @@ class DefaultApiClientIntegrationTest {
   }
 
   @Test
-  void tagAddSetTagProperties() throws IOException {
-    if (defaultApiClient == null) {
-      return;
-    }
-    defaultApiClient.tagAddSetProperties(
-        new AddSetTagPropertiesRequest()
-            .tagName("CreatedViaApi")
-            .tagProperties(createTagPropertyMap())
-    );
-  }
-
-  @Test
-  void tagDeleteTagProperties() throws IOException {
-    if (defaultApiClient == null) {
-      return;
-    }
-    defaultApiClient.tagDeleteProperties(new DeleteTagPropertiesRequest()
-        .tagName("CreatedViaApi")
-        .propertyNames(ImmutableList.of("tp_1", "tp_2")));
-  }
-
-  @Test
-  void tagAddSetTagProperties_hasSlash() throws IOException {
-    if (defaultApiClient == null) {
-      return;
-    }
-    defaultApiClient.tagAddSetProperties(
-        new AddSetTagPropertiesRequest()
-            .tagName("tag/name")
-            .tagProperties(createTagPropertyMap()));
-  }
-
-  @Test
-  void tagDeleteTagProperties_hasSlash() throws IOException {
-    if (defaultApiClient == null) {
-      return;
-    }
-    defaultApiClient.tagDeleteProperties(new DeleteTagPropertiesRequest()
-        .tagName("tag/name")
-        .propertyNames((ImmutableList.of("tp/1", "tp/2"))));
-  }
-
-  @Test
   void postedTimeSubscribe() throws IOException {
     if (defaultApiClient == null) {
       return;
@@ -254,13 +202,5 @@ class DefaultApiClientIntegrationTest {
     managedConfigRequest.clientTimestamp((double) Instant.now().getEpochSecond());
     ManagedConfigResponse configResponse = defaultApiClient.getTeamManagedConfig(managedConfigRequest);
     log.info(configResponse.toString());
-  }
-
-  private Map<String, String> createTagPropertyMap() {
-    return Collections.unmodifiableMap(new HashMap<String, String>() {
-      {
-        put("tp_key", "tp_value");
-      }
-    });
   }
 }
