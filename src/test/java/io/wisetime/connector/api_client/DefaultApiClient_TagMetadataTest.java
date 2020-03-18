@@ -38,7 +38,7 @@ public class DefaultApiClient_TagMetadataTest {
   }
 
   @Test
-  void tagUpdateMetadataBatch_completes_on_no_error() throws IOException {
+  void tagMetadataUpdateBatch_completes_on_no_error() throws IOException {
     when(requestExecutor.executeTypedBodyRequest(any(), any(), any(), any()))
         .thenReturn(new TagMetadataUpdateResponse());
 
@@ -52,8 +52,8 @@ public class DefaultApiClient_TagMetadataTest {
   }
 
   @Test
-  void tagUpdateMetadataBatch_stops_on_error() throws IOException {
-    // mockito answer is not synchronised. it is not guaranteed that only 1 return will be AddSetTagPropertiesResponse
+  void tagMetadataUpdateBatch_stops_on_error() throws IOException {
+    // mockito answer is not synchronised. it is not guaranteed that only 1 return will be TagMetadataUpdateResponse
     // on thread race
     IOException expectedException = new IOException();
     when(requestExecutor.executeTypedBodyRequest(any(), any(), any()))
@@ -76,7 +76,7 @@ public class DefaultApiClient_TagMetadataTest {
   }
 
   @Test
-  void tagUpdateMetadataBatch_wraps_exceptions() throws IOException {
+  void tagMetadataUpdateBatch_wraps_exceptions() throws IOException {
     when(requestExecutor.executeTypedBodyRequest(any(), any(), any()))
         .thenThrow(new RuntimeException());
 
