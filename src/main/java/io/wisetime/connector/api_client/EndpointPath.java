@@ -8,23 +8,29 @@ import io.wisetime.connector.api_client.support.ConnectApiRequest;
 
 /**
  * Set of WiseTime API endpoints.
- *
- * @author thomas.haines
  */
 public enum EndpointPath {
 
   TagDelete("/tag/delete", ConnectApiRequest.HttpMethod.POST),
   TagUpsert("/tag", ConnectApiRequest.HttpMethod.POST),
+
+  /**
+   * TagUpdateBatch
+   */
   BulkTagUpsert("/tag/batch", ConnectApiRequest.HttpMethod.POST),
+
   TagAddKeyword("/tag/keyword", ConnectApiRequest.HttpMethod.POST),
   TagDeleteKeyword("/tag/keyword/delete", ConnectApiRequest.HttpMethod.POST),
   TagMetadataUpdate("/tag/metadata", ConnectApiRequest.HttpMethod.POST),
   TagMetadataDelete("/tag/metadata/delete", ConnectApiRequest.HttpMethod.POST),
+
   TeamInfo("/team/info", ConnectApiRequest.HttpMethod.GET),
+
   PostedTimeSubscribe("/postedtime/subscribe", ConnectApiRequest.HttpMethod.POST),
   PostedTimeUnsubscribe("/postedtime/unsubscribe", ConnectApiRequest.HttpMethod.POST),
   PostedTimeFetch("/postedtime?limit=:limit", ConnectApiRequest.HttpMethod.GET),
   PostedTimeUpdateStatus("/postedtime/status", ConnectApiRequest.HttpMethod.POST),
+
   TeamManagedConfig("/team/managed/config", ConnectApiRequest.HttpMethod.POST);
 
   private final String actionPath;
