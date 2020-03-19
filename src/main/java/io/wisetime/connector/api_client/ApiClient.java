@@ -4,24 +4,24 @@
 
 package io.wisetime.connector.api_client;
 
-import io.wisetime.generated.connect.ManagedConfigRequest;
-import io.wisetime.generated.connect.ManagedConfigResponse;
-import io.wisetime.generated.connect.TagMetadataDeleteRequest;
-import io.wisetime.generated.connect.TagMetadataUpdateRequest;
-import java.io.IOException;
-import java.util.List;
-
 import io.wisetime.generated.connect.AddKeywordsRequest;
 import io.wisetime.generated.connect.DeleteKeywordRequest;
 import io.wisetime.generated.connect.DeleteTagRequest;
+import io.wisetime.generated.connect.ManagedConfigRequest;
+import io.wisetime.generated.connect.ManagedConfigResponse;
 import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SubscribeResult;
+import io.wisetime.generated.connect.TagMetadataDeleteRequest;
+import io.wisetime.generated.connect.TagMetadataUpdateRequest;
+import io.wisetime.generated.connect.TagMetadataUpdateResponse;
 import io.wisetime.generated.connect.TeamInfoResult;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeGroupStatus;
 import io.wisetime.generated.connect.UnsubscribeRequest;
 import io.wisetime.generated.connect.UnsubscribeResult;
 import io.wisetime.generated.connect.UpsertTagRequest;
+import java.io.IOException;
+import java.util.List;
 
 /**
  * Client that is responsible to perform authentication and send requests to the WiseTime Connect web API. Contains a
@@ -45,8 +45,8 @@ public interface ApiClient {
   /**
    * Upsert a batch of tags. Use this method if you have a large number of tags to upsert.
    * <p>
-   * Blocks until completion or throws an {@link IOException} on the first error.
-   * It is safe to retry on error since tag upsert is idempotent.
+   * Blocks until completion or throws an {@link IOException} on the first error. It is safe to retry on error since tag
+   * upsert is idempotent.
    *
    * @param upsertTagRequests request list of tags to be upserted
    * @throws IOException
@@ -103,13 +103,20 @@ public interface ApiClient {
   void tagMetadataDelete(TagMetadataDeleteRequest tagMetadataDeleteRequest) throws IOException;
 
   /**
-   * Assign metadata to a batch of tags. This method nsures that there will be no duplicate or
-   * deletion of any existing tag specific metadata within WiseTime.
+   * Apply metadata to a batch of tags.
    *
    * @param tagMetadataUpdateRequestList list of metadata to be updated to tag(s)
-   * @throws IOException
    */
   void tagMetadataUpdateBatch(List<TagMetadataUpdateRequest> tagMetadataUpdateRequestList) throws IOException;
+
+  /**
+   * Apply metadata to a batch of tags, with a response consumer for each response.
+   *
+   * @param tagMetadataUpdateRequestList list of metadata to be updated to tag(s)
+   * @param responseConsumer             A consumer that is called as each batch response is received.
+   */
+  void tagMetadataUpdateBatch(List<TagMetadataUpdateRequest> tagMetadataUpdateRequestList,
+      ResponseConsumer<TagMetadataUpdateRequest, TagMetadataUpdateResponse> responseConsumer) throws IOException;
 
   /**
    * Get the details for the team linked to the API key making the request.
@@ -120,8 +127,8 @@ public interface ApiClient {
   TeamInfoResult teamInfo() throws IOException;
 
   /**
-   * Subscribes a new webhook for receiving posted time. WiseTime will call your webhook whenever
-   * a user posts time to your team.
+   * Subscribes a new webhook for receiving posted time. WiseTime will call your webhook whenever a user posts time to
+   * your team.
    *
    * @param subscribeRequest information about the webhook to be created
    * @return the subscription result will contain the webhook ID that was assigned to the new webhook
@@ -157,6 +164,7 @@ public interface ApiClient {
 
   /**
    * Retrieve configuration particulars to support the managed connector service.
+   *
    * @param managedConfigRequest
    * @return {@link ManagedConfigResponse} response result
    */

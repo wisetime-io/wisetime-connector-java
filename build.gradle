@@ -27,9 +27,8 @@ plugins {
     id 'maven-publish'
     id 'application'
     id "io.freefair.lombok" version "3.8.4"
-    id 'com.google.cloud.tools.jib' version '1.1.2'
     id "fr.brouillard.oss.gradle.jgitver" version "0.9.1"
-    id "com.github.ben-manes.versions" version "0.22.0"
+    id "com.github.ben-manes.versions" version "0.27.0"
     id "io.wisetime.versionChecker" version "0.8.0-0"
     id 'de.marcphilipp.nexus-publish' version '0.3.1' apply false
 }
@@ -80,7 +79,6 @@ tasks.openApiGenerate {
     }
 }
 
-tasks.jib.dependsOn compileJava
 tasks.compileJava.dependsOn tasks.openApiGenerate
 
 sourceSets {
