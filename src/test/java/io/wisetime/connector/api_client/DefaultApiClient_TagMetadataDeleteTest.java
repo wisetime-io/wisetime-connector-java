@@ -1,7 +1,9 @@
 package io.wisetime.connector.api_client;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -15,6 +17,7 @@ import java.io.IOException;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 /**
  * @author dchandler
@@ -35,16 +38,27 @@ public class DefaultApiClient_TagMetadataDeleteTest {
 
   @Test
   void tagMetadataDelete_completes_on_no_error() throws IOException {
-    when(requestExecutor.executeTypedBodyRequest(any(), any(), any(), any()))
-        .thenReturn(new TagMetadataDeleteResponse());
+    final TagMetadataDeleteResponse response = new TagMetadataDeleteResponse();
+    final TagMetadataDeleteRequest request = fakeTagMetadataDeleteRequest();
 
-    apiClient.tagMetadataDelete(fakeTagMetadataDeleteRequest());
+    when(requestExecutor.executeTypedBodyRequest(any(), any(), eq(request)))
+        .thenReturn(response);
 
+    TagMetadataDeleteResponse result = apiClient.tagMetadataDelete(request);
+    assertThat(result)
+        .as("get response is passed back")
+        .isEqualTo(response);
+
+    ArgumentCaptor<TagMetadataDeleteRequest> captor = ArgumentCaptor.forClass(TagMetadataDeleteRequest.class);
     verify(requestExecutor, times(1)).executeTypedBodyRequest(
         any(),
         any(EndpointPath.TagMetadataDelete.getClass()),
-        any(TagMetadataDeleteRequest.class)
+        captor.capture()
     );
+
+    assertThat(captor.getValue())
+        .as("pass input to serialiser")
+        .isEqualTo(request);
   }
 
   @Test
