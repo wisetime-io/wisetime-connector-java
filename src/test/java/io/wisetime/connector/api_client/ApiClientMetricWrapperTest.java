@@ -7,7 +7,6 @@ package io.wisetime.connector.api_client;
 import com.google.common.collect.Lists;
 
 import io.wisetime.generated.connect.TagMetadataDeleteRequest;
-import io.wisetime.generated.connect.TagMetadataUpdateRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
