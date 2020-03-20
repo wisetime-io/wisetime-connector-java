@@ -12,6 +12,8 @@ import io.wisetime.generated.connect.BatchUpsertTagRequest;
 import io.wisetime.generated.connect.BatchUpsertTagResponse;
 import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
+import io.wisetime.generated.connect.TagMetadataDeleteRequest;
+import io.wisetime.generated.connect.TagMetadataDeleteResponse;
 import org.apache.http.message.BasicNameValuePair;
 
 import java.io.IOException;
@@ -57,7 +59,7 @@ public class DefaultApiClient implements ApiClient {
 
   DefaultApiClient(RestRequestExecutor requestExecutor) {
     this.restRequestExecutor = requestExecutor;
-    forkJoinPool = new ForkJoinPool(10);
+    forkJoinPool = new ForkJoinPool(6);
   }
 
   @Override
@@ -132,11 +134,20 @@ public class DefaultApiClient implements ApiClient {
   }
 
   @Override
-  public void tagDeleteKeyword(DeleteKeywordRequest deleteKeywordRequest) throws IOException {
-    restRequestExecutor.executeTypedBodyRequest(
+  public DeleteKeywordResponse tagDeleteKeyword(DeleteKeywordRequest deleteKeywordRequest) throws IOException {
+    return restRequestExecutor.executeTypedBodyRequest(
         DeleteKeywordResponse.class,
         EndpointPath.TagDeleteKeyword,
         deleteKeywordRequest
+    );
+  }
+
+  @Override
+  public TagMetadataDeleteResponse tagMetadataDelete(TagMetadataDeleteRequest tagMetadataDeleteRequest) throws IOException {
+    return restRequestExecutor.executeTypedBodyRequest(
+        TagMetadataDeleteResponse.class,
+        EndpointPath.TagMetadataDelete,
+        tagMetadataDeleteRequest
     );
   }
 

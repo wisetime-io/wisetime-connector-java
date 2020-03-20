@@ -28,7 +28,6 @@ import io.wisetime.generated.connect.DeleteTagRequest;
 import io.wisetime.generated.connect.DeleteTagResponse;
 import io.wisetime.generated.connect.TimeGroupStatus;
 import io.wisetime.generated.connect.UpsertTagRequest;
-import io.wisetime.generated.connect.UpsertTagResponse;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;

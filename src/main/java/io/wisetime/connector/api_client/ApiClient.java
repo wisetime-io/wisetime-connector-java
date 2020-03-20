@@ -4,26 +4,28 @@
 
 package io.wisetime.connector.api_client;
 
-import io.wisetime.generated.connect.ManagedConfigRequest;
-import io.wisetime.generated.connect.ManagedConfigResponse;
-import java.io.IOException;
-import java.util.List;
-
 import io.wisetime.generated.connect.AddKeywordsRequest;
 import io.wisetime.generated.connect.DeleteKeywordRequest;
+import io.wisetime.generated.connect.DeleteKeywordResponse;
 import io.wisetime.generated.connect.DeleteTagRequest;
+import io.wisetime.generated.connect.ManagedConfigRequest;
+import io.wisetime.generated.connect.ManagedConfigResponse;
 import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SubscribeResult;
+import io.wisetime.generated.connect.TagMetadataDeleteRequest;
+import io.wisetime.generated.connect.TagMetadataDeleteResponse;
 import io.wisetime.generated.connect.TeamInfoResult;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeGroupStatus;
 import io.wisetime.generated.connect.UnsubscribeRequest;
 import io.wisetime.generated.connect.UnsubscribeResult;
 import io.wisetime.generated.connect.UpsertTagRequest;
+import java.io.IOException;
+import java.util.List;
 
 /**
- * Client that is responsible to perform authentication and send requests to the WiseTime Connect web API. Contains a list of
- * API methods available for use.
+ * Client that is responsible to perform authentication and send requests to the WiseTime Connect web API. Contains a
+ * list of API methods available for use.
  * <p>
  * For default implementation see {@link DefaultApiClient}.
  *
@@ -43,8 +45,8 @@ public interface ApiClient {
   /**
    * Upsert a batch of tags. Use this method if you have a large number of tags to upsert.
    * <p>
-   * Blocks until completion or throws an {@link IOException} on the first error.
-   * It is safe to retry on error since tag upsert is idempotent.
+   * Blocks until completion or throws an {@link IOException} on the first error. It is safe to retry on error since tag
+   * upsert is idempotent.
    *
    * @param upsertTagRequests request list of tags to be upserted
    * @throws IOException
@@ -81,7 +83,15 @@ public interface ApiClient {
    * @param deleteKeywordRequest contains info about the keyword to be deleted from a tag
    * @throws IOException
    */
-  void tagDeleteKeyword(DeleteKeywordRequest deleteKeywordRequest) throws IOException;
+  DeleteKeywordResponse tagDeleteKeyword(DeleteKeywordRequest deleteKeywordRequest) throws IOException;
+
+  /**
+   * Delete specific metadata from a tag.
+   *
+   * @param tagMetadataDeleteRequest contains info about the metadata to be deleted from a tag
+   * @throws IOException
+   */
+  TagMetadataDeleteResponse tagMetadataDelete(TagMetadataDeleteRequest tagMetadataDeleteRequest) throws IOException;
 
   /**
    * Get the details for the team linked to the API key making the request.
@@ -92,8 +102,8 @@ public interface ApiClient {
   TeamInfoResult teamInfo() throws IOException;
 
   /**
-   * Subscribes a new webhook for receiving posted time. WiseTime will call your webhook whenever
-   * a user posts time to your team.
+   * Subscribes a new webhook for receiving posted time. WiseTime will call your webhook whenever a user posts time to
+   * your team.
    *
    * @param subscribeRequest information about the webhook to be created
    * @return the subscription result will contain the webhook ID that was assigned to the new webhook
@@ -129,6 +139,7 @@ public interface ApiClient {
 
   /**
    * Retrieve configuration particulars to support the managed connector service.
+   *
    * @param managedConfigRequest
    * @return {@link ManagedConfigResponse} response result
    */
