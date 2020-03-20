@@ -6,12 +6,14 @@ package io.wisetime.connector.api_client;
 
 import io.wisetime.generated.connect.AddKeywordsRequest;
 import io.wisetime.generated.connect.DeleteKeywordRequest;
+import io.wisetime.generated.connect.DeleteKeywordResponse;
 import io.wisetime.generated.connect.DeleteTagRequest;
 import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
 import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.TagMetadataDeleteRequest;
+import io.wisetime.generated.connect.TagMetadataDeleteResponse;
 import io.wisetime.generated.connect.TagMetadataUpdateRequest;
 import io.wisetime.generated.connect.TagMetadataUpdateResponse;
 import io.wisetime.generated.connect.TeamInfoResult;
@@ -83,7 +85,7 @@ public interface ApiClient {
    * @param deleteKeywordRequest contains info about the keyword to be deleted from a tag
    * @throws IOException
    */
-  void tagDeleteKeyword(DeleteKeywordRequest deleteKeywordRequest) throws IOException;
+  DeleteKeywordResponse tagDeleteKeyword(DeleteKeywordRequest deleteKeywordRequest) throws IOException;
 
   /**
    * Assign metadata to a tag. This method ensures that there will be no duplicate or deletion of any existing tag
@@ -92,7 +94,7 @@ public interface ApiClient {
    * @param tagMetadataUpdateRequest metadata to be added to a tag
    * @throws IOException
    */
-  void tagMetadataUpdate(TagMetadataUpdateRequest tagMetadataUpdateRequest) throws IOException;
+  TagMetadataUpdateResponse tagMetadataUpdate(TagMetadataUpdateRequest tagMetadataUpdateRequest) throws IOException;
 
   /**
    * Delete specific metadata from a tag.
@@ -100,23 +102,7 @@ public interface ApiClient {
    * @param tagMetadataDeleteRequest contains info about the metadata to be deleted from a tag
    * @throws IOException
    */
-  void tagMetadataDelete(TagMetadataDeleteRequest tagMetadataDeleteRequest) throws IOException;
-
-  /**
-   * Apply metadata to a batch of tags.
-   *
-   * @param tagMetadataUpdateRequestList list of metadata to be updated to tag(s)
-   */
-  void tagMetadataUpdateBatch(List<TagMetadataUpdateRequest> tagMetadataUpdateRequestList) throws IOException;
-
-  /**
-   * Apply metadata to a batch of tags, with a response consumer for each response.
-   *
-   * @param tagMetadataUpdateRequestList list of metadata to be updated to tag(s)
-   * @param responseConsumer             A consumer that is called as each batch response is received.
-   */
-  void tagMetadataUpdateBatch(List<TagMetadataUpdateRequest> tagMetadataUpdateRequestList,
-      ResponseConsumer<TagMetadataUpdateRequest, TagMetadataUpdateResponse> responseConsumer) throws IOException;
+  TagMetadataDeleteResponse tagMetadataDelete(TagMetadataDeleteRequest tagMetadataDeleteRequest) throws IOException;
 
   /**
    * Get the details for the team linked to the API key making the request.

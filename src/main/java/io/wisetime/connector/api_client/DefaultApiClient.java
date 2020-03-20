@@ -136,8 +136,8 @@ public class DefaultApiClient implements ApiClient {
   }
 
   @Override
-  public void tagDeleteKeyword(DeleteKeywordRequest deleteKeywordRequest) throws IOException {
-    restRequestExecutor.executeTypedBodyRequest(
+  public DeleteKeywordResponse tagDeleteKeyword(DeleteKeywordRequest deleteKeywordRequest) throws IOException {
+    return restRequestExecutor.executeTypedBodyRequest(
         DeleteKeywordResponse.class,
         EndpointPath.TagDeleteKeyword,
         deleteKeywordRequest
@@ -145,8 +145,8 @@ public class DefaultApiClient implements ApiClient {
   }
 
   @Override
-  public void tagMetadataUpdate(TagMetadataUpdateRequest tagMetadataUpdateRequest) throws IOException {
-    restRequestExecutor.executeTypedBodyRequest(
+  public TagMetadataUpdateResponse tagMetadataUpdate(TagMetadataUpdateRequest tagMetadataUpdateRequest) throws IOException {
+    return restRequestExecutor.executeTypedBodyRequest(
         TagMetadataUpdateResponse.class,
         EndpointPath.TagMetadataUpdate,
         tagMetadataUpdateRequest
@@ -154,45 +154,12 @@ public class DefaultApiClient implements ApiClient {
   }
 
   @Override
-  public void tagMetadataDelete(TagMetadataDeleteRequest tagMetadataDeleteRequest) throws IOException {
-    restRequestExecutor.executeTypedBodyRequest(
+  public TagMetadataDeleteResponse tagMetadataDelete(TagMetadataDeleteRequest tagMetadataDeleteRequest) throws IOException {
+    return restRequestExecutor.executeTypedBodyRequest(
         TagMetadataDeleteResponse.class,
         EndpointPath.TagMetadataDelete,
         tagMetadataDeleteRequest
     );
-  }
-
-  @Override
-  public void tagMetadataUpdateBatch(List<TagMetadataUpdateRequest> tagMetadataUpdateRequestList)
-      throws IOException {
-
-    final Callable<Optional<Exception>> parallelUntilError = () -> tagMetadataUpdateRequestList
-        .parallelStream()
-        // Wrap any exception with an Optional so we can short circuit the stream on error
-        .map(tagMetadataUpdateRequest -> {
-          try {
-            tagMetadataUpdate(tagMetadataUpdateRequest);
-            return Optional.<Exception>empty();
-          } catch (Exception e) {
-            return Optional.of(e);
-          }
-        })
-        .filter(Optional::isPresent)
-        .findAny()
-        .orElse(empty());
-
-    Optional<Exception> error;
-
-    try {
-      // We use our own ForkJoinPool to have more control on the level of parallelism and
-      // because we are IO bound. We don't want to affect other tasks on the default pool.
-      error = forkJoinPool.submit(parallelUntilError).get();
-    } catch (InterruptedException | ExecutionException e) {
-      throw new IOException(e);
-    }
-    if (error.isPresent()) {
-      throw new IOException("Failed to complete tag metadata update batch. Stopped at error.", error.get());
-    }
   }
 
   public TeamInfoResult teamInfo() throws IOException {

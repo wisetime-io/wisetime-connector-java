@@ -106,7 +106,6 @@ class ApiClientMetricWrapperTest {
     apiClientMetricWrapper.updatePostedTimeStatus(new TimeGroupStatus());
     apiClientMetricWrapper.tagMetadataUpdate(new TagMetadataUpdateRequest());
     apiClientMetricWrapper.tagMetadataDelete(new TagMetadataDeleteRequest());
-    apiClientMetricWrapper.tagMetadataUpdateBatch(singletonList(new TagMetadataUpdateRequest()));
     verify(metricService, never()).increment(any());
     verify(metricService, never()).increment(any(), anyInt());
   }
