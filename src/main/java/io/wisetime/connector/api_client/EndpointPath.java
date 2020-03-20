@@ -21,7 +21,6 @@ public enum EndpointPath {
 
   TagAddKeyword("/tag/keyword", ConnectApiRequest.HttpMethod.POST),
   TagDeleteKeyword("/tag/keyword/delete", ConnectApiRequest.HttpMethod.POST),
-  TagMetadataUpdate("/tag/metadata", ConnectApiRequest.HttpMethod.POST),
   TagMetadataDelete("/tag/metadata/delete", ConnectApiRequest.HttpMethod.POST),
 
   TeamInfo("/team/info", ConnectApiRequest.HttpMethod.GET),
