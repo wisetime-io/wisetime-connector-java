@@ -9,19 +9,17 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 import com.github.javafaker.Faker;
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
-import io.wisetime.generated.connect.TagMetadataUpdateRequest;
-import io.wisetime.generated.connect.TagMetadataUpdateResponse;
+import io.wisetime.generated.connect.TagMetadataDeleteRequest;
+import io.wisetime.generated.connect.TagMetadataDeleteResponse;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author dchandler
  */
-public class DefaultApiClient_TagMetadataTest {
+public class DefaultApiClient_TagMetadataDeleteTest {
 
   private RestRequestExecutor requestExecutor;
 
@@ -36,37 +34,32 @@ public class DefaultApiClient_TagMetadataTest {
   }
 
   @Test
-  void tagMetadataUpdate_completes_on_no_error() throws IOException {
+  void tagMetadataDelete_completes_on_no_error() throws IOException {
     when(requestExecutor.executeTypedBodyRequest(any(), any(), any(), any()))
-        .thenReturn(new TagMetadataUpdateResponse());
+        .thenReturn(new TagMetadataDeleteResponse());
 
-    apiClient.tagMetadataUpdate(fakeTagMetadataUpdateRequest());
+    apiClient.tagMetadataDelete(fakeTagMetadataDeleteRequest());
 
     verify(requestExecutor, times(1)).executeTypedBodyRequest(
         any(),
-        any(EndpointPath.TagMetadataUpdate.getClass()),
-        any(TagMetadataUpdateRequest.class)
+        any(EndpointPath.TagMetadataDelete.getClass()),
+        any(TagMetadataDeleteRequest.class)
     );
   }
 
   @Test
-  void tagMetadataUpdateBatch_wraps_exceptions() throws IOException {
+  void tagMetadataDelete_wraps_exceptions() throws IOException {
     when(requestExecutor.executeTypedBodyRequest(any(), any(), any()))
         .thenThrow(new IOException());
 
     assertThatExceptionOfType(IOException.class).isThrownBy(() ->
-        apiClient.tagMetadataUpdate(fakeTagMetadataUpdateRequest())
+        apiClient.tagMetadataDelete(fakeTagMetadataDeleteRequest())
     );
   }
 
-  private TagMetadataUpdateRequest fakeTagMetadataUpdateRequest() {
-    Map<String, String> metadataMap = Collections.unmodifiableMap(new HashMap<String, String>() {
-      {
-        put(faker.numerify("meta-key###"), faker.numerify("meta-value###"));
-      }
-    });
-    return new TagMetadataUpdateRequest()
+  private TagMetadataDeleteRequest fakeTagMetadataDeleteRequest() {
+    return new TagMetadataDeleteRequest()
         .tagName(faker.numerify("tagName###"))
-        .metadata(metadataMap);
+        .metadataNames(Lists.newArrayList("meta_1", "meta_2", "meta_3"));
   }
 }

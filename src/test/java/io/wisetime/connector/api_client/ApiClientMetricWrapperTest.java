@@ -104,7 +104,6 @@ class ApiClientMetricWrapperTest {
     apiClientMetricWrapper.tagDeleteKeyword(new DeleteKeywordRequest());
     apiClientMetricWrapper.teamInfo();
     apiClientMetricWrapper.updatePostedTimeStatus(new TimeGroupStatus());
-    apiClientMetricWrapper.tagMetadataUpdate(new TagMetadataUpdateRequest());
     apiClientMetricWrapper.tagMetadataDelete(new TagMetadataDeleteRequest());
     verify(metricService, never()).increment(any());
     verify(metricService, never()).increment(any(), anyInt());

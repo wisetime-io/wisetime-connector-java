@@ -14,8 +14,6 @@ import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
 import io.wisetime.generated.connect.TagMetadataDeleteRequest;
 import io.wisetime.generated.connect.TagMetadataDeleteResponse;
-import io.wisetime.generated.connect.TagMetadataUpdateRequest;
-import io.wisetime.generated.connect.TagMetadataUpdateResponse;
 import org.apache.http.message.BasicNameValuePair;
 
 import java.io.IOException;
@@ -141,15 +139,6 @@ public class DefaultApiClient implements ApiClient {
         DeleteKeywordResponse.class,
         EndpointPath.TagDeleteKeyword,
         deleteKeywordRequest
-    );
-  }
-
-  @Override
-  public TagMetadataUpdateResponse tagMetadataUpdate(TagMetadataUpdateRequest tagMetadataUpdateRequest) throws IOException {
-    return restRequestExecutor.executeTypedBodyRequest(
-        TagMetadataUpdateResponse.class,
-        EndpointPath.TagMetadataUpdate,
-        tagMetadataUpdateRequest
     );
   }
 

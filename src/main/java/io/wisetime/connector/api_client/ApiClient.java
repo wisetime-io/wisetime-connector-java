@@ -14,8 +14,6 @@ import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.TagMetadataDeleteRequest;
 import io.wisetime.generated.connect.TagMetadataDeleteResponse;
-import io.wisetime.generated.connect.TagMetadataUpdateRequest;
-import io.wisetime.generated.connect.TagMetadataUpdateResponse;
 import io.wisetime.generated.connect.TeamInfoResult;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeGroupStatus;
@@ -86,15 +84,6 @@ public interface ApiClient {
    * @throws IOException
    */
   DeleteKeywordResponse tagDeleteKeyword(DeleteKeywordRequest deleteKeywordRequest) throws IOException;
-
-  /**
-   * Assign metadata to a tag. This method ensures that there will be no duplicate or deletion of any existing tag
-   * specific metadata within WiseTime.
-   *
-   * @param tagMetadataUpdateRequest metadata to be added to a tag
-   * @throws IOException
-   */
-  TagMetadataUpdateResponse tagMetadataUpdate(TagMetadataUpdateRequest tagMetadataUpdateRequest) throws IOException;
 
   /**
    * Delete specific metadata from a tag.
