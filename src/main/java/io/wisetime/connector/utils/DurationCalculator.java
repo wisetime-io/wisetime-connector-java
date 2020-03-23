@@ -106,9 +106,7 @@ public class DurationCalculator {
         .andThen(applyExperienceWeighting)
         .apply(durationSource);
 
-    final double perTagDuration = applyDurationSplitStrategy.apply(totalDuration);
-
-    return new Result(Math.round(perTagDuration), Math.round(totalDuration));
+    return new Result(Math.round(totalDuration));
   }
 
   /**
@@ -116,21 +114,22 @@ public class DurationCalculator {
    */
   public static class Result {
 
-    private long perTagDuration;
     private long totalDuration;
 
-    private Result(final long perTagDuration, final long totalDuration) {
-      this.perTagDuration = perTagDuration;
+    private Result(final long totalDuration) {
       this.totalDuration = totalDuration;
     }
 
     /**
      * Get the calculated per-tag duration for the {@link TimeGroup}
      *
+     * For compatibility reasons with current usage of DurationCalculator returns same value as getTotalDuration
+     *
      * @return per-tag duration in seconds
      */
+    @Deprecated
     public long getPerTagDuration() {
-      return perTagDuration;
+      return totalDuration;
     }
 
     /**
@@ -171,24 +170,5 @@ public class DurationCalculator {
       return duration * timeGroup.getUser().getExperienceWeightingPercent() / 100.0;
     }
     return duration;
-  };
-
-  /**
-   * Distributes duration between tags for a time group, can be either of:
-   * <p>
-   * <ul>
-   *   <li>DIVIDE_BETWEEN_TAGS: Distribute duration between the total number of tags in the {@link TimeGroup}</li>
-   *   <li>WHOLE_DURATION_TO_EACH_TAG: Assign full duration to each tag</li>
-   * </ul>
-   */
-  private final Function<Double, Double> applyDurationSplitStrategy = duration -> {
-    switch (timeGroup.getDurationSplitStrategy()) {
-      case DIVIDE_BETWEEN_TAGS:
-        return duration / timeGroup.getTags().size();
-      case WHOLE_DURATION_TO_EACH_TAG:
-        return duration;
-      default:
-        throw new IllegalStateException("Unhandled DurationSplitStrategy option");
-    }
   };
 }

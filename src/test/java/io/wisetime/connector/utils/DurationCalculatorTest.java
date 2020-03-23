@@ -132,8 +132,8 @@ class DurationCalculatorTest {
         .calculate();
 
     assertThat(result.getPerTagDuration())
-        .isEqualTo(100)
-        .as("Duration split between the two tags");
+        .as("Returns total duration as duration split strategy is deprecated")
+        .isEqualTo(200);
   }
 
   @Test
