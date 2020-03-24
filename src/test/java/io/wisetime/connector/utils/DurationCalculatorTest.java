@@ -31,12 +31,12 @@ class DurationCalculatorTest {
         .totalDurationSecs(120)
         .user(user);
 
-    final DurationCalculator.Result result = DurationCalculator.of(timeGroup).calculate();
+    final long result = DurationCalculator.of(timeGroup).calculate();
 
-    assertThat(result.getTotalDuration())
-        .isEqualTo(60)
+    assertThat(result)
         .as("Default calculator configuration should use the TimeGroup duration " +
-            "and apply the user's experience weighting");
+            "and apply the user's experience weighting")
+        .isEqualTo(60);
   }
 
   @Test
@@ -45,15 +45,15 @@ class DurationCalculatorTest {
         .randomTimeGroup()
         .totalDurationSecs(120);
 
-    final DurationCalculator.Result result = DurationCalculator
+    final long result = DurationCalculator
         .of(timeGroup)
         .disregardExperienceWeighting()
         .useDurationFrom(DurationSource.TIME_GROUP)
         .calculate();
 
-    assertThat(result.getTotalDuration())
-        .isEqualTo(120)
-        .as("Duration should be taken from the time group");
+    assertThat(result)
+        .as("Duration should be taken from the time group")
+        .isEqualTo(120);
   }
 
   @Test
@@ -66,15 +66,15 @@ class DurationCalculatorTest {
         .totalDurationSecs(0)
         .timeRows(ImmutableList.of(timeRow1, timeRow2));
 
-    final DurationCalculator.Result result = DurationCalculator
+    final long result = DurationCalculator
         .of(timeGroup)
         .disregardExperienceWeighting()
         .useDurationFrom(DurationSource.SUM_TIME_ROWS)
         .calculate();
 
-    assertThat(result.getTotalDuration())
-        .isEqualTo(150)
-        .as("Duration should be taken from the time rows");
+    assertThat(result)
+        .as("Duration should be taken from the time rows")
+        .isEqualTo(150);
   }
 
   @Test
@@ -86,15 +86,15 @@ class DurationCalculatorTest {
         .totalDurationSecs(105)
         .user(user);
 
-    final DurationCalculator.Result result = DurationCalculator
+    final long result = DurationCalculator
         .of(timeGroup)
         .useExperienceWeighting()
         .useDurationFrom(DurationSource.TIME_GROUP)
         .calculate();
 
-    assertThat(result.getTotalDuration())
-        .isEqualTo(11)
-        .as("The user's experience weighting should be taken into account, and result rounded correctly");
+    assertThat(result)
+        .as("The user's experience weighting should be taken into account, and result rounded correctly")
+        .isEqualTo(11);
   }
 
   @Test
@@ -106,52 +106,14 @@ class DurationCalculatorTest {
         .totalDurationSecs(120)
         .user(user);
 
-    final DurationCalculator.Result result = DurationCalculator
+    final long result = DurationCalculator
         .of(timeGroup)
         .disregardExperienceWeighting()
         .useDurationFrom(DurationSource.TIME_GROUP)
         .calculate();
 
-    assertThat(result.getTotalDuration())
-        .isEqualTo(120)
-        .as("The user's experience weighting should be ignored");
-  }
-
-  @Test
-  void calculate_durationSplitStrategy_divideBetweenTags() {
-    final TimeGroup timeGroup = fakeEntities
-        .randomTimeGroup()
-        .totalDurationSecs(200)
-        .tags(ImmutableList.of(fakeEntities.randomTag(), fakeEntities.randomTag()))
-        .durationSplitStrategy(TimeGroup.DurationSplitStrategyEnum.DIVIDE_BETWEEN_TAGS);
-
-    final DurationCalculator.Result result = DurationCalculator
-        .of(timeGroup)
-        .disregardExperienceWeighting()
-        .useDurationFrom(DurationSource.TIME_GROUP)
-        .calculate();
-
-    assertThat(result.getPerTagDuration())
-        .as("Returns total duration as duration split strategy is deprecated")
-        .isEqualTo(200);
-  }
-
-  @Test
-  void calculate_durationSplitStrategy_wholeDurationToEachTag() {
-    final TimeGroup timeGroup = fakeEntities
-        .randomTimeGroup()
-        .totalDurationSecs(200)
-        .tags(ImmutableList.of(fakeEntities.randomTag(), fakeEntities.randomTag()))
-        .durationSplitStrategy(TimeGroup.DurationSplitStrategyEnum.WHOLE_DURATION_TO_EACH_TAG);
-
-    final DurationCalculator.Result result = DurationCalculator
-        .of(timeGroup)
-        .disregardExperienceWeighting()
-        .useDurationFrom(DurationSource.TIME_GROUP)
-        .calculate();
-
-    assertThat(result.getPerTagDuration())
-        .isEqualTo(200)
-        .as("Whole duration should be applied to each tags");
+    assertThat(result)
+        .as("The user's experience weighting should be ignored")
+        .isEqualTo(120);
   }
 }

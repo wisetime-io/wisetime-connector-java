@@ -38,7 +38,8 @@ public class FakeEntities {
         .description(FAKER.lorem().paragraph())
         .totalDurationSecs(timeRows.stream().mapToInt(TimeRow::getDurationSecs).sum())
         .groupName(FAKER.color().name())
-        .tags(randomEntities(() -> randomTag(TAG_PATH), 1, 3))
+        // time groups can now only have 0 or 1 tag
+        .tags(randomEntities(() -> randomTag(TAG_PATH), 0, 1))
         .user(randomUser())
         .timeRows(timeRows)
         .narrativeType(randomEnum(TimeGroup.NarrativeTypeEnum.class))

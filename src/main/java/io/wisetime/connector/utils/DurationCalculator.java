@@ -101,45 +101,12 @@ public class DurationCalculator {
    *
    * @return Result containing the calculated per-tag and total durations
    */
-  public Result calculate() {
+  public long calculate() {
     final double totalDuration = sourceTotalDuration
         .andThen(applyExperienceWeighting)
         .apply(durationSource);
 
-    return new Result(Math.round(totalDuration));
-  }
-
-  /**
-   * The result of running {@link #calculate}
-   */
-  public static class Result {
-
-    private long totalDuration;
-
-    private Result(final long totalDuration) {
-      this.totalDuration = totalDuration;
-    }
-
-    /**
-     * Get the calculated per-tag duration for the {@link TimeGroup}
-     *
-     * For compatibility reasons with current usage of DurationCalculator returns same value as getTotalDuration
-     *
-     * @return per-tag duration in seconds
-     */
-    @Deprecated
-    public long getPerTagDuration() {
-      return totalDuration;
-    }
-
-    /**
-     * Get the calculated total duration for the {@link TimeGroup}
-     *
-     * @return total duration in seconds
-     */
-    public long getTotalDuration() {
-      return totalDuration;
-    }
+    return Math.round(totalDuration);
   }
 
   /**
