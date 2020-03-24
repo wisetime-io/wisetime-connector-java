@@ -101,46 +101,12 @@ public class DurationCalculator {
    *
    * @return Result containing the calculated per-tag and total durations
    */
-  public Result calculate() {
+  public long calculate() {
     final double totalDuration = sourceTotalDuration
         .andThen(applyExperienceWeighting)
         .apply(durationSource);
 
-    final double perTagDuration = applyDurationSplitStrategy.apply(totalDuration);
-
-    return new Result(Math.round(perTagDuration), Math.round(totalDuration));
-  }
-
-  /**
-   * The result of running {@link #calculate}
-   */
-  public static class Result {
-
-    private long perTagDuration;
-    private long totalDuration;
-
-    private Result(final long perTagDuration, final long totalDuration) {
-      this.perTagDuration = perTagDuration;
-      this.totalDuration = totalDuration;
-    }
-
-    /**
-     * Get the calculated per-tag duration for the {@link TimeGroup}
-     *
-     * @return per-tag duration in seconds
-     */
-    public long getPerTagDuration() {
-      return perTagDuration;
-    }
-
-    /**
-     * Get the calculated total duration for the {@link TimeGroup}
-     *
-     * @return total duration in seconds
-     */
-    public long getTotalDuration() {
-      return totalDuration;
-    }
+    return Math.round(totalDuration);
   }
 
   /**
@@ -171,24 +137,5 @@ public class DurationCalculator {
       return duration * timeGroup.getUser().getExperienceWeightingPercent() / 100.0;
     }
     return duration;
-  };
-
-  /**
-   * Distributes duration between tags for a time group, can be either of:
-   * <p>
-   * <ul>
-   *   <li>DIVIDE_BETWEEN_TAGS: Distribute duration between the total number of tags in the {@link TimeGroup}</li>
-   *   <li>WHOLE_DURATION_TO_EACH_TAG: Assign full duration to each tag</li>
-   * </ul>
-   */
-  private final Function<Double, Double> applyDurationSplitStrategy = duration -> {
-    switch (timeGroup.getDurationSplitStrategy()) {
-      case DIVIDE_BETWEEN_TAGS:
-        return duration / timeGroup.getTags().size();
-      case WHOLE_DURATION_TO_EACH_TAG:
-        return duration;
-      default:
-        throw new IllegalStateException("Unhandled DurationSplitStrategy option");
-    }
   };
 }
