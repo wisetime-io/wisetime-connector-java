@@ -146,7 +146,20 @@ public interface ApiClient {
    */
   ManagedConfigResponse getTeamManagedConfig(ManagedConfigRequest managedConfigRequest) throws IOException;
 
+  /**
+   * Report non-transient health check failure.
+   * For unknown error codes the provided error message will be shown to users on time posting.
+   * For known error codes connect-api-server will determine the appropriate message.
+   *
+   * @param request the error details
+   * @throws IOException if the request was unsuccessful
+   */
   void healthCheckFailureNotify(HealthCheckFailureNotify request) throws IOException;
 
+  /**
+   * Rescind (clear) a previously reported health check failure.
+   *
+   * @throws IOException if the request was unsuccessful
+   */
   void healthCheckFailureRescind() throws IOException;
 }
