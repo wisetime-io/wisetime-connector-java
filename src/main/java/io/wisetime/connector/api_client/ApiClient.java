@@ -8,6 +8,7 @@ import io.wisetime.generated.connect.AddKeywordsRequest;
 import io.wisetime.generated.connect.DeleteKeywordRequest;
 import io.wisetime.generated.connect.DeleteKeywordResponse;
 import io.wisetime.generated.connect.DeleteTagRequest;
+import io.wisetime.generated.connect.HealthCheckFailureNotify;
 import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
 import io.wisetime.generated.connect.SubscribeRequest;
@@ -144,4 +145,8 @@ public interface ApiClient {
    * @return {@link ManagedConfigResponse} response result
    */
   ManagedConfigResponse getTeamManagedConfig(ManagedConfigRequest managedConfigRequest) throws IOException;
+
+  void healthCheckFailureNotify(HealthCheckFailureNotify request) throws IOException;
+
+  void healthCheckFailureRescind() throws IOException;
 }

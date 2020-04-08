@@ -30,7 +30,10 @@ public enum EndpointPath {
   PostedTimeFetch("/postedtime?limit=:limit", ConnectApiRequest.HttpMethod.GET),
   PostedTimeUpdateStatus("/postedtime/status", ConnectApiRequest.HttpMethod.POST),
 
-  TeamManagedConfig("/team/managed/config", ConnectApiRequest.HttpMethod.POST);
+  TeamManagedConfig("/team/managed/config", ConnectApiRequest.HttpMethod.POST),
+
+  HealthCheckFailureNotify("/healthcheck/failure/notify", ConnectApiRequest.HttpMethod.POST),
+  HealthCheckFailureRescind("/healthcheck/failure/rescind", ConnectApiRequest.HttpMethod.POST);
 
   private final String actionPath;
   private ConnectApiRequest.HttpMethod httpMethod;

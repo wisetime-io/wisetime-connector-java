@@ -10,6 +10,7 @@ import com.github.javafaker.Faker;
 
 import io.wisetime.generated.connect.BatchUpsertTagRequest;
 import io.wisetime.generated.connect.BatchUpsertTagResponse;
+import io.wisetime.generated.connect.HealthCheckFailureNotify;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.junit.jupiter.api.BeforeEach;
@@ -161,6 +162,28 @@ class DefaultApiClientTest {
         any(),
         any(EndpointPath.PostedTimeUpdateStatus.getClass()),
         eq(status)
+    );
+  }
+
+  @Test
+  void healthCheckFailureNotify() throws IOException {
+    HealthCheckFailureNotify request = new HealthCheckFailureNotify();
+    apiClient.healthCheckFailureNotify(request);
+
+    verify(requestExecutor).executeTypedBodyRequest(
+        any(),
+        eq(EndpointPath.HealthCheckFailureNotify),
+        eq(request)
+    );
+  }
+
+  @Test
+  void healthCheckFailureRescind() throws IOException {
+    apiClient.healthCheckFailureRescind();
+
+    verify(requestExecutor).executeRequest(
+        eq(EndpointPath.HealthCheckFailureRescind),
+        any()
     );
   }
 

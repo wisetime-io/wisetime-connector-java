@@ -8,8 +8,10 @@ import com.google.common.collect.ImmutableList;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 
+import io.wisetime.connector.utils.EmptyResponse;
 import io.wisetime.generated.connect.BatchUpsertTagRequest;
 import io.wisetime.generated.connect.BatchUpsertTagResponse;
+import io.wisetime.generated.connect.HealthCheckFailureNotify;
 import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
 import io.wisetime.generated.connect.TagMetadataDeleteRequest;
@@ -192,5 +194,15 @@ public class DefaultApiClient implements ApiClient {
         EndpointPath.TeamManagedConfig,
         managedConfigRequest
     );
+  }
+
+  @Override
+  public void healthCheckFailureNotify(HealthCheckFailureNotify request) throws IOException {
+    restRequestExecutor.executeTypedBodyRequest(EmptyResponse.class, EndpointPath.HealthCheckFailureNotify, request);
+  }
+
+  @Override
+  public void healthCheckFailureRescind() throws IOException {
+    restRequestExecutor.executeRequest(EndpointPath.HealthCheckFailureRescind, ImmutableList.of());
   }
 }

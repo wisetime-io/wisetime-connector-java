@@ -122,7 +122,7 @@ public class ManagedConfigRunner extends TimerTask implements HealthIndicator {
         .environment(RuntimeEnvironmentUtil.getEnvProperties())
         .connectorLibraryVersion(RuntimeEnvironmentUtil.getLibraryImplVersion())
         .clientTimeZoneOffset(connectorInfoProvider.get().getClientTimeZoneOffset())
-        .clientTimestamp((double) Instant.now().getEpochSecond());
+        .clientTimestamp(Instant.now().getEpochSecond());
   }
 
   private static int getRenewalThresholdMins() {
