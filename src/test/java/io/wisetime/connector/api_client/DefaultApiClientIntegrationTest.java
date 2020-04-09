@@ -199,7 +199,7 @@ class DefaultApiClientIntegrationTest {
     managedConfigRequest.setEnvironment(RuntimeEnvironmentUtil.getEnvProperties());
     managedConfigRequest.connectorType("test_connector_type");
     managedConfigRequest.setConnectorLibraryVersion(RuntimeEnvironmentUtil.getLibraryImplVersion());
-    managedConfigRequest.clientTimestamp((double) Instant.now().getEpochSecond());
+    managedConfigRequest.clientTimestamp(Instant.now().getEpochSecond());
     ManagedConfigResponse configResponse = defaultApiClient.getTeamManagedConfig(managedConfigRequest);
     log.info(configResponse.toString());
   }
