@@ -102,6 +102,23 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
 
             // trigger async process to post to external system
             postTimeExecutor.submit(() -> {
+              // verify that the time group is not in an already processed state (i.e. not in IN_PROGRESS)
+              // if it is we encountered a corner case where we rescheduled a time group because the
+              // last try to process it stuck for too long in processing but completes successfully.
+              // This is safe because processing time groups is done sequentially by a single thread
+              // when we encounter the IN_PROGRESS state here it means it wasn't processed before
+              Optional<String> status = timeGroupIdStore.getPostStatusForFetchClient(timeGroup.getGroupId());
+              if (!status.isPresent()) {
+                log.info("Encountered time group with no associated status: {}. "
+                        + "Cancel processing and waiting for retry",
+                    timeGroup.getGroupId());
+                return;
+              }
+              if (!IN_PROGRESS.equals(status.get())) {
+                log.info("Prevented reprocessing of time group: {}. It is already in terminal state: {}",
+                    timeGroup.getGroupId(), status.get());
+                return;
+              }
               PostResult result;
               try {
                 result = wiseTimeConnector.postTime(null, timeGroup);

@@ -70,6 +70,8 @@ class FetchClientTimePosterTest {
   void successfulTimeGroup() throws Exception {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();
     when(timeGroupIdStoreMock.alreadySeenFetchClient(timeGroup.getGroupId())).thenReturn(Optional.empty());
+    when(timeGroupIdStoreMock.getPostStatusForFetchClient(timeGroup.getGroupId()))
+        .thenReturn(Optional.of("IN_PROGRESS"));
     when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.SUCCESS());
     when(apiClientMock.fetchTimeGroups(anyInt()))
         .thenReturn(ImmutableList.of(timeGroup))
@@ -87,6 +89,8 @@ class FetchClientTimePosterTest {
   void successfulTimeGroup_retry() throws Exception {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();
     when(timeGroupIdStoreMock.alreadySeenFetchClient(timeGroup.getGroupId())).thenReturn(Optional.empty());
+    when(timeGroupIdStoreMock.getPostStatusForFetchClient(timeGroup.getGroupId()))
+        .thenReturn(Optional.of("IN_PROGRESS"));
     when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.SUCCESS());
     // should still work thanks to RetryPolicy
     when(apiClientMock.fetchTimeGroups(anyInt()))
@@ -103,9 +107,23 @@ class FetchClientTimePosterTest {
   }
 
   @Test
+  void previouslySuccessfulTimeGroup() throws Exception {
+    TimeGroup timeGroup = fakeEntities.randomTimeGroup();
+    when(timeGroupIdStoreMock.alreadySeenFetchClient(timeGroup.getGroupId())).thenReturn(Optional.empty());
+    when(timeGroupIdStoreMock.getPostStatusForFetchClient(timeGroup.getGroupId()))
+        .thenReturn(Optional.of("PERMANENT_FAILURE"));
+    fetchClient.start();
+    Thread.sleep(100);
+    fetchClient.stop();
+    verify(wiseTimeConnectorMock, times(0)).postTime(any(), any());
+  }
+
+  @Test
   void failedTimeGroup() throws Exception {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();
     when(timeGroupIdStoreMock.alreadySeenFetchClient(timeGroup.getGroupId())).thenReturn(Optional.empty());
+    when(timeGroupIdStoreMock.getPostStatusForFetchClient(timeGroup.getGroupId()))
+        .thenReturn(Optional.of("IN_PROGRESS"));
     when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.PERMANENT_FAILURE());
     when(apiClientMock.fetchTimeGroups(anyInt()))
         .thenReturn(ImmutableList.of(timeGroup))
@@ -123,6 +141,8 @@ class FetchClientTimePosterTest {
   void transientlyFailedTimeGroup() throws Exception {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();
     when(timeGroupIdStoreMock.alreadySeenFetchClient(timeGroup.getGroupId())).thenReturn(Optional.empty());
+    when(timeGroupIdStoreMock.getPostStatusForFetchClient(timeGroup.getGroupId()))
+        .thenReturn(Optional.of("IN_PROGRESS"));
     when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.TRANSIENT_FAILURE());
     when(apiClientMock.fetchTimeGroups(anyInt()))
         .thenReturn(ImmutableList.of(timeGroup))

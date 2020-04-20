@@ -49,6 +49,9 @@ class TimeGroupIdStoreTest {
     assertThat(timeGroupIdStore.alreadySeenFetchClient(id))
         .as("persisted id should be found")
         .hasValue(PostResultStatus.SUCCESS.name());
+    assertThat(timeGroupIdStore.getPostStatusForFetchClient(id))
+        .as("persisted id should be found by method without timeout")
+        .hasValue(PostResultStatus.SUCCESS.name());
   }
 
   @Test

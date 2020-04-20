@@ -61,6 +61,19 @@ public class TimeGroupIdStore {
         .firstResult(rs -> rs.getString(1));
   }
 
+  /**
+   * This method returns the status of the time group irrespective of its age.
+   * For checking if we need to process a time group use alreadySeenFetchClient.
+   * This one is used as a safeguard to prevent reprocessing caused by a processing time greater than the retry timeout
+   */
+  public Optional<String> getPostStatusForFetchClient(String timeGroupId) {
+    return sqLiteHelper.query()
+        .select("SELECT post_result FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
+            " WHERE time_group_id=?")
+        .params(timeGroupId)
+        .firstResult(rs -> rs.getString(1));
+  }
+
   public Optional<PostResult> alreadySeenWebHook(String timeGroupId) {
     return sqLiteHelper.query()
         // always return status for SUCCESS, TRANSIENT_FAILURE and PERMANENT_FAILURE
