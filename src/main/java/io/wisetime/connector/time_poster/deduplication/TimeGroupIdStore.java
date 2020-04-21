@@ -4,6 +4,8 @@
 
 package io.wisetime.connector.time_poster.deduplication;
 
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.commons.lang3.tuple.Pair;
 import org.codejargon.fluentjdbc.api.query.Query;
 import org.codejargon.fluentjdbc.api.query.UpdateResult;
@@ -31,11 +33,11 @@ public class TimeGroupIdStore {
   public static final String PERMANENT_FAILURE_AND_SENT = "PERMANENT_FAILURE_AND_SENT";
   public static final String TRANSIENT_FAILURE_AND_SENT = "TRANSIENT_FAILURE_AND_SENT";
   // Time in minutes
-  private static final long MAX_IN_PROGRESS_TIME = 5;
+  private static final long MAX_IN_PROGRESS_TIME = 8;
   // Time in days
   private static final long MAX_STATUS_STORAGE_TIME = 60;
 
-  private SQLiteHelper sqLiteHelper;
+  private final SQLiteHelper sqLiteHelper;
 
   public TimeGroupIdStore(SQLiteHelper sqLiteHelper) {
     this.sqLiteHelper = sqLiteHelper;
@@ -49,10 +51,30 @@ public class TimeGroupIdStore {
         .run();
   }
 
+  /**
+   *
+   * @return A Map of timeGroupId
+   */
+  public Map<TimeGroupId, String> fetchPostResultList(List<TimeGroupId> timeGroupIdList) {
+    Map<TimeGroupId, String> resultMap = new HashMap<>();
+    sqLiteHelper.query()
+        // always return status for SUCCESS, TRANSIENT_FAILURE and PERMANENT_FAILURE
+        // If a time group is IN_PROGRESS for more than 5 minutes: assume failure and allow to try again
+        .select("SELECT time_group_id, post_result FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
+            " WHERE time_group_id IN :timeGroupIdList")
+        .params(timeGroupIdList)
+        .iterateResult(rs -> {
+          resultMap.put(
+              TimeGroupId.create(rs.getString(1)),
+              rs.getString(2));
+        });
+    return resultMap;
+  }
+
   public Optional<String> alreadySeenFetchClient(String timeGroupId) {
     return sqLiteHelper.query()
         // always return status for SUCCESS, TRANSIENT_FAILURE and PERMANENT_FAILURE
-        // If a time group is IN_PROGRESS for more than 5 minutes: assume failure and allow to try again
+        // If a time group is IN_PROGRESS for more than 8 minutes: assume failure and allow to try again
         .select("SELECT post_result FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
             " WHERE time_group_id=? AND (received_timestamp > ? or post_result != ?)")
         .params(timeGroupId,
