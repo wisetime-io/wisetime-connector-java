@@ -6,7 +6,6 @@ package io.wisetime.connector.time_poster.long_polling;
 
 import static io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore.IN_PROGRESS;
 import static io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore.SUCCESS_AND_SENT;
-import static java.lang.Thread.sleep;
 
 import com.google.common.collect.Sets;
 import io.wisetime.connector.WiseTimeConnector;
@@ -25,15 +24,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
@@ -63,7 +59,7 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
 
   private final RetryPolicy retryPolicy;
 
-  private ExecutorService fetchClientExecutor = null;
+  private final ThreadPoolExecutor fetchClientExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
 
   @SuppressWarnings("ParameterNumber")
   public FetchClientTimePoster(WiseTimeConnector wiseTimeConnector, ApiClient apiClient, HealthCheck healthCheck,
@@ -83,7 +79,7 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
        The thread pool processes each time row that is returned from the batch fetch.
        Only one concurrent post is allowed until WiseTimeConnector#postTime is guaranteed to be thread safe.
      */
-    this.postTimeExecutor = (ThreadPoolExecutor) Executors.newSingleThreadExecutor();
+    this.postTimeExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
     timeGroupStatusUpdater = new TimeGroupStatusUpdater(timeGroupIdStore, apiClient);
     healthCheck.addHealthIndicator(timeGroupStatusUpdater);
 
@@ -105,20 +101,13 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
             .get(() -> apiClient.fetchTimeGroups(timeGroupsFetchLimit));
         log.debug("Received {} for time posting", fetchedTimeGroups);
 
-        final ResultPair resultPair = splitResults(fetchedTimeGroups);
-
-        for (TimeGroup timeGroup : resultPair.getCompletedList()) {
-          // if SUCCESS or SUCCESS_SEND, send the status update to connect-api-server (async)
-          timeGroupStatusUpdater.processSingle(timeGroup.getGroupId(), PostResult.SUCCESS());
-        }
-
         final Function<Optional<String>, Boolean> isProcessedFn = (statusOpt) -> statusOpt.map(status ->
             PostResultStatus.SUCCESS.name().equals(status)
                 || SUCCESS_AND_SENT.equals(status)
                 || IN_PROGRESS.equals(status))
             .orElse(false);
 
-        for (TimeGroup timeGroup : resultPair.getPendingList()) {
+        for (TimeGroup timeGroup : fetchedTimeGroups) {
           Optional<String> timeGroupStatus = timeGroupIdStore.alreadySeenFetchClient(timeGroup.getGroupId());
 
           if (!isProcessedFn.apply(timeGroupStatus)) {
@@ -164,6 +153,8 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
               timeGroupIdStore.putTimeGroupId(timeGroup.getGroupId(), result.name(), result.getMessage().orElse(""));
               timeGroupStatusUpdater.processSingle(timeGroup.getGroupId(), result);
             });
+          } else if (timeGroupStatus.map(this::resendSuccessMessage).orElse(false)) {
+            timeGroupStatusUpdater.processSingle(timeGroup.getGroupId(), PostResult.SUCCESS());
           }
         }
 
@@ -176,51 +167,31 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
     }
   }
 
+  private boolean resendSuccessMessage(String status) {
+    // If we got an already successful time group: Immediately send the status update to connect-api-server
+    return PostResultStatus.SUCCESS.name().equals(status)
+        || SUCCESS_AND_SENT.equals(status);
+  }
+
   private void pauseForPostExecutor() {
-    long endWait = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(4);
+    long endWait = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(3);
     while (!fetchClientExecutor.isShutdown() && !postTimeExecutor.isShutdown()
-     && (postTimeExecutor.getActiveCount() + postTimeExecutor.getQueue().size()) > 0
-     && endWait > System.currentTimeMillis()) {
+        && (postTimeExecutor.getActiveCount() + postTimeExecutor.getQueue().size()) > 0
+        && endWait > System.currentTimeMillis()) {
       if (log.isTraceEnabled()) {
         log.trace("allowing time for typical post to occur");
       }
     }
   }
 
-  ResultPair splitResults(List<TimeGroup> fetchedTimeGroups) {
-    final Map<TimeGroupId, String> postResultCacheMap = timeGroupIdStore.fetchPostResultList(
-        fetchedTimeGroups.stream()
-            .map(timeGroup -> TimeGroupId.create(timeGroup.getGroupId()))
-            .collect(Collectors.toList()));
-
-    Set<String> successStatusSet = Sets.newHashSet(PostResultStatus.SUCCESS.name(), SUCCESS_AND_SENT);
-
-    final ResultPair resultPair = new ResultPair();
-
-    for (TimeGroup timeGroup : fetchedTimeGroups) {
-      if (postResultCacheMap.containsKey(TimeGroupId.create(timeGroup.getGroupId())) &&
-          successStatusSet.contains(postResultCacheMap.get(TimeGroupId.create(timeGroup.getGroupId())))) {
-        resultPair.getCompletedList().add(timeGroup);
-      } else {
-        resultPair.getPendingList().add(timeGroup);
-      }
-    }
-    return resultPair;
-  }
-
-  @ToString
-  @EqualsAndHashCode
-  @Getter
-  class ResultPair {
-    private final List<TimeGroup> completedList = new ArrayList<>();
-    private final List<TimeGroup> pendingList = new ArrayList<>();
+  public boolean isActive() {
+    return fetchClientExecutor.getActiveCount() > 0 && fetchClientExecutor.getQueue().size() > 0;
   }
 
   public void start() {
-    if (fetchClientExecutor != null && !fetchClientExecutor.isShutdown()) {
+    if (fetchClientExecutor.getActiveCount() > 0) {
       throw new IllegalStateException("Fetch Client already running");
     }
-    fetchClientExecutor = Executors.newSingleThreadExecutor();
     fetchClientExecutor.submit(this);
     timeGroupStatusUpdater.startScheduler();
   }
@@ -237,6 +208,6 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
 
   @Override
   public boolean isRunning() {
-    return fetchClientExecutor != null && !fetchClientExecutor.isShutdown();
+    return !fetchClientExecutor.isShutdown();
   }
 }

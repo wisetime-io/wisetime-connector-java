@@ -9,6 +9,8 @@ import com.google.common.collect.ImmutableList;
 import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
 import io.wisetime.generated.connect.TimeGroupStatus.StatusEnum;
 import java.io.IOException;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -22,6 +24,7 @@ import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.test_util.FakeEntities;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeGroupStatus;
+import org.mockito.Mockito;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,8 +38,10 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
- * @author pascal.filippi@gmail.com
+ * @author pascal.filippi
+ * @author thomas.haines
  */
+@Slf4j
 class FetchClientTimePosterTest {
 
   private FetchClientTimePoster fetchClient;
@@ -156,6 +161,7 @@ class FetchClientTimePosterTest {
     assertThat(statusCaptor.getValue().getStatus()).isEqualTo(TimeGroupStatus.StatusEnum.RETRIABLE_FAILURE);
   }
 
+
   @Test
   void alreadySeenTimeGroup() throws Exception {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();
@@ -163,7 +169,11 @@ class FetchClientTimePosterTest {
     when(apiClientMock.fetchTimeGroups(anyInt()))
         .thenReturn(ImmutableList.of(timeGroup))
         .thenReturn(ImmutableList.of());
+
     fetchClient.start();
+    while(fetchClient.isActive()) {
+      log.trace("waiting for task completion");
+    }
     Thread.sleep(100);
     fetchClient.stop();
 

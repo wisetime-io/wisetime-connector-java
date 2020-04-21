@@ -4,25 +4,21 @@
 
 package io.wisetime.connector.time_poster.deduplication;
 
-import java.util.HashMap;
-import java.util.Map;
-import org.apache.commons.lang3.tuple.Pair;
-import org.codejargon.fluentjdbc.api.query.Query;
-import org.codejargon.fluentjdbc.api.query.UpdateResult;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
+import static io.wisetime.connector.datastore.CoreLocalDbTable.TABLE_TIME_GROUPS_RECEIVED;
 
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.api_client.PostResult.PostResultStatus;
 import io.wisetime.connector.datastore.SQLiteHelper;
-
-import static io.wisetime.connector.datastore.CoreLocalDbTable.TABLE_TIME_GROUPS_RECEIVED;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import org.apache.commons.lang3.tuple.Pair;
+import org.codejargon.fluentjdbc.api.query.Query;
+import org.codejargon.fluentjdbc.api.query.UpdateResult;
 
 /**
- * A store for time groups ids for deduplication. Blocks a provided time group id IN_PROGRESS for 5 minutes.
- * Other status will be returned as stored.
+ * A store for time groups ids for deduplication. Blocks a provided time group id IN_PROGRESS for 5 minutes. Other
+ * status will be returned as stored.
  *
  * @author pascal.filippi@gmail.com
  */
@@ -51,26 +47,6 @@ public class TimeGroupIdStore {
         .run();
   }
 
-  /**
-   *
-   * @return A Map of timeGroupId
-   */
-  public Map<TimeGroupId, String> fetchPostResultList(List<TimeGroupId> timeGroupIdList) {
-    Map<TimeGroupId, String> resultMap = new HashMap<>();
-    sqLiteHelper.query()
-        // always return status for SUCCESS, TRANSIENT_FAILURE and PERMANENT_FAILURE
-        // If a time group is IN_PROGRESS for more than 5 minutes: assume failure and allow to try again
-        .select("SELECT time_group_id, post_result FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
-            " WHERE time_group_id IN :timeGroupIdList")
-        .params(timeGroupIdList)
-        .iterateResult(rs -> {
-          resultMap.put(
-              TimeGroupId.create(rs.getString(1)),
-              rs.getString(2));
-        });
-    return resultMap;
-  }
-
   public Optional<String> alreadySeenFetchClient(String timeGroupId) {
     return sqLiteHelper.query()
         // always return status for SUCCESS, TRANSIENT_FAILURE and PERMANENT_FAILURE
@@ -84,9 +60,9 @@ public class TimeGroupIdStore {
   }
 
   /**
-   * This method returns the status of the time group irrespective of its age.
-   * For checking if we need to process a time group use alreadySeenFetchClient.
-   * This one is used as a safeguard to prevent reprocessing caused by a processing time greater than the retry timeout
+   * This method returns the status of the time group irrespective of its age. For checking if we need to process a time
+   * group use alreadySeenFetchClient. This one is used as a safeguard to prevent reprocessing caused by a processing
+   * time greater than the retry timeout
    */
   public Optional<String> getPostStatusForFetchClient(String timeGroupId) {
     return sqLiteHelper.query()
