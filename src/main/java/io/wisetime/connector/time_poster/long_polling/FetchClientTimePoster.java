@@ -128,7 +128,7 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
                 return;
               }
               if (!IN_PROGRESS.equals(status.get())) {
-                log.info("Prevented reprocessing of time group: {}. It is already in terminal state: {}",
+                log.info("Skip posting time group group: {}. The connector store sees this time group as having status: {}.",
                     timeGroup.getGroupId(), status.get());
                 return;
               }
