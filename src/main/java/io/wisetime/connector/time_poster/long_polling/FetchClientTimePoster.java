@@ -23,7 +23,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
@@ -92,17 +91,11 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
             .get(() -> apiClient.fetchTimeGroups(timeGroupsFetchLimit));
         log.debug("Received {} for time posting", fetchedTimeGroups);
 
-        final Function<Optional<String>, Boolean> isProcessedFn = (statusOpt) -> statusOpt.map(status ->
-            PostResultStatus.SUCCESS.name().equals(status)
-                || SUCCESS_AND_SENT.equals(status)
-                || IN_PROGRESS.equals(status))
-            .orElse(false);
-
         for (TimeGroup timeGroup : fetchedTimeGroups) {
           Optional<String> timeGroupStatus = timeGroupIdStore.alreadySeenFetchClient(timeGroup.getGroupId());
 
-          if (!isProcessedFn.apply(timeGroupStatus)) {
-            // isProcessedFn will skip anything with state `IN_PROGRESS`, SUCCESS or SUCCESS_AND_SENT
+          if (!skip(timeGroupStatus)) {
+            // skip will skip anything with state `IN_PROGRESS`, SUCCESS or SUCCESS_AND_SENT
             log.debug("Processing time group: {}", timeGroup);
 
             // save the rows to the DB synchronously as IN_PROGRESS
@@ -114,36 +107,7 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
             }
 
             // trigger async process to post to external system
-            postTimeExecutor.submit(() -> {
-              // verify that the time group is not in an already processed state (i.e. not in IN_PROGRESS)
-              // if it is we encountered a corner case where we rescheduled a time group because the
-              // last try to process it stuck for too long in processing but completes successfully.
-              // This is safe because processing time groups is done sequentially by a single thread
-              // when we encounter the IN_PROGRESS state here it means it wasn't processed before
-              Optional<String> status = timeGroupIdStore.getPostStatusForFetchClient(timeGroup.getGroupId());
-              if (!status.isPresent()) {
-                log.info("Encountered time group with no associated status: {}. "
-                        + "Cancel processing and waiting for retry",
-                    timeGroup.getGroupId());
-                return;
-              }
-              if (!IN_PROGRESS.equals(status.get())) {
-                log.info("Prevented reprocessing of time group: {}. It is already in terminal state: {}",
-                    timeGroup.getGroupId(), status.get());
-                return;
-              }
-              PostResult result;
-              try {
-                result = wiseTimeConnector.postTime(null, timeGroup);
-              } catch (Exception e) {
-                // We can't rule out postTime throws runtime exceptions, in this case permanently fail the time group:
-                // most likely a bug
-                result = PostResult.PERMANENT_FAILURE().withError(e).withMessage(e.getMessage());
-                log.error("Unexpected exception while trying to post time", e);
-              }
-              timeGroupIdStore.putTimeGroupId(timeGroup.getGroupId(), result.name(), result.getMessage().orElse(""));
-              timeGroupStatusUpdater.processSingle(timeGroup.getGroupId(), result);
-            });
+            postTimeExecutor.submit(() -> postTime(timeGroup));
           } else if (timeGroupStatus.map(this::resendSuccessMessage).orElse(false)) {
             timeGroupStatusUpdater.processSingle(timeGroup.getGroupId(), PostResult.SUCCESS());
           }
@@ -156,6 +120,45 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
         log.error("Error while fetching new time groups", e);
       }
     }
+  }
+
+  private void postTime(TimeGroup timeGroup) {
+    // verify that the time group is not in an already processed state (i.e. not in IN_PROGRESS)
+    // if it is we encountered a corner case where we rescheduled a time group because the
+    // last try to process it stuck for too long in processing but completes successfully.
+    // This is safe because processing time groups is done sequentially by a single thread
+    // when we encounter the IN_PROGRESS state here it means it wasn't processed before
+    Optional<String> status = timeGroupIdStore.getPostStatusForFetchClient(timeGroup.getGroupId());
+    if (!status.isPresent()) {
+      log.info("Encountered time group with no associated status: {}. "
+              + "Cancel processing and waiting for retry",
+          timeGroup.getGroupId());
+      return;
+    }
+    if (!IN_PROGRESS.equals(status.get())) {
+      log.info("Prevented reprocessing of time group: {}. It is already in terminal state: {}",
+          timeGroup.getGroupId(), status.get());
+      return;
+    }
+    PostResult result;
+    try {
+      result = wiseTimeConnector.postTime(null, timeGroup);
+    } catch (Exception e) {
+      // We can't rule out postTime throws runtime exceptions, in this case permanently fail the time group:
+      // most likely a bug
+      result = PostResult.PERMANENT_FAILURE().withError(e).withMessage(e.getMessage());
+      log.error("Unexpected exception while trying to post time", e);
+    }
+    timeGroupIdStore.putTimeGroupId(timeGroup.getGroupId(), result.name(), result.getMessage().orElse(""));
+    timeGroupStatusUpdater.processSingle(timeGroup.getGroupId(), result);
+  }
+
+  private boolean skip(Optional<String> status) {
+    return status.map(s ->
+        PostResultStatus.SUCCESS.name().equals(s)
+            || SUCCESS_AND_SENT.equals(s)
+            || IN_PROGRESS.equals(s))
+        .orElse(false);
   }
 
   private boolean resendSuccessMessage(String status) {
