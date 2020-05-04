@@ -17,7 +17,7 @@ import org.codejargon.fluentjdbc.api.query.Query;
 import org.codejargon.fluentjdbc.api.query.UpdateResult;
 
 /**
- * A store for time groups ids for deduplication. Blocks a provided time group id IN_PROGRESS for 5 minutes. Other
+ * A store for time groups ids for deduplication. Blocks a provided time group id IN_PROGRESS for 8 minutes. Other
  * status will be returned as stored.
  *
  * @author pascal.filippi@gmail.com
