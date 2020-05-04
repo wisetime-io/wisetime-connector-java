@@ -33,6 +33,20 @@ class ConnectorControllerImplTest {
     assertThat(connectorController.tagTaskSchedule.getPeriodMs())
         .as("Tag sync interval minutes shouldn't be changed without due consideration as it affects all " +
             "downstream connectors")
+        .isEqualTo(TimeUnit.MINUTES.toMillis(1));
+  }
+
+  @Test
+  void getTagSlowLoopIntervalMinutes() {
+    final ConnectorControllerImpl connectorController = (ConnectorControllerImpl) ConnectorController.newBuilder()
+        .withApiKey("api key")
+        .withWiseTimeConnector(mock(WiseTimeConnector.class))
+        .disablePostedTimeFetching()
+        .build();
+
+    assertThat(connectorController.tagSlowLoopTaskSchedule.getPeriodMs())
+        .as("Tag sync interval minutes shouldn't be changed without due consideration as it affects all " +
+            "downstream connectors")
         .isEqualTo(TimeUnit.MINUTES.toMillis(5));
   }
 

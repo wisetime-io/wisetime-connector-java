@@ -24,7 +24,9 @@ import io.wisetime.connector.metric.MetricService;
 import io.wisetime.connector.metric.WiseTimeConnectorMetricWrapper;
 import io.wisetime.connector.tag.ApiClientTagWrapper;
 import io.wisetime.connector.tag.NoOpTagRunner;
+import io.wisetime.connector.tag.NoOpTagSlowLoopRunner;
 import io.wisetime.connector.tag.TagRunner;
+import io.wisetime.connector.tag.TagSlowLoopRunner;
 import io.wisetime.connector.time_poster.NoOpTimePoster;
 import io.wisetime.connector.time_poster.TimePoster;
 import io.wisetime.connector.time_poster.long_polling.FetchClientTimePoster;
@@ -53,6 +55,8 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
   TimerTaskSchedule healthTaskSchedule = new TimerTaskSchedule(
       TimeUnit.SECONDS.toMillis(5), TimeUnit.MINUTES.toMillis(1));
   TimerTaskSchedule tagTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
+      TimeUnit.MINUTES.toMillis(1));
+  TimerTaskSchedule tagSlowLoopTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
       TimeUnit.MINUTES.toMillis(5));
   TimerTaskSchedule managedConfigTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
       TimeUnit.MINUTES.toMillis(5));
@@ -62,6 +66,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
   private final ConnectorModule connectorModule;
 
   private final TagRunner tagRunner;
+  private final TagSlowLoopRunner tagSlowLoopRunner;
   private final HealthCheck healthRunner;
   private final ManagedConfigRunner managedConfigRunner;
 
@@ -69,6 +74,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
 
   private final Timer healthCheckTimer;
   private final Timer tagTimer;
+  private final Timer tagSlowLoopTimer;
   private final Timer managedConfigTimer;
 
   // Awaitable, cancellable connector run
@@ -80,6 +86,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     wiseTimeConnector = new WiseTimeConnectorMetricWrapper(configuration.getWiseTimeConnector(), metricService);
 
     tagRunner = createTagRunner(configuration, wiseTimeConnector);
+    tagSlowLoopRunner = createTagSlowLoopRunner(configuration, wiseTimeConnector);
 
     ApiClient apiClient = new ApiClientMetricWrapper(configuration.getApiClient(), metricService);
     apiClient = new ApiClientTagWrapper(apiClient, tagRunner);
@@ -94,12 +101,14 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     managedConfigRunner = new ManagedConfigRunner(wiseTimeConnector, apiClient, connectorInfoProvider);
 
     healthRunner.addHealthIndicator(tagRunner,
+        tagSlowLoopRunner,
         timePoster,
         managedConfigRunner,
         new WiseTimeConnectorHealthIndicator(wiseTimeConnector));
 
     healthCheckTimer = new Timer("health-check-timer", true);
     tagTimer = new Timer("tag-check-timer", true);
+    tagSlowLoopTimer = new Timer("tag-slow-loop-timer", true);
     managedConfigTimer = new Timer("manage-config-timer", true);
 
     // Connector is initially in stopped state
@@ -142,6 +151,9 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
 
           tagTimer.scheduleAtFixedRate(tagRunner,
               tagTaskSchedule.getInitialDelayMs(), tagTaskSchedule.getPeriodMs());
+
+          tagSlowLoopTimer.scheduleAtFixedRate(tagSlowLoopRunner,
+              tagSlowLoopTaskSchedule.getInitialDelayMs(), tagSlowLoopTaskSchedule.getPeriodMs());
 
           managedConfigTimer.scheduleAtFixedRate(managedConfigRunner,
               managedConfigTaskSchedule.getInitialDelayMs(), managedConfigTaskSchedule.getPeriodMs());
@@ -243,6 +255,19 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
       default:
         log.error("Unexpected tag runner mode {}. Fallback to ENABLED", configuration.getTagScanMode());
         return new TagRunner(wiseTimeConnector);
+    }
+  }
+
+  private TagSlowLoopRunner createTagSlowLoopRunner(ConnectorControllerConfiguration configuration,
+                                                    WiseTimeConnector wiseTimeConnector) {
+    switch (configuration.getTagScanMode()) {
+      case ENABLED:
+        return new TagSlowLoopRunner(wiseTimeConnector);
+      case DISABLED:
+        return new NoOpTagSlowLoopRunner();
+      default:
+        log.error("Unexpected tag runner mode {}. Fallback to ENABLED", configuration.getTagScanMode());
+        return new TagSlowLoopRunner(wiseTimeConnector);
     }
   }
 

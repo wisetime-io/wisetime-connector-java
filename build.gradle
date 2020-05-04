@@ -29,7 +29,7 @@ plugins {
     id "io.freefair.lombok" version "3.8.4"
     id "fr.brouillard.oss.gradle.jgitver" version "0.9.1"
     id "com.github.ben-manes.versions" version "0.27.0"
-    id "io.wisetime.versionChecker" version "0.8.0-0"
+    id "io.wisetime.versionChecker" version "0.9.13"
     id 'de.marcphilipp.nexus-publish' version '0.3.1' apply false
 }
 
@@ -144,7 +144,7 @@ dependencies {
     compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.8'
 
     compile 'org.apache.commons:commons-collections4:4.3'
-    compile 'com.google.guava:guava:27.1-jre'
+    compile 'com.google.guava:guava:28.2-jre'
     compile 'commons-io:commons-io:2.6'
 
     compile 'org.xerial:sqlite-jdbc:3.28.0'
