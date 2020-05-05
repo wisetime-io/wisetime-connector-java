@@ -4,23 +4,21 @@
 
 package io.wisetime.connector.time_poster.deduplication;
 
-import org.apache.commons.lang3.tuple.Pair;
-import org.codejargon.fluentjdbc.api.query.Query;
-import org.codejargon.fluentjdbc.api.query.UpdateResult;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
+import static io.wisetime.connector.datastore.CoreLocalDbTable.TABLE_TIME_GROUPS_RECEIVED;
 
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.api_client.PostResult.PostResultStatus;
 import io.wisetime.connector.datastore.SQLiteHelper;
-
-import static io.wisetime.connector.datastore.CoreLocalDbTable.TABLE_TIME_GROUPS_RECEIVED;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import org.apache.commons.lang3.tuple.Pair;
+import org.codejargon.fluentjdbc.api.query.Query;
+import org.codejargon.fluentjdbc.api.query.UpdateResult;
 
 /**
- * A store for time groups ids for deduplication. Blocks a provided time group id IN_PROGRESS for 5 minutes.
- * Other status will be returned as stored.
+ * A store for time groups ids for deduplication. Blocks a provided time group id IN_PROGRESS for 8 minutes. Other
+ * status will be returned as stored.
  *
  * @author pascal.filippi@gmail.com
  */
@@ -31,11 +29,11 @@ public class TimeGroupIdStore {
   public static final String PERMANENT_FAILURE_AND_SENT = "PERMANENT_FAILURE_AND_SENT";
   public static final String TRANSIENT_FAILURE_AND_SENT = "TRANSIENT_FAILURE_AND_SENT";
   // Time in minutes
-  private static final long MAX_IN_PROGRESS_TIME = 5;
+  private static final long MAX_IN_PROGRESS_TIME = 8;
   // Time in days
   private static final long MAX_STATUS_STORAGE_TIME = 60;
 
-  private SQLiteHelper sqLiteHelper;
+  private final SQLiteHelper sqLiteHelper;
 
   public TimeGroupIdStore(SQLiteHelper sqLiteHelper) {
     this.sqLiteHelper = sqLiteHelper;
@@ -52,12 +50,25 @@ public class TimeGroupIdStore {
   public Optional<String> alreadySeenFetchClient(String timeGroupId) {
     return sqLiteHelper.query()
         // always return status for SUCCESS, TRANSIENT_FAILURE and PERMANENT_FAILURE
-        // If a time group is IN_PROGRESS for more than 5 minutes: assume failure and allow to try again
+        // If a time group is IN_PROGRESS for more than 8 minutes: assume failure and allow to try again
         .select("SELECT post_result FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
             " WHERE time_group_id=? AND (received_timestamp > ? or post_result != ?)")
         .params(timeGroupId,
             System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(MAX_IN_PROGRESS_TIME),
             IN_PROGRESS)
+        .firstResult(rs -> rs.getString(1));
+  }
+
+  /**
+   * This method returns the status of the time group irrespective of its age. For checking if we need to process a time
+   * group use alreadySeenFetchClient. This one is used as a safeguard to prevent reprocessing caused by a processing
+   * time greater than the retry timeout
+   */
+  public Optional<String> getPostStatusForFetchClient(String timeGroupId) {
+    return sqLiteHelper.query()
+        .select("SELECT post_result FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
+            " WHERE time_group_id=?")
+        .params(timeGroupId)
         .firstResult(rs -> rs.getString(1));
   }
 

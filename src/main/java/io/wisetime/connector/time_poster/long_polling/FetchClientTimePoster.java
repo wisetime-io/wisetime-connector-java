@@ -4,18 +4,8 @@
 
 package io.wisetime.connector.time_poster.long_polling;
 
-import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-import net.jodah.failsafe.Failsafe;
-import net.jodah.failsafe.RetryPolicy;
-import org.joda.time.DateTime;
-
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
+import static io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore.IN_PROGRESS;
+import static io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore.SUCCESS_AND_SENT;
 
 import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.api_client.ApiClient;
@@ -24,11 +14,19 @@ import io.wisetime.connector.api_client.PostResult.PostResultStatus;
 import io.wisetime.connector.datastore.SQLiteHelper;
 import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.time_poster.TimePoster;
+import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
 import io.wisetime.generated.connect.TimeGroup;
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.extern.slf4j.Slf4j;
-
-import static io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore.IN_PROGRESS;
-import static io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore.SUCCESS_AND_SENT;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
+import org.joda.time.DateTime;
 
 /**
  * Implements a fetch based approach to retrieve time groups.
@@ -42,7 +40,7 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
 
   private final AtomicReference<DateTime> lastSuccessfulRun = new AtomicReference<>(DateTime.now());
 
-  private final ExecutorService postTimeExecutor;
+  private final ThreadPoolExecutor postTimeExecutor;
   private final TimeGroupStatusUpdater timeGroupStatusUpdater;
   private final TimeGroupIdStore timeGroupIdStore;
   private final int timeGroupsFetchLimit;
@@ -51,18 +49,18 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
 
   private final RetryPolicy retryPolicy;
 
-  private ExecutorService fetchClientExecutor = null;
+  private final ThreadPoolExecutor fetchClientExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
 
   @SuppressWarnings("ParameterNumber")
   public FetchClientTimePoster(WiseTimeConnector wiseTimeConnector, ApiClient apiClient, HealthCheck healthCheck,
-                               SQLiteHelper sqLiteHelper, int timeGroupsFetchLimit) {
+      SQLiteHelper sqLiteHelper, int timeGroupsFetchLimit) {
     this(wiseTimeConnector, apiClient, healthCheck, new TimeGroupIdStore(sqLiteHelper),
         timeGroupsFetchLimit);
   }
 
   @SuppressWarnings("ParameterNumber")
   public FetchClientTimePoster(WiseTimeConnector wiseTimeConnector, ApiClient apiClient, HealthCheck healthCheck,
-                               TimeGroupIdStore timeGroupIdStore, int timeGroupsFetchLimit) {
+      TimeGroupIdStore timeGroupIdStore, int timeGroupsFetchLimit) {
     this.wiseTimeConnector = wiseTimeConnector;
     this.apiClient = apiClient;
     this.timeGroupIdStore = timeGroupIdStore;
@@ -71,7 +69,7 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
        The thread pool processes each time row that is returned from the batch fetch.
        Only one concurrent post is allowed until WiseTimeConnector#postTime is guaranteed to be thread safe.
      */
-    this.postTimeExecutor = Executors.newSingleThreadExecutor();
+    this.postTimeExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
     timeGroupStatusUpdater = new TimeGroupStatusUpdater(timeGroupIdStore, apiClient);
     healthCheck.addHealthIndicator(timeGroupStatusUpdater);
 
@@ -95,29 +93,28 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
 
         for (TimeGroup timeGroup : fetchedTimeGroups) {
           Optional<String> timeGroupStatus = timeGroupIdStore.alreadySeenFetchClient(timeGroup.getGroupId());
-          if (!timeGroupStatus.map(this::timeGroupAlreadyProcessed).orElse(false)) {
+
+          if (!skip(timeGroupStatus)) {
+            // skip will skip anything with state `IN_PROGRESS`, SUCCESS or SUCCESS_AND_SENT
             log.debug("Processing time group: {}", timeGroup);
-            // save the rows to the DB synchronously
+
+            // save the rows to the DB synchronously as IN_PROGRESS
             timeGroupIdStore.putTimeGroupId(timeGroup.getGroupId(), IN_PROGRESS, "");
 
+            if (postTimeExecutor.isShutdown()) {
+              // check shutdown state before queueing
+              return;
+            }
+
             // trigger async process to post to external system
-            postTimeExecutor.submit(() -> {
-              PostResult result;
-              try {
-                result = wiseTimeConnector.postTime(null, timeGroup);
-              } catch (Exception e) {
-                // We can't rule out postTime throws runtime exceptions, in this case permanently fail the time group:
-                // most likely a bug
-                result = PostResult.PERMANENT_FAILURE().withError(e).withMessage(e.getMessage());
-                log.error("Unexpected exception while trying to post time", e);
-              }
-              timeGroupIdStore.putTimeGroupId(timeGroup.getGroupId(), result.name(), result.getMessage().orElse(""));
-              timeGroupStatusUpdater.processSingle(timeGroup.getGroupId(), result);
-            });
+            postTimeExecutor.submit(() -> postTime(timeGroup));
           } else if (timeGroupStatus.map(this::resendSuccessMessage).orElse(false)) {
             timeGroupStatusUpdater.processSingle(timeGroup.getGroupId(), PostResult.SUCCESS());
           }
         }
+
+        pauseForPostExecutor();
+
         lastSuccessfulRun.set(DateTime.now());
       } catch (Exception e) {
         log.error("Error while fetching new time groups", e);
@@ -125,11 +122,43 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
     }
   }
 
-  private boolean timeGroupAlreadyProcessed(String status) {
-    // For any failure state: Allow reprocessing. For SUCCESS and IN_PROGRESS deny reprocessing
-    return PostResultStatus.SUCCESS.name().equals(status)
-        || SUCCESS_AND_SENT.equals(status)
-        || IN_PROGRESS.equals(status);
+  private void postTime(TimeGroup timeGroup) {
+    // verify that the time group is not in an already processed state (i.e. not in IN_PROGRESS)
+    // if it is we encountered a corner case where we rescheduled a time group because the
+    // last try to process it stuck for too long in processing but completes successfully.
+    // This is safe because processing time groups is done sequentially by a single thread
+    // when we encounter the IN_PROGRESS state here it means it wasn't processed before
+    Optional<String> status = timeGroupIdStore.getPostStatusForFetchClient(timeGroup.getGroupId());
+    if (!status.isPresent()) {
+      log.info("Encountered time group with no associated status: {}. "
+              + "Cancel processing and waiting for retry",
+          timeGroup.getGroupId());
+      return;
+    }
+    if (!IN_PROGRESS.equals(status.get())) {
+      log.info("Skip posting time group group: {}. The connector store sees this time group as having status: {}.",
+          timeGroup.getGroupId(), status.get());
+      return;
+    }
+    PostResult result;
+    try {
+      result = wiseTimeConnector.postTime(null, timeGroup);
+    } catch (Exception e) {
+      // We can't rule out postTime throws runtime exceptions, in this case permanently fail the time group:
+      // most likely a bug
+      result = PostResult.PERMANENT_FAILURE().withError(e).withMessage(e.getMessage());
+      log.error("Unexpected exception while trying to post time", e);
+    }
+    timeGroupIdStore.putTimeGroupId(timeGroup.getGroupId(), result.name(), result.getMessage().orElse(""));
+    timeGroupStatusUpdater.processSingle(timeGroup.getGroupId(), result);
+  }
+
+  private boolean skip(Optional<String> status) {
+    return status.map(s ->
+        PostResultStatus.SUCCESS.name().equals(s)
+            || SUCCESS_AND_SENT.equals(s)
+            || IN_PROGRESS.equals(s))
+        .orElse(false);
   }
 
   private boolean resendSuccessMessage(String status) {
@@ -138,11 +167,25 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
         || SUCCESS_AND_SENT.equals(status);
   }
 
+  private void pauseForPostExecutor() {
+    long endWait = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(3);
+    while (!fetchClientExecutor.isShutdown() && !postTimeExecutor.isShutdown()
+        && (postTimeExecutor.getActiveCount() + postTimeExecutor.getQueue().size()) > 0
+        && endWait > System.currentTimeMillis()) {
+      if (log.isTraceEnabled()) {
+        log.trace("allowing time for typical post to occur");
+      }
+    }
+  }
+
+  public boolean isActive() {
+    return fetchClientExecutor.getActiveCount() > 0 && fetchClientExecutor.getQueue().size() > 0;
+  }
+
   public void start() {
-    if (fetchClientExecutor != null) {
+    if (fetchClientExecutor.getActiveCount() > 0) {
       throw new IllegalStateException("Fetch Client already running");
     }
-    fetchClientExecutor = Executors.newSingleThreadExecutor();
     fetchClientExecutor.submit(this);
     timeGroupStatusUpdater.startScheduler();
   }
@@ -150,7 +193,6 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
   public void stop() {
     fetchClientExecutor.shutdownNow();
     timeGroupStatusUpdater.stopScheduler();
-    fetchClientExecutor = null;
   }
 
   @Override
@@ -160,6 +202,6 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
 
   @Override
   public boolean isRunning() {
-    return fetchClientExecutor != null && !fetchClientExecutor.isShutdown();
+    return !fetchClientExecutor.isShutdown();
   }
 }
