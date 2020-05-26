@@ -204,7 +204,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
       log.warn("There was an error while stopping the connector", e);
     } finally {
       wiseTimeConnector.shutdown();
-      connectorRun.cancel(true);
+      connectorRun.cancel(false);
     }
   }
 
