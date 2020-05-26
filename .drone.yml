@@ -21,6 +21,20 @@ steps:
       - name: host-cache
         path: /cache
 
+  - name: check-versions
+    image: openjdk:8-jdk
+    environment:
+      GRADLE_USER_HOME: .gcache
+      GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false
+    commands:
+      - ./gradlew versionCheck
+    when:
+      branch:
+        exclude:
+          - master
+      event:
+        - push
+
   - name: unit-test
     image: openjdk:8-jdk
     environment:
@@ -29,20 +43,6 @@ steps:
     commands:
       - echo ${DRONE_MACHINE}
       - ./gradlew test depCheck check
-
-  - name: check-versions
-    image: openjdk:8-jdk
-    environment:
-      GRADLE_USER_HOME: .gcache
-      GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false
-    commands:
-      - ./gradlew dependencyUpdates -DoutputFormatter=json versionCheck
-    when:
-      branch:
-        exclude:
-          - master
-      event:
-        - push
 
   - name: save-cache
     image: drillster/drone-volume-cache
