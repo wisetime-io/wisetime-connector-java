@@ -40,16 +40,18 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
 
   private final AtomicReference<DateTime> lastSuccessfulRun = new AtomicReference<>(DateTime.now());
 
-  private final ThreadPoolExecutor postTimeExecutor;
+  /**
+   * The thread pool processes each time row that is returned from the batch fetch.
+   * Only one concurrent post is allowed until WiseTimeConnector#postTime is guaranteed to be thread safe.
+   */
+  private final ThreadPoolExecutor postTimeExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
+  private final ThreadPoolExecutor fetchClientExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
   private final TimeGroupStatusUpdater timeGroupStatusUpdater;
   private final TimeGroupIdStore timeGroupIdStore;
   private final int timeGroupsFetchLimit;
   private final ApiClient apiClient;
   private final WiseTimeConnector wiseTimeConnector;
-
   private final RetryPolicy retryPolicy;
-
-  private final ThreadPoolExecutor fetchClientExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
 
   @SuppressWarnings("ParameterNumber")
   public FetchClientTimePoster(WiseTimeConnector wiseTimeConnector, ApiClient apiClient, HealthCheck healthCheck,
@@ -65,11 +67,6 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
     this.apiClient = apiClient;
     this.timeGroupIdStore = timeGroupIdStore;
     this.timeGroupsFetchLimit = timeGroupsFetchLimit;
-    /*
-       The thread pool processes each time row that is returned from the batch fetch.
-       Only one concurrent post is allowed until WiseTimeConnector#postTime is guaranteed to be thread safe.
-     */
-    this.postTimeExecutor = (ThreadPoolExecutor) Executors.newFixedThreadPool(1);
     timeGroupStatusUpdater = new TimeGroupStatusUpdater(timeGroupIdStore, apiClient);
     healthCheck.addHealthIndicator(timeGroupStatusUpdater);
 
@@ -191,6 +188,7 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
   }
 
   public void stop() {
+    postTimeExecutor.shutdownNow();
     fetchClientExecutor.shutdownNow();
     timeGroupStatusUpdater.stopScheduler();
   }

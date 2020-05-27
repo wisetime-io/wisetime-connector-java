@@ -28,5 +28,3 @@ tasks.dependencyUpdates {
     reportfileName = "report"
     outputDir = "$projectDir/build/dependencyUpdates"
 }
-
-tasks.versionCheck.dependsOn(dependencyUpdates)
