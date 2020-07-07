@@ -198,6 +198,10 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
 
       tagTimer.cancel();
       tagTimer.purge();
+
+      tagSlowLoopTimer.cancel();
+      tagSlowLoopTimer.purge();
+
       timePoster.stop();
 
     } catch (Exception e) {
