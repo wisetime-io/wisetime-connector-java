@@ -103,9 +103,9 @@ public class ConnectorLauncher {
 }
 ```
 
-The connector will launch a web server at port 8080 when calling useWebhook(). The server implements the [Posted Time Webhook] (https://wisetime.io/docs/connect/posted-time-webhook/) that WiseTime will call whenever a user posts time to the team.
+The connector will launch a web server at port 8080 when calling useWebhook(). The server implements the [Posted Time Webhook](https://wisetime.io/docs/connect/posted-time-webhook/) that WiseTime will call whenever a user posts time to the team.
 
-When using useFetchClient(). The connector will use long polling to retrieve time posted to the team from WiseTime.
+If you use `.useFetchClient()` instead, the connector will start in long polling mode to retrieve time posted to the team from WiseTime.
 
 ## Sample Project
 
