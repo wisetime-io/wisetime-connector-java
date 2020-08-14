@@ -4,9 +4,7 @@
 
 buildscript {
     repositories {
-        maven {
-            url 'https://storage.googleapis.com/wise-repo/repos/plugins/'
-        }
+        jcenter()
         maven {
             // WT published releases
             url 'https://s3.eu-central-1.amazonaws.com/artifacts.wisetime.com/mvn2/plugins'
@@ -29,15 +27,12 @@ plugins {
     id "io.freefair.lombok" version "3.8.4"
     id "fr.brouillard.oss.gradle.jgitver" version "0.9.1"
     id "com.github.ben-manes.versions" version "0.27.0"
-    id "io.wisetime.versionChecker" version "0.9.13"
+    id "io.wisetime.versionChecker" version "0.9.18"
     id 'de.marcphilipp.nexus-publish' version '0.3.1' apply false
 }
 
 repositories {
-    maven {
-        // Google Maven Central mirror
-        url 'https://maven-central.storage-download.googleapis.com/repos/central/data'
-    }
+    jcenter()
 }
 
 apply plugin: 'org.openapi.generator'
@@ -139,9 +134,9 @@ dependencies {
     compile 'org.slf4j:jcl-over-slf4j:1.7.30'
     compile 'org.slf4j:jul-to-slf4j:1.7.30'
 
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.9.8'
-    compile 'com.fasterxml.jackson.core:jackson-core:2.9.8'
-    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.9.8'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.11.1'
+    compile 'com.fasterxml.jackson.core:jackson-core:2...1.'
+    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.11.1'
 
     compile 'org.apache.commons:commons-collections4:4.3'
     compile 'com.google.guava:guava:28.2-jre'

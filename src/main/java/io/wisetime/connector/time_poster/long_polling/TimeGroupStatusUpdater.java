@@ -78,6 +78,7 @@ public class TimeGroupStatusUpdater extends TimerTask implements HealthIndicator
   void stopScheduler() {
     timeGroupStatusUpdaterTimer.cancel();
     timeGroupStatusUpdaterTimer.purge();
+    uploadExecutor.shutdown();
   }
 
   void processSingle(String timeGroupId, PostResult result) {
