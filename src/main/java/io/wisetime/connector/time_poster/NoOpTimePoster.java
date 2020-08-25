@@ -26,9 +26,4 @@ public class NoOpTimePoster implements TimePoster {
     // does nothing and therefore is always healthy
     return true;
   }
-
-  @Override
-  public boolean isRunning() {
-    return true;
-  }
 }

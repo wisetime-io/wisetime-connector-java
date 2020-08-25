@@ -4,49 +4,47 @@
 
 package io.wisetime.connector.time_poster.long_polling;
 
-import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
-import org.apache.commons.lang3.tuple.Pair;
-import org.joda.time.DateTime;
-
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
+import static io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore.PERMANENT_FAILURE_AND_SENT;
+import static io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore.SUCCESS_AND_SENT;
+import static io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore.TRANSIENT_FAILURE_AND_SENT;
 
 import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.health.HealthIndicator;
+import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
 import io.wisetime.generated.connect.TimeGroupStatus;
+import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
-
-import static io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore.PERMANENT_FAILURE_AND_SENT;
-import static io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore.SUCCESS_AND_SENT;
-import static io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore.TRANSIENT_FAILURE_AND_SENT;
+import org.apache.commons.lang3.tuple.Pair;
+import org.joda.time.DateTime;
 
 /**
  * @author pascal.filippi@gmail.com
  */
 @Slf4j
-public class TimeGroupStatusUpdater extends TimerTask implements HealthIndicator {
+class TimeGroupStatusUpdater extends TimerTask implements HealthIndicator {
 
   private static final int MAX_MINS_SINCE_SUCCESS = 10;
   private final TimeGroupIdStore timeGroupIdStore;
   private final ApiClient apiClient;
   private final AtomicBoolean runLock = new AtomicBoolean(false);
   private final AtomicReference<DateTime> lastSuccessfulRun;
-  private final ExecutorService uploadExecutor;
   private final Timer timeGroupStatusUpdaterTimer;
+  private final Supplier<ExecutorService> executorService;
 
-  TimeGroupStatusUpdater(TimeGroupIdStore timeGroupIdStore, ApiClient apiClient) {
+  TimeGroupStatusUpdater(TimeGroupIdStore timeGroupIdStore, ApiClient apiClient, Supplier<ExecutorService> executorService) {
     this.timeGroupIdStore = timeGroupIdStore;
     this.apiClient = apiClient;
     this.lastSuccessfulRun = new AtomicReference<>(DateTime.now());
+    this.executorService = executorService;
     // uploading statuses is mostly waiting on server response: We can afford a lot of parallelism
-    this.uploadExecutor = Executors.newCachedThreadPool();
     this.timeGroupStatusUpdaterTimer = new Timer("status-uploader-timer", true);
   }
 
@@ -78,11 +76,10 @@ public class TimeGroupStatusUpdater extends TimerTask implements HealthIndicator
   void stopScheduler() {
     timeGroupStatusUpdaterTimer.cancel();
     timeGroupStatusUpdaterTimer.purge();
-    uploadExecutor.shutdown();
   }
 
   void processSingle(String timeGroupId, PostResult result) {
-    uploadExecutor.submit(() -> updateTimeGroupStatus(timeGroupId, result));
+    executorService.get().submit(() -> updateTimeGroupStatus(timeGroupId, result));
   }
 
   private void updateTimeGroupStatus(String timeGroupId, PostResult result) {
