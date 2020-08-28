@@ -119,7 +119,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
    */
   @Override
   public void start() throws Exception {
-    if (!connectorExecutor.compareAndSet(null, Executors.newScheduledThreadPool(0))) {
+    if (!connectorExecutor.compareAndSet(null, Executors.newCachedThreadPool())) {
       log.warn("Cannot start the connector while it is still running. Start attempt ignored.");
       return;
     }
