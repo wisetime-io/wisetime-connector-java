@@ -17,6 +17,7 @@ import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.api_client.PostResult.PostResultStatus;
 import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
 import io.wisetime.generated.connect.TimeGroupStatus;
+import java.util.concurrent.Executors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,7 +40,8 @@ class TimeGroupStatusUpdaterTest {
   void setup() {
     timeGroupIdStoreMock = mock(TimeGroupIdStore.class);
     apiClientMock = mock(ApiClient.class);
-    timeGroupStatusUpdater = new TimeGroupStatusUpdater(timeGroupIdStoreMock, apiClientMock);
+    timeGroupStatusUpdater = new TimeGroupStatusUpdater(timeGroupIdStoreMock, apiClientMock,
+        Executors::newSingleThreadExecutor);
   }
 
   @Test

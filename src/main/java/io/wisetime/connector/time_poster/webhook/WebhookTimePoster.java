@@ -83,11 +83,6 @@ public class WebhookTimePoster implements TimePoster {
     }
   }
 
-  @Override
-  public boolean isRunning() {
-    return server.isStarting() || server.isRunning();
-  }
-
   @VisibleForTesting
   public Server getServer() {
     return server;

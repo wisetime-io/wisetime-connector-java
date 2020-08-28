@@ -32,10 +32,10 @@ import io.wisetime.connector.time_poster.TimePoster;
 import io.wisetime.connector.time_poster.long_polling.FetchClientTimePoster;
 import io.wisetime.connector.time_poster.webhook.WebhookTimePoster;
 import java.util.Timer;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
@@ -61,6 +61,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
   TimerTaskSchedule managedConfigTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
       TimeUnit.MINUTES.toMillis(5));
 
+  private final AtomicReference<ExecutorService> connectorExecutor = new AtomicReference<>();
   private final TimePoster timePoster;
   private final WiseTimeConnector wiseTimeConnector;
   private final ConnectorModule connectorModule;
@@ -76,9 +77,6 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
   private final Timer tagTimer;
   private final Timer tagSlowLoopTimer;
   private final Timer managedConfigTimer;
-
-  // Awaitable, cancellable connector run
-  private CompletableFuture<Void> connectorRun;
 
   ConnectorControllerImpl(ConnectorControllerConfiguration configuration) {
     healthRunner = new HealthCheck();
@@ -110,10 +108,6 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     tagTimer = new Timer("tag-check-timer", true);
     tagSlowLoopTimer = new Timer("tag-slow-loop-timer", true);
     managedConfigTimer = new Timer("manage-config-timer", true);
-
-    // Connector is initially in stopped state
-    connectorRun = new CompletableFuture<>();
-    connectorRun.complete(null);
   }
 
   /**
@@ -125,69 +119,41 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
    */
   @Override
   public void start() throws Exception {
-    if (!connectorRun.isDone()) {
+    if (!connectorExecutor.compareAndSet(null, Executors.newScheduledThreadPool(0))) {
       log.warn("Cannot start the connector while it is still running. Start attempt ignored.");
       return;
     }
-    final ExecutorService executorService = Executors.newSingleThreadExecutor();
-    connectorRun = CompletableFuture
-        .supplyAsync(() -> {
-          // Init may take a while to complete if connector runs self checks
-          wiseTimeConnector.init(connectorModule);
 
-          try {
-            timePoster.start();
-          } catch (Exception e) {
-            throw new RuntimeException(e);
-          }
+    // Init may take a while to complete if connector runs self checks
+    wiseTimeConnector.init(connectorModule);
 
-          healthRunner.setShutdownFunction(() -> {
-            //completable future can't be interrupted
-            connectorRun.cancel(false);
-          });
-
-          healthCheckTimer.scheduleAtFixedRate(healthRunner,
-              healthTaskSchedule.getInitialDelayMs(), healthTaskSchedule.getPeriodMs());
-
-          tagTimer.scheduleAtFixedRate(tagRunner,
-              tagTaskSchedule.getInitialDelayMs(), tagTaskSchedule.getPeriodMs());
-
-          tagSlowLoopTimer.scheduleAtFixedRate(tagSlowLoopRunner,
-              tagSlowLoopTaskSchedule.getInitialDelayMs(), tagSlowLoopTaskSchedule.getPeriodMs());
-
-          managedConfigTimer.scheduleAtFixedRate(managedConfigRunner,
-              managedConfigTaskSchedule.getInitialDelayMs(), managedConfigTaskSchedule.getPeriodMs());
-
-          while (timePoster.isRunning()) {
-            try {
-              Thread.sleep(1000);
-            } catch (InterruptedException e) {
-              break;
-            }
-          }
-          stop();
-          return null;
-        }, executorService);
-
-    // Block until stopped
     try {
-      connectorRun.get();
+      timePoster.start();
     } catch (Exception e) {
-      // Suppress errors during connector shutdown
-      if (!connectorRun.isDone()) {
-        throw e;
-      }
+      throw new RuntimeException(e);
     }
-    log.info("Connector stop received");
-    executorService.shutdownNow();
-    if (!executorService.awaitTermination(60, TimeUnit.SECONDS)) {
-      log.error("Failed to gracefully stop connector. Halting process now");
-      System.exit(-1);
-    }
+
+    healthRunner.setShutdownFunction(this::stop);
+
+    healthCheckTimer.scheduleAtFixedRate(healthRunner,
+        healthTaskSchedule.getInitialDelayMs(), healthTaskSchedule.getPeriodMs());
+
+    tagTimer.scheduleAtFixedRate(tagRunner,
+        tagTaskSchedule.getInitialDelayMs(), tagTaskSchedule.getPeriodMs());
+
+    tagSlowLoopTimer.scheduleAtFixedRate(tagSlowLoopRunner,
+        tagSlowLoopTaskSchedule.getInitialDelayMs(), tagSlowLoopTaskSchedule.getPeriodMs());
+
+    managedConfigTimer.scheduleAtFixedRate(managedConfigRunner,
+        managedConfigTaskSchedule.getInitialDelayMs(), managedConfigTaskSchedule.getPeriodMs());
+
+    connectorExecutor.get().awaitTermination(Long.MAX_VALUE, TimeUnit.SECONDS);
+    log.info("Connector stopped");
   }
 
   @Override
   public void stop() {
+    log.info("Stopping connector");
     try {
       healthRunner.cancel();
       healthCheckTimer.cancel();
@@ -201,14 +167,19 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
 
       tagSlowLoopTimer.cancel();
       tagSlowLoopTimer.purge();
-
       timePoster.stop();
+
+      connectorExecutor.get().shutdownNow();
+      if (!connectorExecutor.get().awaitTermination(60, TimeUnit.SECONDS)) {
+        log.error("Failed to gracefully stop connector. Halting process now");
+        System.exit(-1);
+      }
 
     } catch (Exception e) {
       log.warn("There was an error while stopping the connector", e);
     } finally {
+      connectorExecutor.set(null);
       wiseTimeConnector.shutdown();
-      connectorRun.cancel(false);
     }
   }
 
@@ -233,6 +204,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
             wiseTimeConnector,
             apiClient,
             healthRunner,
+            connectorExecutor::get,
             sqLiteHelper,
             configuration.getFetchClientLimit());
       case WEBHOOK:

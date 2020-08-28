@@ -25,11 +25,4 @@ public interface TimePoster extends HealthIndicator {
    * @throws Exception if any error occurred during shut down
    */
   void stop() throws Exception;
-
-  /**
-   * Checks if the runner is running
-   *
-   * @return true if the runner is running, false otherwise
-   */
-  boolean isRunning();
 }
