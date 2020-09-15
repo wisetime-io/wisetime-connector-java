@@ -4,16 +4,15 @@
 
 package io.wisetime.connector.tag;
 
-import org.joda.time.DateTime;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import io.wisetime.connector.WiseTimeConnector;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+
+import io.wisetime.connector.WiseTimeConnector;
+import org.joda.time.DateTime;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author thomas.haines
