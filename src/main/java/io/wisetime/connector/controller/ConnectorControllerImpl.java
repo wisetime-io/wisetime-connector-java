@@ -62,8 +62,8 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
       TimeUnit.MINUTES.toMillis(1));
   TimerTaskSchedule tagSlowLoopTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
       TimeUnit.MINUTES.toMillis(5));
-  TimerTaskSchedule activityTypeTaskSchedule = new TimerTaskSchedule(TimeUnit.MINUTES.toMillis(1),
-      TimeUnit.MINUTES.toMillis(1));
+  TimerTaskSchedule activityTypeTaskSchedule = new TimerTaskSchedule(TimeUnit.MINUTES.toMillis(5),
+      TimeUnit.MINUTES.toMillis(5));
   TimerTaskSchedule activityTypeFullSyncTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
       TimeUnit.DAYS.toMillis(1));
   TimerTaskSchedule managedConfigTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
