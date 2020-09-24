@@ -44,11 +44,6 @@ class ConnectorControllerImplTest {
         .as("Activity type sync interval minutes shouldn't be changed without due consideration as it affects all " +
             "downstream connectors")
         .isEqualTo(TimeUnit.MINUTES.toMillis(5));
-
-    assertThat(connectorController.activityTypeFullSyncTaskSchedule.getPeriodMs())
-        .as("Activity type full sync interval minutes shouldn't be changed without due consideration as it affects all " +
-            "downstream connectors")
-        .isEqualTo(TimeUnit.DAYS.toMillis(1));
   }
 
   @Test
