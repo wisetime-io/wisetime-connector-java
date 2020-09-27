@@ -14,6 +14,8 @@ import io.wisetime.generated.connect.BatchUpsertTagResponse;
 import io.wisetime.generated.connect.HealthCheckFailureNotify;
 import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
+import io.wisetime.generated.connect.SyncActivityTypesRequest;
+import io.wisetime.generated.connect.SyncActivityTypesResponse;
 import io.wisetime.generated.connect.TagMetadataDeleteRequest;
 import io.wisetime.generated.connect.TagMetadataDeleteResponse;
 import org.apache.http.message.BasicNameValuePair;
@@ -150,6 +152,15 @@ public class DefaultApiClient implements ApiClient {
         TagMetadataDeleteResponse.class,
         EndpointPath.TagMetadataDelete,
         tagMetadataDeleteRequest
+    );
+  }
+
+  @Override
+  public SyncActivityTypesResponse syncActivityTypes(SyncActivityTypesRequest syncActivityTypesRequest) throws IOException {
+    return restRequestExecutor.executeTypedBodyRequest(
+        SyncActivityTypesResponse.class,
+        EndpointPath.ActivityTypesSync,
+        syncActivityTypesRequest
     );
   }
 

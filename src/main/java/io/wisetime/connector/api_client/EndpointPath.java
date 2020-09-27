@@ -23,6 +23,8 @@ public enum EndpointPath {
   TagDeleteKeyword("/tag/keyword/delete", ConnectApiRequest.HttpMethod.POST),
   TagMetadataDelete("/tag/metadata/delete", ConnectApiRequest.HttpMethod.POST),
 
+  ActivityTypesSync("/activitytype/sync", ConnectApiRequest.HttpMethod.POST),
+
   TeamInfo("/team/info", ConnectApiRequest.HttpMethod.GET),
 
   PostedTimeSubscribe("/postedtime/subscribe", ConnectApiRequest.HttpMethod.POST),
