@@ -23,7 +23,7 @@ import org.junit.jupiter.api.Test;
 class ConnectorControllerImplTest {
 
   @Test
-  void getTagSyncIntervalMinutes() {
+  void checkSyncIntervals() {
     final ConnectorControllerImpl connectorController = (ConnectorControllerImpl) ConnectorController.newBuilder()
         .withApiKey("api key")
         .withWiseTimeConnector(mock(WiseTimeConnector.class))
@@ -34,18 +34,14 @@ class ConnectorControllerImplTest {
         .as("Tag sync interval minutes shouldn't be changed without due consideration as it affects all " +
             "downstream connectors")
         .isEqualTo(TimeUnit.MINUTES.toMillis(1));
-  }
-
-  @Test
-  void getTagSlowLoopIntervalMinutes() {
-    final ConnectorControllerImpl connectorController = (ConnectorControllerImpl) ConnectorController.newBuilder()
-        .withApiKey("api key")
-        .withWiseTimeConnector(mock(WiseTimeConnector.class))
-        .disablePostedTimeFetching()
-        .build();
 
     assertThat(connectorController.tagSlowLoopTaskSchedule.getPeriodMs())
-        .as("Tag sync interval minutes shouldn't be changed without due consideration as it affects all " +
+        .as("Tag slow loop sync interval minutes shouldn't be changed without due consideration as it affects all " +
+            "downstream connectors")
+        .isEqualTo(TimeUnit.MINUTES.toMillis(5));
+
+    assertThat(connectorController.activityTypeTaskSchedule.getPeriodMs())
+        .as("Activity type sync interval minutes shouldn't be changed without due consideration as it affects all " +
             "downstream connectors")
         .isEqualTo(TimeUnit.MINUTES.toMillis(5));
   }

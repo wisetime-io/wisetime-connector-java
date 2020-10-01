@@ -8,9 +8,12 @@ import com.google.common.collect.ImmutableList;
 
 import com.github.javafaker.Faker;
 
+import io.wisetime.generated.connect.ActivityType;
 import io.wisetime.generated.connect.BatchUpsertTagRequest;
 import io.wisetime.generated.connect.BatchUpsertTagResponse;
 import io.wisetime.generated.connect.HealthCheckFailureNotify;
+import io.wisetime.generated.connect.SyncActivityTypesRequest;
+import io.wisetime.generated.connect.SyncActivityTypesResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
 import org.junit.jupiter.api.BeforeEach;
@@ -131,6 +134,20 @@ class DefaultApiClientTest {
   }
 
   @Test
+  void activityTypesSync() throws IOException {
+    when(requestExecutor.executeTypedBodyRequest(any(), any(), any(), any()))
+        .thenReturn(new SyncActivityTypesResponse());
+
+    apiClient.syncActivityTypes(new SyncActivityTypesRequest().activityTypes(fakeActivityTypes(5)));
+
+    verify(requestExecutor, times(1)).executeTypedBodyRequest(
+        any(),
+        any(EndpointPath.ActivityTypesSync.getClass()),
+        any(SyncActivityTypesRequest.class)
+    );
+  }
+
+  @Test
   void fetchTimeGroups() throws IOException {
     Faker faker = new Faker();
     int limit = faker.number().randomDigit();
@@ -205,5 +222,16 @@ class DefaultApiClientTest {
                 .additionalKeywords(ImmutableList.of(String.valueOf(i))))
         );
     return requests;
+  }
+
+  private List<ActivityType> fakeActivityTypes(final int numberOfActivityTypes) {
+    final ArrayList<ActivityType> activityTypes = new ArrayList<>();
+    IntStream
+        .range(1, numberOfActivityTypes + 1)
+        .forEach(i -> activityTypes.add(
+            new ActivityType()
+                .code(String.format("code_%d", i))
+                .description(String.format("description_%d", i))));
+    return activityTypes;
   }
 }

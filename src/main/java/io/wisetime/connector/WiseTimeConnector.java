@@ -37,6 +37,12 @@ public interface WiseTimeConnector {
   void performTagUpdateSlowLoop();
 
   /**
+   * Called on a schedule. If the previously called method is still running when the next scheduled run should occur, the
+   * scheduled run will be skipped, allowing time for the previous method to complete it's operation.
+   */
+  void performActivityTypeUpdate();
+
+  /**
    * Called via the defined webhook or via the listening fetch client when a user posts time to the given team.
    * <p>
    * If a RunTimeException is thrown, this will be treated as a transient error, the operation will be retried after a

@@ -33,6 +33,7 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
   private String apiKey;
   private int webhookPort = 8080;
   private TagScanMode tagScanMode = TagScanMode.ENABLED;
+  private ActivityTypeScanMode activityTypeScanMode = ActivityTypeScanMode.ENABLED;
   private PostedTimeLoadMode postedTimeLoadMode = PostedTimeLoadMode.LONG_POLL;
 
   @Override
@@ -103,6 +104,7 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
   @Override
   public ConnectorController.Builder useTagsOnly() {
     this.postedTimeLoadMode = PostedTimeLoadMode.DISABLED;
+    this.activityTypeScanMode = ActivityTypeScanMode.DISABLED;
     this.tagScanMode = TagScanMode.ENABLED;
     return this;
   }
@@ -110,6 +112,12 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
   @Override
   public Builder disableTagScan() {
     this.tagScanMode = TagScanMode.DISABLED;
+    return this;
+  }
+
+  @Override
+  public Builder disableActivityTypesScan() {
+    this.activityTypeScanMode = ActivityTypeScanMode.DISABLED;
     return this;
   }
 
@@ -173,6 +181,13 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
   }
 
   @Override
+  public ActivityTypeScanMode getActivityTypeScanMode() {
+    return RuntimeConfig.getString(ConnectorConfigKey.ACTIVITY_TYPE_SCAN)
+        .map(ActivityTypeScanMode::valueOf)
+        .orElse(activityTypeScanMode);
+  }
+
+  @Override
   public int getWebhookPort() {
     return RuntimeConfig.getInt(ConnectorConfigKey.WEBHOOK_PORT).orElse(webhookPort);
   }
@@ -200,6 +215,10 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
   }
 
   public enum TagScanMode {
+    ENABLED, DISABLED
+  }
+
+  public enum ActivityTypeScanMode {
     ENABLED, DISABLED
   }
 }

@@ -1,8 +1,4 @@
-/*
- * Copyright (c) 2018 Practice Insight Pty Ltd. All Rights Reserved.
- */
-
-package io.wisetime.connector.tag;
+package io.wisetime.connector.activity_type;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -15,44 +11,45 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /**
- * @author thomas.haines
+ * @author yehor.lashkul
  */
-class TagRunnerTest {
+class ActivityTypeRunnerTest {
 
   private WiseTimeConnector connector;
-  private TagRunner tagRunner;
+  private ActivityTypeRunner activityTypeRunner;
 
   @BeforeEach
-   void setup() {
+  void setup() {
     connector = mock(WiseTimeConnector.class);
-    tagRunner = new TagRunner(connector);
+    activityTypeRunner = new ActivityTypeRunner(connector);
   }
 
   @Test
   void testRun() throws Exception {
-    DateTime startRun = tagRunner.lastSuccessfulRun;
+    DateTime startRun = activityTypeRunner.lastSuccessfulRun;
     Thread.sleep(1);
-    tagRunner.run();
+    activityTypeRunner.run();
 
-    assertThat(tagRunner.lastSuccessfulRun)
+    assertThat(activityTypeRunner.lastSuccessfulRun)
         .as("expect last success was updated")
         .isGreaterThan(startRun);
 
-    verify(connector, times(1)).performTagUpdate();
+    verify(connector, times(1)).performActivityTypeUpdate();
   }
 
   @Test
   void testIsHealthy() {
-    assertThat(tagRunner.isHealthy())
+    assertThat(activityTypeRunner.isHealthy())
         .as("last successful run is just about now - expecting to return true")
         .isTrue();
   }
 
   @Test
   void testIsUnHealthy() {
-    tagRunner.lastSuccessfulRun = new DateTime().minusYears(1);
-    assertThat(tagRunner.isHealthy())
+    activityTypeRunner.lastSuccessfulRun = new DateTime().minusYears(1);
+    assertThat(activityTypeRunner.isHealthy())
         .as("last successful run was long time ago - expecting false")
         .isFalse();
   }
+
 }

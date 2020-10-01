@@ -13,6 +13,8 @@ import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
 import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SubscribeResult;
+import io.wisetime.generated.connect.SyncActivityTypesRequest;
+import io.wisetime.generated.connect.SyncActivityTypesResponse;
 import io.wisetime.generated.connect.TagMetadataDeleteRequest;
 import io.wisetime.generated.connect.TagMetadataDeleteResponse;
 import io.wisetime.generated.connect.TeamInfoResult;
@@ -93,6 +95,21 @@ public interface ApiClient {
    * @throws IOException
    */
   TagMetadataDeleteResponse tagMetadataDelete(TagMetadataDeleteRequest tagMetadataDeleteRequest) throws IOException;
+
+  /**
+   * Sync all activity types.
+   *
+   * It is important ALL activity types are sent in one request.
+   * WiseTime will use the list of activity types sent to detect activity types that were removed since last sync,
+   * and disable them in the console UI.
+   *
+   * A maximum of 2000 activity types can be synced this way.
+   * If you have more activity types, please contact us at support@wisetime.com to discuss alternative sync strategies.
+   *
+   * @param syncActivityTypesRequest
+   * @throws IOException
+   */
+  SyncActivityTypesResponse syncActivityTypes(SyncActivityTypesRequest syncActivityTypesRequest) throws IOException;
 
   /**
    * Get the details for the team linked to the API key making the request.

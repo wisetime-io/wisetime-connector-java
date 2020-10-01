@@ -10,62 +10,49 @@ import static io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore.T
 
 import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.api_client.PostResult;
-import io.wisetime.connector.health.HealthIndicator;
 import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
+import io.wisetime.connector.utils.BaseRunner;
 import io.wisetime.generated.connect.TimeGroupStatus;
 import java.util.List;
 import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.tuple.Pair;
-import org.joda.time.DateTime;
+import org.slf4j.Logger;
 
 /**
  * @author pascal.filippi@gmail.com
  */
 @Slf4j
-class TimeGroupStatusUpdater extends TimerTask implements HealthIndicator {
+class TimeGroupStatusUpdater extends BaseRunner {
 
   private static final int MAX_MINS_SINCE_SUCCESS = 10;
   private final TimeGroupIdStore timeGroupIdStore;
   private final ApiClient apiClient;
-  private final AtomicBoolean runLock = new AtomicBoolean(false);
-  private final AtomicReference<DateTime> lastSuccessfulRun;
   private final Timer timeGroupStatusUpdaterTimer;
   private final Supplier<ExecutorService> executorService;
 
   TimeGroupStatusUpdater(TimeGroupIdStore timeGroupIdStore, ApiClient apiClient, Supplier<ExecutorService> executorService) {
     this.timeGroupIdStore = timeGroupIdStore;
     this.apiClient = apiClient;
-    this.lastSuccessfulRun = new AtomicReference<>(DateTime.now());
     this.executorService = executorService;
     // uploading statuses is mostly waiting on server response: We can afford a lot of parallelism
     this.timeGroupStatusUpdaterTimer = new Timer("status-uploader-timer", true);
   }
 
   @Override
-  public void run() {
-    if (runLock.compareAndSet(false, true)) {
-      try {
-        List<Pair<String, PostResult>> timeGroupStatuses = timeGroupIdStore.getAllWithPendingStatusUpdate();
-        for (Pair<String, PostResult> timeGroupStatus: timeGroupStatuses) {
-          updateTimeGroupStatus(timeGroupStatus.getLeft(), timeGroupStatus.getRight());
-        }
-        lastSuccessfulRun.set(DateTime.now());
-      } catch (Exception e) {
-        log.error("Failed to update time group status", e);
-      } finally {
-        // ensure lock is released
-        runLock.set(false);
-      }
-    } else {
-      log.info("Skip status update, previous status update process is yet to complete");
+  protected void performAction() {
+    List<Pair<String, PostResult>> timeGroupStatuses = timeGroupIdStore.getAllWithPendingStatusUpdate();
+    for (Pair<String, PostResult> timeGroupStatus: timeGroupStatuses) {
+      updateTimeGroupStatus(timeGroupStatus.getLeft(), timeGroupStatus.getRight());
     }
+  }
+
+  @Override
+  protected Logger getLogger() {
+    return log;
   }
 
   void startScheduler() {
@@ -116,7 +103,7 @@ class TimeGroupStatusUpdater extends TimerTask implements HealthIndicator {
   }
 
   @Override
-  public boolean isHealthy() {
-    return DateTime.now().minusMinutes(MAX_MINS_SINCE_SUCCESS).isBefore(lastSuccessfulRun.get());
+  protected int getMaxMinsSinceSuccess() {
+    return MAX_MINS_SINCE_SUCCESS;
   }
 }

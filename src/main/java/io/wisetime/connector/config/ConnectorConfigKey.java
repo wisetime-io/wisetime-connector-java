@@ -34,6 +34,12 @@ public enum ConnectorConfigKey implements RuntimeConfigKey {
   TAG_SCAN("TAG_SCAN"),
 
   /**
+   * Set mode for scanning external system for activity types and uploading to WiseTime. Possible values: ENABLED, DISABLED.
+   * Default value is ENABLED.
+   */
+  ACTIVITY_TYPE_SCAN("ACTIVITY_TYPE_SCAN"),
+
+  /**
    * Set mode for fetching posted time from WiseTime and uploading to external system. Possible values:
    * - LONG_POLL: The connector will continuously try to fetch posted time and upload new tags to WiseTime
    * - WEBHOOK: The connector will act as server and passively listen for posted time WiseTime

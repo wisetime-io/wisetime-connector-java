@@ -24,6 +24,8 @@ public interface ConnectorControllerConfiguration {
 
   ConnectorControllerBuilderImpl.TagScanMode getTagScanMode();
 
+  ConnectorControllerBuilderImpl.ActivityTypeScanMode getActivityTypeScanMode();
+
   int getWebhookPort();
 
   int getFetchClientLimit();

@@ -156,7 +156,8 @@ public interface ConnectorController {
     Builder withWebhookPort(int port);
 
     /**
-     * Instructs ConnectorController not to processed time groups (neither by long polling mechanism nor webhook).
+     * Instructs ConnectorController not to processed time groups (neither by long polling mechanism nor webhook)
+     * and not to sync activity types.
      * Connector will create tags in Wisetime only.
      *
      * @see #useFetchClient()
@@ -168,6 +169,11 @@ public interface ConnectorController {
      * Disable tag scan in external system and uploading them to WiseTime. Enabled by default.
      */
     Builder disableTagScan();
+
+    /**
+     * Disable activity types scan in external system and uploading them to WiseTime. Enabled by default.
+     */
+    Builder disableActivityTypesScan();
 
     /**
      * Build {@link ConnectorController}. Make sure to set {@link WiseTimeConnector} and apiKey or apiClient before calling
