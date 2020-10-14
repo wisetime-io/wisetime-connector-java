@@ -27,7 +27,7 @@ plugins {
     id "io.freefair.lombok" version "3.8.4"
     id "fr.brouillard.oss.gradle.jgitver" version "0.9.1"
     id "com.github.ben-manes.versions" version "0.27.0"
-    id "io.wisetime.versionChecker" version "0.9.26"
+    id "io.wisetime.versionChecker" version "0.9.28"
     id 'de.marcphilipp.nexus-publish' version '0.3.1' apply false
 }
 
@@ -112,7 +112,7 @@ dependencies {
 
     compile 'joda-time:joda-time:2.9.9'
 
-    compile ('org.apache.commons:commons-configuration2:2.7') {
+    compile ('org.apache.commons:commons-configuration2:2.4') {
         exclude group: 'commons-logging', module: 'commons-logging'
     }
     compile 'org.apache.commons:commons-lang3:3.11'
