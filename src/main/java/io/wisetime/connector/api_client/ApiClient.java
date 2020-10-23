@@ -15,6 +15,7 @@ import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.SyncActivityTypesRequest;
 import io.wisetime.generated.connect.SyncActivityTypesResponse;
+import io.wisetime.generated.connect.SyncSession;
 import io.wisetime.generated.connect.TagMetadataDeleteRequest;
 import io.wisetime.generated.connect.TagMetadataDeleteResponse;
 import io.wisetime.generated.connect.TeamInfoResult;
@@ -97,14 +98,44 @@ public interface ApiClient {
   TagMetadataDeleteResponse tagMetadataDelete(TagMetadataDeleteRequest tagMetadataDeleteRequest) throws IOException;
 
   /**
-   * Sync all activity types.
+   * Start activity types sync session.
    *
-   * It is important ALL activity types are sent in one request.
-   * WiseTime will use the list of activity types sent to detect activity types that were removed since last sync,
-   * and disable them in the console UI.
+   * Initiates a sync session and responds with syncSessionId that can be used for
+   * further activity types uploads within the session.
    *
-   * A maximum of 2000 activity types can be synced this way.
-   * If you have more activity types, please contact us at support@wisetime.com to discuss alternative sync strategies.
+   * While activity types can be sent to WiseTime in batches without a sync session,
+   * starting a sync session for the batch uploads means that WiseTime will be able to detect activity types
+   * that are no longer in the connected system, and delete these when the sync session is completed by the connector.
+   *
+   * @return created sync session
+   * @throws IOException
+   */
+  SyncSession activityTypesStartSyncSession() throws IOException;
+
+  /**
+   * Complete activity types sync session.
+   *
+   * Completes a sync session so its syncSessionId can not be used anymore.
+   * All the activity types that were lastly created/updated before the session start will be deleted.
+   *
+   * @param syncSession that should to be completed
+   * @throws IOException
+   */
+  void activityTypesCompleteSyncSession(SyncSession syncSession) throws IOException;
+
+  /**
+   * Cancel activity types sync session
+   *
+   * Cancels a sync session so its syncSessionId can not be used anymore.
+   * This API call has no impact on activity types.
+   *
+   * @param syncSession that should to be cancelled
+   * @throws IOException
+   */
+  void activityTypesCancelSyncSession(SyncSession syncSession) throws IOException;
+
+  /**
+   * Create new activity types, or update existing in batch (up to 2000 items at once)
    *
    * @param syncActivityTypesRequest
    * @throws IOException

@@ -142,7 +142,7 @@ class DefaultApiClientTest {
 
     verify(requestExecutor, times(1)).executeTypedBodyRequest(
         any(),
-        any(EndpointPath.ActivityTypesSync.getClass()),
+        any(EndpointPath.BatchActivityTypesUpsert.getClass()),
         any(SyncActivityTypesRequest.class)
     );
   }

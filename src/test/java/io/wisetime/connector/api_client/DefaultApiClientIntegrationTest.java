@@ -4,24 +4,16 @@
 
 package io.wisetime.connector.api_client;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.when;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.time.Instant;
-import java.time.ZoneOffset;
-import java.util.Optional;
-
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
 import io.wisetime.connector.config.info.ConnectorInfo;
 import io.wisetime.connector.utils.RuntimeEnvironmentUtil;
+import io.wisetime.generated.connect.ActivityType;
 import io.wisetime.generated.connect.AddKeywordsRequest;
 import io.wisetime.generated.connect.DeleteKeywordRequest;
 import io.wisetime.generated.connect.DeleteTagRequest;
@@ -29,13 +21,22 @@ import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
 import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SubscribeResult;
+import io.wisetime.generated.connect.SyncActivityTypesRequest;
+import io.wisetime.generated.connect.SyncActivityTypesResponse;
+import io.wisetime.generated.connect.SyncSession;
 import io.wisetime.generated.connect.TeamInfoResult;
 import io.wisetime.generated.connect.UnsubscribeRequest;
 import io.wisetime.generated.connect.UnsubscribeResult;
 import io.wisetime.generated.connect.UpsertTagRequest;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
+import java.io.IOException;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.util.Optional;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * <pre>
@@ -46,6 +47,7 @@ import static org.mockito.Mockito.when;
  * @author thomas.haines
  */
 class DefaultApiClientIntegrationTest {
+
   private static final Logger log = LoggerFactory.getLogger(DefaultApiClientIntegrationTest.class);
   private static DefaultApiClient defaultApiClient;
 
@@ -161,6 +163,43 @@ class DefaultApiClientIntegrationTest {
     }
     defaultApiClient.tagDeleteKeyword(new DeleteKeywordRequest().tagName("tag/name").keyword("key/word"));
     defaultApiClient.tagDeleteKeyword(new DeleteKeywordRequest().tagName("tag/name").keyword("key/word 1"));
+  }
+
+  @Test
+  void activityTypesSyncSession() throws IOException {
+    if (defaultApiClient == null) {
+      return;
+    }
+
+    final SyncSession syncSession = defaultApiClient.activityTypesStartSyncSession();
+    assertThat(syncSession.getSyncSessionId()).isNotBlank();
+    defaultApiClient.activityTypesCancelSyncSession(syncSession);
+
+    final SyncSession syncSession2 = defaultApiClient.activityTypesStartSyncSession();
+    defaultApiClient.syncActivityTypes(new SyncActivityTypesRequest()
+        .activityTypes(ImmutableList.of(new ActivityType()
+            .code("CODE-api-test")
+            .label("LABEL-api-test")
+            .description("DESCRIPTION-api-test")))
+        .syncSessionId(syncSession2.getSyncSessionId()));
+    defaultApiClient.activityTypesCompleteSyncSession(syncSession2);
+  }
+
+  @Test
+  void syncActivityTypes_noSession() throws IOException {
+    if (defaultApiClient == null) {
+      return;
+    }
+
+    final SyncActivityTypesResponse response = defaultApiClient
+        .syncActivityTypes(new SyncActivityTypesRequest()
+            .activityTypes(ImmutableList.of(new ActivityType()
+                .code("CODE-api-test")
+                .label("LABEL-api-test")
+                .description("DESCRIPTION-api-test"))));
+
+    assertThat(response.getErrors())
+        .isEmpty();
   }
 
   @Test
