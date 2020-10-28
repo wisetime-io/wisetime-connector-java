@@ -16,6 +16,7 @@ import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
 import io.wisetime.generated.connect.SyncActivityTypesRequest;
 import io.wisetime.generated.connect.SyncActivityTypesResponse;
+import io.wisetime.generated.connect.SyncSession;
 import io.wisetime.generated.connect.TagMetadataDeleteRequest;
 import io.wisetime.generated.connect.TagMetadataDeleteResponse;
 import org.apache.http.message.BasicNameValuePair;
@@ -156,10 +157,25 @@ public class DefaultApiClient implements ApiClient {
   }
 
   @Override
+  public SyncSession activityTypesStartSyncSession() throws IOException {
+    return restRequestExecutor.executeTypedRequest(SyncSession.class, EndpointPath.ActivityTypesStartSyncSession);
+  }
+
+  @Override
+  public void activityTypesCompleteSyncSession(SyncSession syncSession) throws IOException {
+    restRequestExecutor.executeTypedBodyRequest(Object.class, EndpointPath.ActivityTypesCompleteSyncSession, syncSession);
+  }
+
+  @Override
+  public void activityTypesCancelSyncSession(SyncSession syncSession) throws IOException {
+    restRequestExecutor.executeTypedBodyRequest(Object.class, EndpointPath.ActivityTypesCancelSyncSession, syncSession);
+  }
+
+  @Override
   public SyncActivityTypesResponse syncActivityTypes(SyncActivityTypesRequest syncActivityTypesRequest) throws IOException {
     return restRequestExecutor.executeTypedBodyRequest(
         SyncActivityTypesResponse.class,
-        EndpointPath.ActivityTypesSync,
+        EndpointPath.BatchActivityTypesUpsert,
         syncActivityTypesRequest
     );
   }

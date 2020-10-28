@@ -23,7 +23,10 @@ public enum EndpointPath {
   TagDeleteKeyword("/tag/keyword/delete", ConnectApiRequest.HttpMethod.POST),
   TagMetadataDelete("/tag/metadata/delete", ConnectApiRequest.HttpMethod.POST),
 
-  ActivityTypesSync("/activitytype/sync", ConnectApiRequest.HttpMethod.POST),
+  ActivityTypesStartSyncSession("/activitytype/sync/start", ConnectApiRequest.HttpMethod.POST),
+  ActivityTypesCompleteSyncSession("/activitytype/sync/complete", ConnectApiRequest.HttpMethod.POST),
+  ActivityTypesCancelSyncSession("/activitytype/sync/cancel", ConnectApiRequest.HttpMethod.POST),
+  BatchActivityTypesUpsert("/activitytype/batch", ConnectApiRequest.HttpMethod.POST),
 
   TeamInfo("/team/info", ConnectApiRequest.HttpMethod.GET),
 

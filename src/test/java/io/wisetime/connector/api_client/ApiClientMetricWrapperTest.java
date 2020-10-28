@@ -6,6 +6,8 @@ package io.wisetime.connector.api_client;
 
 import com.google.common.collect.Lists;
 
+import io.wisetime.generated.connect.SyncActivityTypesRequest;
+import io.wisetime.generated.connect.SyncSession;
 import io.wisetime.generated.connect.TagMetadataDeleteRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -91,7 +93,7 @@ class ApiClientMetricWrapperTest {
         .hasMessage("API ERROR");
     verify(metricService, never()).increment(eq(Metric.TAG_PROCESSED), anyInt());
   }
-  
+
   @Test
   void otherMethods_delegateOnly() throws IOException {
     apiClientMetricWrapper.fetchTimeGroups(1);
@@ -104,6 +106,10 @@ class ApiClientMetricWrapperTest {
     apiClientMetricWrapper.teamInfo();
     apiClientMetricWrapper.updatePostedTimeStatus(new TimeGroupStatus());
     apiClientMetricWrapper.tagMetadataDelete(new TagMetadataDeleteRequest());
+    apiClientMetricWrapper.activityTypesStartSyncSession();
+    apiClientMetricWrapper.activityTypesCompleteSyncSession(new SyncSession());
+    apiClientMetricWrapper.activityTypesCancelSyncSession(new SyncSession());
+    apiClientMetricWrapper.syncActivityTypes(new SyncActivityTypesRequest());
     verify(metricService, never()).increment(any());
     verify(metricService, never()).increment(any(), anyInt());
   }
