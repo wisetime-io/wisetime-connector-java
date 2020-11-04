@@ -26,7 +26,7 @@ public class FakerUtil {
   }
 
   public String getRandom(String prefix) {
-    return faker.numerify(prefix = "#######");
+    return faker.numerify(prefix + "#######");
   }
 
 }

@@ -4,13 +4,11 @@
 
 package io.wisetime.connector.utils;
 
-import org.junit.jupiter.api.Test;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.wisetime.connector.config.RuntimeConfig;
 import io.wisetime.connector.config.RuntimeConfigKey;
-import io.wisetime.connector.utils.RuntimeConfigPropertyDefiner;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author yehor.lashkul

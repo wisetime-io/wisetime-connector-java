@@ -64,6 +64,7 @@ public class WebhookTimePosterTest {
   static TemporaryFolder testExtension;
 
   @Test
+  @SuppressWarnings({"checkstyle:methodlength", "checkstyle:executablestatementcount"})
   void startAndQuery() throws Exception {
     RuntimeConfig.setProperty(WEBHOOK_PORT, "0");
     String callerKey = FAKER.lorem().word();
@@ -124,7 +125,7 @@ public class WebhookTimePosterTest {
     assertThat(permanentFailureResponse.body)
         .as("Body contains failure message from connector impl")
         .contains(CONNECTOR_INFO_KEY)
-        .contains("\""+ MESSAGE_KEY + "\":\"Permanent failure message\"");
+        .contains("\"" + MESSAGE_KEY + "\":\"Permanent failure message\"");
     clearInvocations(metricService);
 
     // without failure message
@@ -136,7 +137,7 @@ public class WebhookTimePosterTest {
     assertThat(permanentFailureResponseWithoutMsg.body)
         .as("Body contains default failure message")
         .contains(CONNECTOR_INFO_KEY)
-        .contains("\""+ MESSAGE_KEY + "\":\"" + WebhookApplication.UNEXPECTED_ERROR + "\"");
+        .contains("\"" + MESSAGE_KEY + "\":\"" + WebhookApplication.UNEXPECTED_ERROR + "\"");
     clearInvocations(metricService);
 
     // TRANSIENT_FAILURE
@@ -150,7 +151,7 @@ public class WebhookTimePosterTest {
     assertThat(transientFailureResponse.body)
         .as("Body contains failure message from connector impl")
         .contains(CONNECTOR_INFO_KEY)
-        .contains("\""+ MESSAGE_KEY + "\":\"Transient failure message\"");
+        .contains("\"" + MESSAGE_KEY + "\":\"Transient failure message\"");
     clearInvocations(metricService);
 
     // without failure message
@@ -162,7 +163,7 @@ public class WebhookTimePosterTest {
     assertThat(transientFailureResponseWithoutMsg.body)
         .as("Body contains default failure message")
         .contains(CONNECTOR_INFO_KEY)
-        .contains("\""+ MESSAGE_KEY + "\":\"" + WebhookApplication.UNEXPECTED_ERROR + "\"");
+        .contains("\"" + MESSAGE_KEY + "\":\"" + WebhookApplication.UNEXPECTED_ERROR + "\"");
     clearInvocations(metricService);
 
     // METRIC
@@ -184,7 +185,7 @@ public class WebhookTimePosterTest {
     assertThat(uncheckedExceptionResponse.status).isEqualTo(500);
     assertThat(uncheckedExceptionResponse.body)
         .contains(CONNECTOR_INFO_KEY)
-        .contains("\""+ MESSAGE_KEY + "\":\"" + WebhookApplication.UNEXPECTED_ERROR + "\"");
+        .contains("\"" + MESSAGE_KEY + "\":\"" + WebhookApplication.UNEXPECTED_ERROR + "\"");
     clearInvocations(metricService);
 
     RuntimeConfig.setProperty(ConnectorConfigKey.CALLER_KEY, FAKER.lorem().word());
@@ -194,7 +195,7 @@ public class WebhookTimePosterTest {
     assertThat(incorrectCallerIdResponse.status).isEqualTo(400);
     assertThat(incorrectCallerIdResponse.body)
         .contains(CONNECTOR_INFO_KEY)
-        .contains("\""+ MESSAGE_KEY + "\":\"Invalid caller key in posted time webhook call\"");
+        .contains("\"" + MESSAGE_KEY + "\":\"Invalid caller key in posted time webhook call\"");
     RuntimeConfig.setProperty(ConnectorConfigKey.CALLER_KEY, callerKey);
     clearInvocations(metricService);
 
@@ -205,7 +206,7 @@ public class WebhookTimePosterTest {
     assertThat(invalidRequestResponse.status).isEqualTo(400);
     assertThat(invalidRequestResponse.body)
         .contains(CONNECTOR_INFO_KEY)
-        .contains("\""+ MESSAGE_KEY + "\":\"Invalid request\"");
+        .contains("\"" + MESSAGE_KEY + "\":\"Invalid request\"");
     clearInvocations(metricService);
     RuntimeConfig.clearProperty(ConnectorConfigKey.CALLER_KEY);
     if (System.getProperty("examine") != null) {
