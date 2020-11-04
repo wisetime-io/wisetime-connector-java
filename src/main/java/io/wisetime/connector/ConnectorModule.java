@@ -21,8 +21,5 @@ public class ConnectorModule {
   private final ApiClient apiClient;
   private final ConnectorStore connectorStore;
   private final int tagSlowLoopIntervalMinutes;
-
-  public int getTagSlowLoopIntervalMinutes() {
-    return tagSlowLoopIntervalMinutes;
-  }
+  private final int activityTypeSlowLoopIntervalMinutes;
 }

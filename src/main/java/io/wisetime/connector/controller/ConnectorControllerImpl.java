@@ -8,7 +8,9 @@ import io.wisetime.connector.ConnectorController;
 import io.wisetime.connector.ConnectorModule;
 import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.activity_type.ActivityTypeRunner;
+import io.wisetime.connector.activity_type.ActivityTypeSlowLoopRunner;
 import io.wisetime.connector.activity_type.NoOpActivityTypeRunner;
+import io.wisetime.connector.activity_type.NoOpActivityTypeSlowLoopRunner;
 import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.api_client.JsonPayloadService;
 import io.wisetime.connector.config.ManagedConfigRunner;
@@ -62,6 +64,8 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
       TimeUnit.MINUTES.toMillis(5));
   TimerTaskSchedule activityTypeTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
       TimeUnit.MINUTES.toMillis(5));
+  TimerTaskSchedule activityTypeSlowLoopTaskSchedule = new TimerTaskSchedule(TimeUnit.MINUTES.toMillis(1),
+      TimeUnit.MINUTES.toMillis(15));
   TimerTaskSchedule managedConfigTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
       TimeUnit.MINUTES.toMillis(5));
 
@@ -73,6 +77,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
   private final TagRunner tagRunner;
   private final TagSlowLoopRunner tagSlowLoopRunner;
   private final ActivityTypeRunner activityTypeRunner;
+  private final ActivityTypeSlowLoopRunner activityTypeSlowLoopRunner;
   private final HealthCheck healthRunner;
   private final ManagedConfigRunner managedConfigRunner;
 
@@ -82,6 +87,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
   private final Timer tagTimer;
   private final Timer tagSlowLoopTimer;
   private final Timer activityTypeTimer;
+  private final Timer activityTypeSlowLoopTimer;
   private final Timer managedConfigTimer;
 
   ConnectorControllerImpl(ConnectorControllerConfiguration configuration) {
@@ -93,13 +99,15 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     tagSlowLoopRunner = createTagSlowLoopRunner(configuration, wiseTimeConnector);
 
     activityTypeRunner = createActivityTypeRunner(configuration, wiseTimeConnector);
+    activityTypeSlowLoopRunner = createActivityTypeSlowLoopRunner(configuration, wiseTimeConnector);
 
     ApiClient apiClient = new ApiClientMetricWrapper(configuration.getApiClient(), metricService);
     apiClient = new ApiClientTagWrapper(apiClient, tagRunner);
 
     final SQLiteHelper sqLiteHelper = new SQLiteHelper(configuration.isForcePersistentStorage());
     connectorModule = new ConnectorModule(apiClient, new FileStore(sqLiteHelper),
-        (int) TimeUnit.MILLISECONDS.toMinutes(tagSlowLoopTaskSchedule.getPeriodMs()));
+        (int) TimeUnit.MILLISECONDS.toMinutes(tagSlowLoopTaskSchedule.getPeriodMs()),
+        (int) TimeUnit.MILLISECONDS.toMinutes(activityTypeSlowLoopTaskSchedule.getPeriodMs()));
 
     final ConnectorInfoProvider connectorInfoProvider = new ConstantConnectorInfoProvider();
     timePoster = createTimePoster(configuration, apiClient, sqLiteHelper, connectorInfoProvider);
@@ -109,6 +117,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     healthRunner.addHealthIndicator(tagRunner,
         tagSlowLoopRunner,
         activityTypeRunner,
+        activityTypeSlowLoopRunner,
         timePoster,
         managedConfigRunner,
         new WiseTimeConnectorHealthIndicator(wiseTimeConnector));
@@ -117,6 +126,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     tagTimer = new Timer("tag-check-timer", true);
     tagSlowLoopTimer = new Timer("tag-slow-loop-timer", true);
     activityTypeTimer = new Timer("activity-type-timer", true);
+    activityTypeSlowLoopTimer = new Timer("activity-type-slow-loop-timer", true);
     managedConfigTimer = new Timer("manage-config-timer", true);
   }
 
@@ -157,6 +167,9 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     activityTypeTimer.scheduleAtFixedRate(activityTypeRunner,
         activityTypeTaskSchedule.getInitialDelayMs(), activityTypeTaskSchedule.getPeriodMs());
 
+    activityTypeSlowLoopTimer.scheduleAtFixedRate(activityTypeSlowLoopRunner,
+        activityTypeSlowLoopTaskSchedule.getInitialDelayMs(), activityTypeSlowLoopTaskSchedule.getPeriodMs());
+
     managedConfigTimer.scheduleAtFixedRate(managedConfigRunner,
         managedConfigTaskSchedule.getInitialDelayMs(), managedConfigTaskSchedule.getPeriodMs());
 
@@ -184,6 +197,9 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
 
       activityTypeTimer.cancel();
       activityTypeTimer.purge();
+
+      activityTypeSlowLoopTimer.cancel();
+      activityTypeSlowLoopTimer.purge();
 
       connectorExecutor.get().shutdownNow();
       if (!connectorExecutor.get().awaitTermination(60, TimeUnit.SECONDS)) {
@@ -273,6 +289,19 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
       default:
         log.error("Unexpected activity type runner mode {}. Fallback to ENABLED", configuration.getTagScanMode());
         return new ActivityTypeRunner(wiseTimeConnector);
+    }
+  }
+
+  private ActivityTypeSlowLoopRunner createActivityTypeSlowLoopRunner(ConnectorControllerConfiguration configuration,
+                                                                      WiseTimeConnector wiseTimeConnector) {
+    switch (configuration.getActivityTypeScanMode()) {
+      case ENABLED:
+        return new ActivityTypeSlowLoopRunner(wiseTimeConnector);
+      case DISABLED:
+        return new NoOpActivityTypeSlowLoopRunner();
+      default:
+        log.error("Unexpected activity type runner mode {}. Fallback to ENABLED", configuration.getTagScanMode());
+        return new ActivityTypeSlowLoopRunner(wiseTimeConnector);
     }
   }
 
