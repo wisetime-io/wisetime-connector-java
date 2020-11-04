@@ -17,7 +17,6 @@ public class ActivityTypeRunner extends BaseRunner {
   private final WiseTimeConnector connector;
 
   public ActivityTypeRunner(WiseTimeConnector connector) {
-    super();
     this.connector = connector;
   }
 

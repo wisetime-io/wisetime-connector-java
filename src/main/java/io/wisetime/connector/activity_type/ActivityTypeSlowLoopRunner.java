@@ -20,7 +20,6 @@ public class ActivityTypeSlowLoopRunner extends BaseRunner {
   private final WiseTimeConnector connector;
 
   public ActivityTypeSlowLoopRunner(WiseTimeConnector connector) {
-    super();
     this.connector = connector;
   }
 
