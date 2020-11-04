@@ -194,12 +194,6 @@ ext.jacocoLimits = [
         'class'      : 80
 ]
 
-tasks.withType(Checkstyle) {
-    source = sourceSets.main.allJava.matching {
-        exclude '**/generated/**/*'
-    }
-}
-
 clean {
     delete "${projectDir}/out"
     delete "${projectDir}/.openapi-generator"
