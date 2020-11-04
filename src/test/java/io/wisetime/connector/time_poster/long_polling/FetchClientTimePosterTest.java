@@ -65,6 +65,7 @@ class FetchClientTimePosterTest {
     fetchClient = new FetchClientTimePoster(wiseTimeConnectorMock, apiClientMock,
         mock(HealthCheck.class), () -> executorService, timeGroupIdStoreMock, 25);
   }
+
   @Test
   void successfulTimeGroup() throws Exception {
     TimeGroup timeGroup = fakeEntities.randomTimeGroup();

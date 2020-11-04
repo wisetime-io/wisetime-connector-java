@@ -17,41 +17,41 @@ import org.junit.jupiter.api.Test;
 /**
  * @author yehor.lashkul
  */
-class ActivityTypeRunnerTest {
+class ActivityTypeSlowLoopRunnerTest {
 
   private WiseTimeConnector connector;
-  private ActivityTypeRunner activityTypeRunner;
+  private ActivityTypeSlowLoopRunner activityTypeSlowLoopRunner;
 
   @BeforeEach
   void setup() {
     connector = mock(WiseTimeConnector.class);
-    activityTypeRunner = new ActivityTypeRunner(connector);
+    activityTypeSlowLoopRunner = new ActivityTypeSlowLoopRunner(connector);
   }
 
   @Test
   void testRun() throws Exception {
-    DateTime startRun = activityTypeRunner.lastSuccessfulRun;
+    DateTime startRun = activityTypeSlowLoopRunner.lastSuccessfulRun;
     Thread.sleep(1);
-    activityTypeRunner.run();
+    activityTypeSlowLoopRunner.run();
 
-    assertThat(activityTypeRunner.lastSuccessfulRun)
+    assertThat(activityTypeSlowLoopRunner.lastSuccessfulRun)
         .as("expect last success was updated")
         .isGreaterThan(startRun);
 
-    verify(connector, times(1)).performActivityTypeUpdate();
+    verify(connector, times(1)).performActivityTypeUpdateSlowLoop();
   }
 
   @Test
   void testIsHealthy() {
-    assertThat(activityTypeRunner.isHealthy())
+    assertThat(activityTypeSlowLoopRunner.isHealthy())
         .as("last successful run is just about now - expecting to return true")
         .isTrue();
   }
 
   @Test
   void testIsUnHealthy() {
-    activityTypeRunner.lastSuccessfulRun = new DateTime().minusYears(1);
-    assertThat(activityTypeRunner.isHealthy())
+    activityTypeSlowLoopRunner.lastSuccessfulRun = new DateTime().minusYears(1);
+    assertThat(activityTypeSlowLoopRunner.isHealthy())
         .as("last successful run was long time ago - expecting false")
         .isFalse();
   }

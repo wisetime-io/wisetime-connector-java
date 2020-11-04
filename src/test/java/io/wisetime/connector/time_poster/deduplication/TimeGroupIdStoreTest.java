@@ -4,23 +4,19 @@
 
 package io.wisetime.connector.time_poster.deduplication;
 
-import com.github.javafaker.Faker;
+import static io.wisetime.connector.datastore.CoreLocalDbTable.TABLE_TIME_GROUPS_RECEIVED;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import com.github.javafaker.Faker;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import java.util.concurrent.TimeUnit;
-import org.apache.commons.lang3.tuple.Pair;
-import org.codejargon.fluentjdbc.api.query.UpdateQuery;
-import org.junit.jupiter.api.Test;
-
-import java.io.File;
-
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.api_client.PostResult.PostResultStatus;
 import io.wisetime.connector.datastore.SQLiteHelper;
-
-import static io.wisetime.connector.datastore.CoreLocalDbTable.TABLE_TIME_GROUPS_RECEIVED;
-import static org.assertj.core.api.Assertions.assertThat;
+import java.io.File;
+import java.util.concurrent.TimeUnit;
+import org.apache.commons.lang3.tuple.Pair;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author pascal.filippi@gmail.com
@@ -151,8 +147,8 @@ class TimeGroupIdStoreTest {
         + " set received_timestamp = :ts where time_group_id = :id")
         .namedParams(ImmutableList.of(
             ImmutableMap.of("ts", System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(2), "id", id1),
-            ImmutableMap.of("ts",System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(2), "id", id2),
-            ImmutableMap.of("ts",System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(2), "id", id5)
+            ImmutableMap.of("ts", System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(2), "id", id2),
+            ImmutableMap.of("ts", System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(2), "id", id5)
         )).run();
 
     assertThat(timeGroupIdStore.getAllWithPendingStatusUpdate())
@@ -160,7 +156,6 @@ class TimeGroupIdStoreTest {
         .contains(
             Pair.of(id1, PostResult.PERMANENT_FAILURE().withMessage(message1)),
             Pair.of(id2, PostResult.SUCCESS().withMessage(message2)),
-            Pair.of(id5, PostResult.SUCCESS().withMessage(message3))
-        );
+            Pair.of(id5, PostResult.SUCCESS().withMessage(message3)));
   }
 }

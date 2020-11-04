@@ -14,38 +14,38 @@ import org.junit.jupiter.api.Test;
 /**
  * @author yehor.lashkul
  */
-class NoOpActivityTypeRunnerTest {
+class NoOpActivityTypeSlowLoopRunnerTest {
 
-  private ActivityTypeRunner activityTypeRunner;
+  private ActivityTypeSlowLoopRunner activityTypeSlowLoopRunner;
 
   @BeforeEach
   void setup() {
-    activityTypeRunner = new NoOpActivityTypeRunner();
+    activityTypeSlowLoopRunner = new NoOpActivityTypeSlowLoopRunner();
   }
 
   @Test
   void testRun() throws Exception {
-    DateTime startRun = activityTypeRunner.lastSuccessfulRun;
+    DateTime startRun = activityTypeSlowLoopRunner.lastSuccessfulRun;
     Thread.sleep(1);
 
-    assertThatCode(() -> activityTypeRunner.run())
+    assertThatCode(() -> activityTypeSlowLoopRunner.run())
         .as("run should do nothing")
         .doesNotThrowAnyException();
 
-    assertThat(activityTypeRunner.lastSuccessfulRun)
+    assertThat(activityTypeSlowLoopRunner.lastSuccessfulRun)
         .as("expect last success shouldn't be updated")
         .isEqualTo(startRun);
   }
 
   @Test
   void testIsHealthy() {
-    assertThat(activityTypeRunner.isHealthy())
+    assertThat(activityTypeSlowLoopRunner.isHealthy())
         .as("always healthy")
         .isTrue();
 
-    activityTypeRunner.lastSuccessfulRun = new DateTime().minusYears(1);
+    activityTypeSlowLoopRunner.lastSuccessfulRun = new DateTime().minusYears(1);
 
-    assertThat(activityTypeRunner.isHealthy())
+    assertThat(activityTypeSlowLoopRunner.isHealthy())
         .as("always healthy")
         .isTrue();
   }

@@ -22,7 +22,7 @@ class FileStoreTest {
   private final FileStore fileStore;
   private final Faker faker = new Faker();
 
-  public FileStoreTest() {
+  FileStoreTest() {
     final SQLiteHelper sqLiteHelper = new SQLiteHelper(new File("temp.db"));
     this.fileStore = new FileStore(sqLiteHelper);
   }

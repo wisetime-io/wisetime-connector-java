@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2020 Practice Insight Pty Ltd. All Rights Reserved.
+ */
+
 package io.wisetime.connector.tag;
 
 import static org.assertj.core.api.Assertions.assertThat;

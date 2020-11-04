@@ -10,19 +10,22 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
+ * A wrapper class around the activity type slow sync process, that enforces a singleton runner pattern in the event that the
+ * previous upload process has not completed prior to the next scheduled check.
+ *
  * @author yehor.lashkul
  */
-public class ActivityTypeRunner extends BaseRunner {
+public class ActivityTypeSlowLoopRunner extends BaseRunner {
 
   private final WiseTimeConnector connector;
 
-  public ActivityTypeRunner(WiseTimeConnector connector) {
+  public ActivityTypeSlowLoopRunner(WiseTimeConnector connector) {
     this.connector = connector;
   }
 
   @Override
   protected void performAction() {
-    connector.performActivityTypeUpdate();
+    connector.performActivityTypeUpdateSlowLoop();
   }
 
   @Override

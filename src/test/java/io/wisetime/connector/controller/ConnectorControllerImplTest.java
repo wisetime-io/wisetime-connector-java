@@ -44,6 +44,11 @@ class ConnectorControllerImplTest {
         .as("Activity type sync interval minutes shouldn't be changed without due consideration as it affects all " +
             "downstream connectors")
         .isEqualTo(TimeUnit.MINUTES.toMillis(5));
+
+    assertThat(connectorController.activityTypeSlowLoopTaskSchedule.getPeriodMs())
+        .as("Activity type slow loop sync interval minutes shouldn't be changed without due consideration as it affects all "
+            + "downstream connectors")
+        .isEqualTo(TimeUnit.MINUTES.toMillis(15));
   }
 
   @Test

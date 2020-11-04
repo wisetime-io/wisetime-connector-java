@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2020 Practice Insight Pty Ltd. All Rights Reserved.
+ */
+
 package io.wisetime.connector.log;
 
 import static io.wisetime.connector.log.LoggerNames.HEART_BEAT_LOGGER_NAME;

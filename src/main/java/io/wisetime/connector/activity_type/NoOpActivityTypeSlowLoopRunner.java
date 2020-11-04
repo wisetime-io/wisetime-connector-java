@@ -7,9 +7,9 @@ package io.wisetime.connector.activity_type;
 /**
  * @author yehor.lashkul
  */
-public class NoOpActivityTypeRunner extends ActivityTypeRunner {
+public class NoOpActivityTypeSlowLoopRunner extends ActivityTypeSlowLoopRunner {
 
-  public NoOpActivityTypeRunner() {
+  public NoOpActivityTypeSlowLoopRunner() {
     super(null);
   }
 

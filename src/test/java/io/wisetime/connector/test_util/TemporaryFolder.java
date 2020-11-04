@@ -1,3 +1,7 @@
+/*
+ * Copyright (c) 2020 Practice Insight Pty Ltd. All Rights Reserved.
+ */
+
 package io.wisetime.connector.test_util;
 
 import com.github.javafaker.Faker;

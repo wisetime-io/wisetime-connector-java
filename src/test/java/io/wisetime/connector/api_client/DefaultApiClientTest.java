@@ -219,8 +219,7 @@ class DefaultApiClientTest {
         .forEach(i ->
             requests.add(new AddKeywordsRequest()
                 .tagName(String.valueOf(i))
-                .additionalKeywords(ImmutableList.of(String.valueOf(i))))
-        );
+                .additionalKeywords(ImmutableList.of(String.valueOf(i)))));
     return requests;
   }
 
