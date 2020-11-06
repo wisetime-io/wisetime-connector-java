@@ -85,7 +85,7 @@ steps:
       status: failure
 
   - name: cascade-to-bamboo
-    image: quay.io/wt-build-support/alpine-git-bash
+    image: registry.dev.wisetime.com/git
     environment:
       BAMBOO_USER:
         from_secret: bamboo-user
@@ -118,7 +118,7 @@ depends_on:
 
 steps:
   - name: github-push
-    image: quay.io/wt-build-support/alpine-git-bash
+    image: registry.dev.wisetime.com/git
     environment:
       GITHUB_SSH_KEY_B64:
         from_secret: github-ssh-key-b64
