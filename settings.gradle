@@ -11,6 +11,4 @@ pluginManagement {
     }
 }
 
-enableFeaturePreview('STABLE_PUBLISHING')
 rootProject.name = 'wisetime-connector'
-
