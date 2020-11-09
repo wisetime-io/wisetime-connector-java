@@ -46,7 +46,10 @@ targetCompatibility = 1.8
 mainClassName = 'io.wisetime.connector.example.FolderWatchConnectApp'
 
 jgitver {
-    autoIncrementPatch false
+    autoIncrementPatch(false)
+    strategy(fr.brouillard.oss.jgitver.Strategies.PATTERN)
+    versionPattern("\${meta.CURRENT_VERSION_MAJOR}.\${meta.CURRENT_VERSION_MINOR}.\${meta.COMMIT_DISTANCE}")
+    regexVersionTag("v(\\d+\\.\\d+(\\.0)?)")
 }
 
 tasks.openApiGenerate {
