@@ -4,6 +4,8 @@
 
 package io.wisetime.connector.controller;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+
 import io.wisetime.connector.ConnectorController;
 import io.wisetime.connector.ConnectorModule;
 import io.wisetime.connector.WiseTimeConnector;
@@ -106,8 +108,12 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
 
     final SQLiteHelper sqLiteHelper = new SQLiteHelper(configuration.isForcePersistentStorage());
     connectorModule = new ConnectorModule(apiClient, new FileStore(sqLiteHelper),
-        (int) TimeUnit.MILLISECONDS.toMinutes(tagSlowLoopTaskSchedule.getPeriodMs()),
-        (int) TimeUnit.MILLISECONDS.toMinutes(activityTypeSlowLoopTaskSchedule.getPeriodMs()));
+        new ConnectorModule.IntervalConfig()
+            .setActivityTypeSlowLoopIntervalMinutes(
+                (int) MILLISECONDS.toMinutes(activityTypeSlowLoopTaskSchedule.getPeriodMs()))
+            .setTagSlowLoopIntervalMinutes(
+                (int) MILLISECONDS.toMinutes(tagSlowLoopTaskSchedule.getPeriodMs()))
+    );
 
     final ConnectorInfoProvider connectorInfoProvider = new ConstantConnectorInfoProvider();
     timePoster = createTimePoster(configuration, apiClient, sqLiteHelper, connectorInfoProvider);
@@ -226,9 +232,9 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
   }
 
   private TimePoster createTimePoster(ConnectorControllerConfiguration configuration,
-                                      ApiClient apiClient,
-                                      SQLiteHelper sqLiteHelper,
-                                      ConnectorInfoProvider connectorInfoProvider) {
+      ApiClient apiClient,
+      SQLiteHelper sqLiteHelper,
+      ConnectorInfoProvider connectorInfoProvider) {
     final ConnectorControllerBuilderImpl.PostedTimeLoadMode mode = configuration.getPostedTimeLoadMode();
     switch (mode) {
       case LONG_POLL:
@@ -254,7 +260,8 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     }
   }
 
-  private TagRunner createTagRunner(ConnectorControllerConfiguration configuration, WiseTimeConnector wiseTimeConnector) {
+  private TagRunner createTagRunner(ConnectorControllerConfiguration configuration,
+      WiseTimeConnector wiseTimeConnector) {
     switch (configuration.getTagScanMode()) {
       case ENABLED:
         return new TagRunner(wiseTimeConnector);
@@ -267,7 +274,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
   }
 
   private TagSlowLoopRunner createTagSlowLoopRunner(ConnectorControllerConfiguration configuration,
-                                                    WiseTimeConnector wiseTimeConnector) {
+      WiseTimeConnector wiseTimeConnector) {
     switch (configuration.getTagScanMode()) {
       case ENABLED:
         return new TagSlowLoopRunner(wiseTimeConnector);
@@ -280,7 +287,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
   }
 
   private ActivityTypeRunner createActivityTypeRunner(ConnectorControllerConfiguration configuration,
-                                                      WiseTimeConnector wiseTimeConnector) {
+      WiseTimeConnector wiseTimeConnector) {
     switch (configuration.getActivityTypeScanMode()) {
       case ENABLED:
         return new ActivityTypeRunner(wiseTimeConnector);
@@ -293,7 +300,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
   }
 
   private ActivityTypeSlowLoopRunner createActivityTypeSlowLoopRunner(ConnectorControllerConfiguration configuration,
-                                                                      WiseTimeConnector wiseTimeConnector) {
+      WiseTimeConnector wiseTimeConnector) {
     switch (configuration.getActivityTypeScanMode()) {
       case ENABLED:
         return new ActivityTypeSlowLoopRunner(wiseTimeConnector);

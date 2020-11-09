@@ -40,7 +40,9 @@ public interface WiseTimeConnector {
    * Called on a schedule. If the previously called method is still running when the next scheduled run should occur, the
    * scheduled run will be skipped, allowing time for the previous method to complete it's operation.
    */
-  void performActivityTypeUpdate();
+  default void performActivityTypeUpdate() {
+    // default no activity type update supplied
+  }
 
   /**
    * Called on a schedule. If the previously called method is still running when the next scheduled run should occur, the
