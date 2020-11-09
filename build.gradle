@@ -115,21 +115,21 @@ dependencies {
 
     compile 'joda-time:joda-time:2.9.9'
 
-    compile ('org.apache.commons:commons-configuration2:2.4') {
+    compile('org.apache.commons:commons-configuration2:2.4') {
         exclude group: 'commons-logging', module: 'commons-logging'
     }
     compile 'org.apache.commons:commons-lang3:3.11'
     compile 'net.jodah:failsafe:1.1.0'
 
     // AWS dependencies
-    compile ('com.amazonaws:aws-java-sdk-logs:1.11.611') {
+    compile('com.amazonaws:aws-java-sdk-logs:1.11.611') {
         exclude group: 'commons-logging', module: 'commons-logging'
         exclude group: 'commons-codec', module: 'commons-codec'
         exclude group: 'joda-time', module: 'joda-time'
         exclude group: 'org.apache.httpcomponents', module: 'httpclient'
     }
 
-    compile ('com.amazonaws:aws-java-sdk-cloudwatch:1.11.611') {
+    compile('com.amazonaws:aws-java-sdk-cloudwatch:1.11.611') {
         exclude group: 'commons-logging', module: 'commons-logging'
     }
 
@@ -148,14 +148,14 @@ dependencies {
     compile 'org.xerial:sqlite-jdbc:3.28.0'
     compile 'org.codejargon:fluentjdbc:1.8.3'
 
-    compile ('org.apache.httpcomponents:httpclient:4.5.8') {
+    compile('org.apache.httpcomponents:httpclient:4.5.9') {
         exclude group: 'commons-logging', module: 'commons-logging'
         exclude group: 'commons-codec', module: 'commons-codec'
         exclude group: 'org.apache.httpcomponents', module: 'httpcore'
     }
 
     compile 'org.apache.httpcomponents:httpcore:4.4.11'
-    compile('org.apache.httpcomponents:fluent-hc:4.5.8') {
+    compile('org.apache.httpcomponents:fluent-hc:4.5.9') {
         exclude group: 'commons-logging', module: 'commons-logging'
         exclude group: 'commons-codec', module: 'commons-codec'
     }
@@ -163,7 +163,7 @@ dependencies {
 
     compile 'ch.qos.logback:logback-core:1.2.3'
     compile 'ch.qos.logback:logback-classic:1.2.3'
-    compile 'org.slf4j:slf4j-api:1.7.26'
+    compile 'org.slf4j:slf4j-api:1.7.30'
 
     // required by activity text template engine
     compile 'org.freemarker:freemarker:2.3.28'
@@ -176,10 +176,30 @@ dependencies {
         exclude group: 'org.apache.commons', module: 'commons-lang3'
     }
     testCompile 'org.skyscreamer:jsonassert:1.5.0'
-    testCompile 'org.junit.jupiter:junit-jupiter:5.5.1'
-    testCompile 'org.mockito:mockito-core:2.27.0'
+    testCompile 'org.junit.jupiter:junit-jupiter:5.7.0'
+    testCompile 'org.mockito:mockito-core:3.6.0'
     testCompile 'org.assertj:assertj-core:3.12.2'
     testCompile 'io.github.benas:random-beans:3.9.0'
+}
+
+configurations.all {
+    resolutionStrategy {
+        // fail eagerly on version conflict (includes transitive dependencies)
+        // e.g. multiple different versions of the same dependency (group and name are equal)
+        // used to check and determine conflicts
+        failOnVersionConflict()
+
+        force(
+            "joda-time:joda-time:2.9.9",
+            "org.apache.commons:commons-lang3:3.11",
+            "com.fasterxml.jackson.core:jackson-databind:2.11.1",
+            "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.11.1",
+            "commons-codec:commons-codec:1.12",
+            "org.objenesis:objenesis:3.0.1",
+            "org.slf4j:slf4j-api:1.7.30",
+            "org.apache.httpcomponents:httpclient:4.5.9"
+        )
+    }
 }
 
 test {
@@ -205,7 +225,7 @@ clean {
 }
 
 jar {
-    afterEvaluate  {
+    afterEvaluate {
         manifest {
             attributes 'Implementation-Version': project.version
         }
