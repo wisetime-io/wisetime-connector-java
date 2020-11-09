@@ -24,10 +24,10 @@ plugins {
     id 'maven'
     id 'maven-publish'
     id 'application'
-    id "io.freefair.lombok" version "3.8.4"
+    id "io.freefair.lombok" version "5.0.0"
     id "fr.brouillard.oss.gradle.jgitver" version "0.9.1"
-    id "com.github.ben-manes.versions" version "0.27.0"
-    id "io.wisetime.versionChecker" version "0.9.32"
+    id "com.github.ben-manes.versions" version "0.35.0"
+    id "io.wisetime.versionChecker" version "0.9.40"
     id 'de.marcphilipp.nexus-publish' version '0.3.1' apply false
 }
 
@@ -102,8 +102,8 @@ if (taskRequestString.contains("dependencyUpdates")) {
 
 dependencies {
 
-    compileOnly 'org.projectlombok:lombok:1.18.8'
-    annotationProcessor 'org.projectlombok:lombok:1.18.8'
+    compileOnly 'org.projectlombok:lombok:1.18.12'
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
 
     compile 'com.sparkjava:spark-core:2.9.1'
     compile('com.sparkjava:spark-template-thymeleaf:2.7.1') {
@@ -142,11 +142,11 @@ dependencies {
     compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.11.1'
 
     compile 'org.apache.commons:commons-collections4:4.4'
-    compile 'com.google.guava:guava:28.2-jre'
+    compile 'com.google.guava:guava:29.0-jre'
     compile 'commons-io:commons-io:2.6'
 
     compile 'org.xerial:sqlite-jdbc:3.28.0'
-    compile 'org.codejargon:fluentjdbc:1.8.3'
+    compile 'org.codejargon:fluentjdbc:1.8.6'
 
     compile('org.apache.httpcomponents:httpclient:4.5.9') {
         exclude group: 'commons-logging', module: 'commons-logging'
@@ -178,7 +178,7 @@ dependencies {
     testCompile 'org.skyscreamer:jsonassert:1.5.0'
     testCompile 'org.junit.jupiter:junit-jupiter:5.7.0'
     testCompile 'org.mockito:mockito-core:3.6.0'
-    testCompile 'org.assertj:assertj-core:3.12.2'
+    testCompile 'org.assertj:assertj-core:3.18.0'
     testCompile 'io.github.benas:random-beans:3.9.0'
 }
 
