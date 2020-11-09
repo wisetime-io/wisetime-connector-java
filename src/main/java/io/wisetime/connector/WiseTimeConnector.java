@@ -50,7 +50,9 @@ public interface WiseTimeConnector {
    * This will be called less frequently than performActivityTypeUpdate and allows to refresh already synced activity types
    * slowly.
    */
-  void performActivityTypeUpdateSlowLoop();
+  default void performActivityTypeUpdateSlowLoop() {
+    // default no activity type update slow loop supplied
+  }
 
   /**
    * Called via the defined webhook or via the listening fetch client when a user posts time to the given team.
