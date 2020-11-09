@@ -54,7 +54,7 @@ jgitver {
 
 tasks.openApiGenerate {
     generatorName = "jaxrs-spec"
-    inputSpec = "https://raw.githubusercontent.com/wisetime-io/connect-api-spec/9400567034e89bc5618256c5f013d8cb4d8087f4/spec/openapi.yaml".toString()
+    inputSpec = "https://raw.githubusercontent.com/wisetime-io/connect-api-spec/b6a5422cdc89530aab3a4dc282e73b814bf98719/spec/openapi.yaml".toString()
     outputDir = "$projectDir".toString()
     modelPackage = "io.wisetime.generated.connect"
     generateApiTests = false
@@ -101,9 +101,6 @@ if (taskRequestString.contains("dependencyUpdates")) {
 }
 
 dependencies {
-
-    compileOnly 'org.projectlombok:lombok:1.18.12'
-    annotationProcessor 'org.projectlombok:lombok:1.18.12'
 
     compile 'com.sparkjava:spark-core:2.9.1'
     compile('com.sparkjava:spark-template-thymeleaf:2.7.1') {
