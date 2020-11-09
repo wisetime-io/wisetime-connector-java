@@ -80,6 +80,7 @@ public class WebhookTimePosterTest {
     Server server = createTestServer(payloadService, mockConnector, metricService, timeGroupIdStoreMock);
     SparkTestUtil testUtil = new SparkTestUtil(server.getURI().getPort());
 
+    // TODO(Dev) flaky test, should have retry/failsafe
     SparkTestUtil.UrlResponse pingResponse = testUtil.doMethod("GET", "/ping", null, "plain/text");
     assertThat(pingResponse.status).isEqualTo(200);
 
@@ -219,8 +220,13 @@ public class WebhookTimePosterTest {
   private static Server createTestServer(JsonPayloadService payloadService, WiseTimeConnector mockConnector,
                                         MetricService metricService,
                                         TimeGroupIdStore timeGroupIdStoreMock) throws Exception {
-    WebhookTimePoster webhookTimePoster =
-        new WebhookTimePoster(0, payloadService, mockConnector, metricService, timeGroupIdStoreMock);
+    WebhookTimePoster webhookTimePoster = new WebhookTimePoster(
+        0,
+        payloadService,
+        mockConnector,
+        metricService,
+        timeGroupIdStoreMock
+    );
     webhookTimePoster.start();
     Server server = webhookTimePoster.getServer();
     SparkTestUtil testUtil = new SparkTestUtil(server.getURI().getPort());
