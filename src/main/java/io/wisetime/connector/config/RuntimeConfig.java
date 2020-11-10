@@ -62,6 +62,11 @@ public class RuntimeConfig {
       config.addConfiguration(
           new MapConfiguration(new CaseInsensitiveMap<>(addUserPropertyFile(connectorPropertyFilePath))));
     }
+
+    // parse json file if specified and add to config
+    JsonMapUtil.parseJsonFileToMap(config.getString("json_config", ""))
+        .ifPresent(config::addConfiguration);
+
   }
 
   private Optional<String> getString(String key) {
