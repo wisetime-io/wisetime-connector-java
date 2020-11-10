@@ -134,6 +134,9 @@ dependencies {
     compile 'org.slf4j:jcl-over-slf4j:1.7.30'
     compile 'org.slf4j:jul-to-slf4j:1.7.30'
 
+    // lightweight json lib (no dependencies) https://github.com/ralfstx/minimal-json
+    compile("com.eclipsesource.minimal-json:minimal-json:0.9.5")
+
     compile 'com.fasterxml.jackson.core:jackson-databind:2.11.1'
     compile 'com.fasterxml.jackson.core:jackson-core:2.11.1'
     compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.11.1'
