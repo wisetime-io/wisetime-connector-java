@@ -101,7 +101,9 @@ public class ManagedConfigRunner extends TimerTask implements HealthIndicator {
 
   @VisibleForTesting
   ZonedDateTime onManagedConfigResponse(ManagedConfigResponse configResponse, ZoneId zoneId) {
-    LogbackConfigurator.configureBaseLogging(configResponse);
+    if (RuntimeConfig.getBoolean(() -> "managed_logging").orElse(true)) {
+      LogbackConfigurator.configureBaseLogging(configResponse);
+    }
     return toExpiryZoneDateTime(configResponse.getServiceIdExpiry(), zoneId);
   }
 
