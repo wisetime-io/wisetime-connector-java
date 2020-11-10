@@ -54,4 +54,11 @@ public class ConnectorModule {
     int activityTypeSlowLoopIntervalMinutes = 5;
   }
 
+  public int getTagSlowLoopIntervalMinutes() {
+    return intervalConfig.getTagSlowLoopIntervalMinutes();
+  }
+
+  public int getActivityTypeSlowLoopIntervalMinutes() {
+    return intervalConfig.getActivityTypeSlowLoopIntervalMinutes();
+  }
 }
