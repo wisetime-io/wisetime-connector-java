@@ -54,7 +54,7 @@ jgitver {
 
 tasks.openApiGenerate {
     generatorName = "jaxrs-spec"
-    inputSpec = "https://raw.githubusercontent.com/wisetime-io/connect-api-spec/b6a5422cdc89530aab3a4dc282e73b814bf98719/spec/openapi.yaml".toString()
+    inputSpec = "https://raw.githubusercontent.com/wisetime-io/connect-api-spec/e65fb15149a17a75a67a55a2dc63e0d0b70d8e49/spec/openapi.yaml".toString()
     outputDir = "$projectDir".toString()
     modelPackage = "io.wisetime.generated.connect"
     generateApiTests = false
