@@ -106,7 +106,7 @@ public class DurationCalculator {
         .andThen(applyExperienceWeighting)
         .apply(durationSource);
 
-    return Math.round(totalDuration);
+    return (long) Math.ceil(totalDuration);
   }
 
   /**
