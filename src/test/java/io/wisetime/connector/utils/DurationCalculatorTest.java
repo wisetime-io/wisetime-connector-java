@@ -83,7 +83,7 @@ class DurationCalculatorTest {
 
     final TimeGroup timeGroup = fakeEntities
         .randomTimeGroup()
-        .totalDurationSecs(105)
+        .totalDurationSecs(104)
         .user(user);
 
     final long result = DurationCalculator
@@ -93,7 +93,7 @@ class DurationCalculatorTest {
         .calculate();
 
     assertThat(result)
-        .as("The user's experience weighting should be taken into account, and result rounded correctly")
+        .as("The user's experience weighting should be taken into account, and result rounded up")
         .isEqualTo(11);
   }
 
