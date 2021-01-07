@@ -27,7 +27,7 @@ plugins {
     id "io.freefair.lombok" version "5.0.0"
     id "fr.brouillard.oss.gradle.jgitver" version "0.9.1"
     id "com.github.ben-manes.versions" version "0.35.0"
-    id "io.wisetime.versionChecker" version "0.9.41"
+    id "io.wisetime.versionChecker" version "0.10.12"
     id 'de.marcphilipp.nexus-publish' version '0.3.1' apply false
 }
 
@@ -54,7 +54,7 @@ jgitver {
 
 tasks.openApiGenerate {
     generatorName = "jaxrs-spec"
-    inputSpec = "https://raw.githubusercontent.com/wisetime-io/connect-api-spec/858fc41843fbeb452eab1d70629f0b50a3ae2c13/spec/openapi.yaml".toString()
+    inputSpec = "https://raw.githubusercontent.com/wisetime-io/connect-api-spec/77841b7b7f1cf1645c10f9d596787a4aa165916b/spec/openapi.yaml".toString()
     outputDir = "$projectDir".toString()
     modelPackage = "io.wisetime.generated.connect"
     generateApiTests = false
