@@ -39,7 +39,7 @@ class LocalAdapterCW implements LoggingBridge {
 
   private final LogQueueCW logQueueCW = new LogQueueCW();
 
-  private AWSLogsWrapper awsLogWrapper;
+  private AwsLogsWrapper awsLogWrapper;
 
   private String logGroupName;
 
@@ -122,11 +122,11 @@ class LocalAdapterCW implements LoggingBridge {
     }
   }
 
-  private AWSLogsWrapper createLocalConfigLogger(final ManagedConfigResponse config) {
+  private AwsLogsWrapper createLocalConfigLogger(final ManagedConfigResponse config) {
     final Optional<AWSCredentials> awsCredentials = lookupCredentials(config);
     if (!awsCredentials.isPresent()) {
       System.err.println("AWS credentials not found, AWS logger disabled");
-      return AWSLogsWrapper.noConfig();
+      return AwsLogsWrapper.noConfig();
     }
 
     logGroupName = config.getGroupName();
@@ -146,12 +146,12 @@ class LocalAdapterCW implements LoggingBridge {
               .withLogStreamName(logStreamName)
       );
 
-      return new AWSLogsWrapper(awsLogs, logStreamName);
+      return new AwsLogsWrapper(awsLogs, logStreamName);
 
     } catch (ResourceNotFoundException ex) {
       System.err.println("Unable to create log stream with name "
           + logStreamName + " for a group name " + logGroupName + ".");
-      return AWSLogsWrapper.noConfig();
+      return AwsLogsWrapper.noConfig();
     }
   }
 
@@ -174,15 +174,15 @@ class LocalAdapterCW implements LoggingBridge {
 
   @RequiredArgsConstructor
   @ToString
-  private static class AWSLogsWrapper {
+  private static class AwsLogsWrapper {
 
     private final AWSLogs awsLogs;
 
     @Getter
     private final String logStreamName;
 
-    static AWSLogsWrapper noConfig() {
-      return new AWSLogsWrapper(null, "invalid");
+    static AwsLogsWrapper noConfig() {
+      return new AwsLogsWrapper(null, "invalid");
     }
 
     Optional<AWSLogs> writer() {

@@ -4,12 +4,11 @@
 
 package io.wisetime.connector.template.format;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import freemarker.template.SimpleNumber;
 import freemarker.template.TemplateModelException;
-
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author vadym

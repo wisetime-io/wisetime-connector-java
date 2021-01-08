@@ -4,21 +4,20 @@
 
 package io.wisetime.connector.log;
 
+import java.io.File;
 import org.junit.jupiter.api.extension.ConditionEvaluationResult;
 import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.platform.commons.util.AnnotationUtils;
 
-import java.io.File;
-
 /**
  * JUnit5 condition that checks if ${HOME}/aws/credentials and ${HOME}/aws/config is present
  */
-class AWSCredentialsRequiredCondition implements ExecutionCondition {
+class AwsCredentialsRequiredCondition implements ExecutionCondition {
 
   @Override
   public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
-    if (AnnotationUtils.findAnnotation(context.getElement(), AWSCredentialsRequired.class).isPresent()) {
+    if (AnnotationUtils.findAnnotation(context.getElement(), AwsCredentialsRequired.class).isPresent()) {
       File awsHome = new File(System.getProperty("user.home"), ".aws");
       File awsCredentials = new File(awsHome, "credentials");
       File awsConfig = new File(awsHome, "config");
@@ -33,6 +32,6 @@ class AWSCredentialsRequiredCondition implements ExecutionCondition {
       return ConditionEvaluationResult.enabled("AWS config files exist.");
     }
     return ConditionEvaluationResult
-        .enabled("condition only applies to tests annotated with @" + AWSCredentialsRequired.class.getSimpleName());
+        .enabled("condition only applies to tests annotated with @" + AwsCredentialsRequired.class.getSimpleName());
   }
 }

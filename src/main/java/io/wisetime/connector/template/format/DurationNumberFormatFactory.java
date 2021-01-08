@@ -9,7 +9,6 @@ import freemarker.core.TemplateFormatUtil;
 import freemarker.core.TemplateNumberFormat;
 import freemarker.core.TemplateNumberFormatFactory;
 import freemarker.core.TemplateValueFormatException;
-
 import java.util.Locale;
 
 /**

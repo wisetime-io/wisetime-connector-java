@@ -4,20 +4,18 @@
 
 package io.wisetime.connector.test_util;
 
-import com.github.javafaker.Faker;
+import static java.lang.String.format;
 
+import com.github.javafaker.Faker;
+import io.wisetime.generated.connect.Tag;
+import io.wisetime.generated.connect.TimeGroup;
+import io.wisetime.generated.connect.TimeRow;
+import io.wisetime.generated.connect.User;
 import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import io.wisetime.generated.connect.Tag;
-import io.wisetime.generated.connect.TimeGroup;
-import io.wisetime.generated.connect.TimeRow;
-import io.wisetime.generated.connect.User;
-
-import static java.lang.String.format;
 
 /**
  * Generator of entities with random field values. Typically used to mock real data.

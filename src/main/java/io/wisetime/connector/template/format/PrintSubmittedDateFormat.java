@@ -8,11 +8,9 @@ import freemarker.core.TemplateFormatUtil;
 import freemarker.core.TemplateNumberFormat;
 import freemarker.template.TemplateModelException;
 import freemarker.template.TemplateNumberModel;
-
+import lombok.extern.slf4j.Slf4j;
 import org.joda.time.format.DateTimeFormat;
 import org.joda.time.format.DateTimeFormatter;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Freemarker formatter to convert {@link io.wisetime.generated.connect.TimeRow#getSubmittedDate()} to human readable string.

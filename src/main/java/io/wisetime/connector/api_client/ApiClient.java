@@ -42,7 +42,7 @@ public interface ApiClient {
    * Create a new tag, or update the tag if it already exists.
    *
    * @param upsertTagRequest information about the tag to be upserted
-   * @throws IOException
+   * @throws IOException The {@link IOException}
    */
   void tagUpsert(UpsertTagRequest upsertTagRequest) throws IOException;
 
@@ -53,7 +53,7 @@ public interface ApiClient {
    * upsert is idempotent.
    *
    * @param upsertTagRequests request list of tags to be upserted
-   * @throws IOException
+   * @throws IOException The {@link IOException}
    */
   void tagUpsertBatch(List<UpsertTagRequest> upsertTagRequests) throws IOException;
 
@@ -61,7 +61,7 @@ public interface ApiClient {
    * Delete an existing tag.
    *
    * @param deleteTagRequest contains info about the tag to be deleted
-   * @throws IOException
+   * @throws IOException The {@link IOException}
    */
   void tagDelete(DeleteTagRequest deleteTagRequest) throws IOException;
 
@@ -69,7 +69,7 @@ public interface ApiClient {
    * Add keywords to a tag. Existing keywords will not be overwritten.
    *
    * @param addKeywordsRequest contains info about the keywords to be added to a tag
-   * @throws IOException
+   * @throws IOException The {@link IOException}
    */
   void tagAddKeywords(AddKeywordsRequest addKeywordsRequest) throws IOException;
 
@@ -77,7 +77,7 @@ public interface ApiClient {
    * Add keywords to a batch of tags. Existing keywords will not be overwritten.
    *
    * @param addKeywordsRequests request list keywords to be added to tag(s)
-   * @throws IOException
+   * @throws IOException The {@link IOException}
    */
   void tagAddKeywordsBatch(List<AddKeywordsRequest> addKeywordsRequests) throws IOException;
 
@@ -85,7 +85,7 @@ public interface ApiClient {
    * Delete keyword from a tag.
    *
    * @param deleteKeywordRequest contains info about the keyword to be deleted from a tag
-   * @throws IOException
+   * @throws IOException The {@link IOException}
    */
   DeleteKeywordResponse tagDeleteKeyword(DeleteKeywordRequest deleteKeywordRequest) throws IOException;
 
@@ -93,7 +93,7 @@ public interface ApiClient {
    * Delete specific metadata from a tag.
    *
    * @param tagMetadataDeleteRequest contains info about the metadata to be deleted from a tag
-   * @throws IOException
+   * @throws IOException The {@link IOException}
    */
   TagMetadataDeleteResponse tagMetadataDelete(TagMetadataDeleteRequest tagMetadataDeleteRequest) throws IOException;
 
@@ -108,7 +108,7 @@ public interface ApiClient {
    * that are no longer in the connected system, and delete these when the sync session is completed by the connector.
    *
    * @return created sync session
-   * @throws IOException
+   * @throws IOException The {@link IOException}
    */
   SyncSession activityTypesStartSyncSession() throws IOException;
 
@@ -119,7 +119,7 @@ public interface ApiClient {
    * All the activity types that were lastly created/updated before the session start will be deleted.
    *
    * @param syncSession that should to be completed
-   * @throws IOException
+   * @throws IOException The {@link IOException}
    */
   void activityTypesCompleteSyncSession(SyncSession syncSession) throws IOException;
 
@@ -130,15 +130,15 @@ public interface ApiClient {
    * This API call has no impact on activity types.
    *
    * @param syncSession that should to be cancelled
-   * @throws IOException
+   * @throws IOException The {@link IOException}
    */
   void activityTypesCancelSyncSession(SyncSession syncSession) throws IOException;
 
   /**
    * Create new activity types, or update existing in batch (up to 2000 items at once)
    *
-   * @param syncActivityTypesRequest
-   * @throws IOException
+   * @param syncActivityTypesRequest The {@link SyncActivityTypesRequest}
+   * @throws IOException The {@link IOException}
    */
   SyncActivityTypesResponse syncActivityTypes(SyncActivityTypesRequest syncActivityTypesRequest) throws IOException;
 
@@ -146,7 +146,7 @@ public interface ApiClient {
    * Get the details for the team linked to the API key making the request.
    *
    * @return the team information
-   * @throws IOException
+   * @throws IOException The {@link IOException}
    */
   TeamInfoResult teamInfo() throws IOException;
 
@@ -156,7 +156,7 @@ public interface ApiClient {
    *
    * @param subscribeRequest information about the webhook to be created
    * @return the subscription result will contain the webhook ID that was assigned to the new webhook
-   * @throws IOException
+   * @throws IOException The {@link IOException}
    */
   SubscribeResult postedTimeSubscribe(SubscribeRequest subscribeRequest) throws IOException;
 
@@ -189,7 +189,7 @@ public interface ApiClient {
   /**
    * Retrieve configuration particulars to support the managed connector service.
    *
-   * @param managedConfigRequest
+   * @param managedConfigRequest The {@link ManagedConfigRequest}
    * @return {@link ManagedConfigResponse} response result
    */
   ManagedConfigResponse getTeamManagedConfig(ManagedConfigRequest managedConfigRequest) throws IOException;

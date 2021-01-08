@@ -4,16 +4,13 @@
 
 package io.wisetime.connector.template.loader;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import freemarker.cache.TemplateLoader;
-
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
 import java.io.BufferedReader;
 import java.io.IOException;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author vadym

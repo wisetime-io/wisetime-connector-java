@@ -4,40 +4,6 @@
 
 package io.wisetime.connector.time_poster.webhook;
 
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.javafaker.Faker;
-
-import io.wisetime.connector.api_client.PostResult.PostResultStatus;
-import io.wisetime.connector.config.ConnectorConfigKey;
-import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
-import java.util.Optional;
-import net.jodah.failsafe.Failsafe;
-import net.jodah.failsafe.RetryPolicy;
-
-import org.eclipse.jetty.server.Server;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.IOException;
-import java.util.concurrent.TimeUnit;
-
-import io.wisetime.connector.WiseTimeConnector;
-import io.wisetime.connector.api_client.JsonPayloadService;
-import io.wisetime.connector.api_client.PostResult;
-import io.wisetime.connector.config.RuntimeConfig;
-import io.wisetime.connector.config.TolerantObjectMapper;
-import io.wisetime.connector.config.info.ConnectorInfo;
-import io.wisetime.connector.metric.MetricInfo;
-import io.wisetime.connector.metric.MetricService;
-import io.wisetime.connector.test_util.SparkTestUtil;
-import io.wisetime.connector.test_util.TemporaryFolder;
-import io.wisetime.connector.test_util.TemporaryFolderExtension;
-import io.wisetime.generated.connect.TimeGroup;
-import io.wisetime.generated.connect.User;
-
 import static io.wisetime.connector.api_client.JsonPayloadService.CONNECTOR_INFO_KEY;
 import static io.wisetime.connector.config.ConnectorConfigKey.WEBHOOK_PORT;
 import static io.wisetime.connector.time_poster.webhook.WebhookApplication.MESSAGE_KEY;
@@ -52,6 +18,36 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
+
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.javafaker.Faker;
+import io.wisetime.connector.WiseTimeConnector;
+import io.wisetime.connector.api_client.JsonPayloadService;
+import io.wisetime.connector.api_client.PostResult;
+import io.wisetime.connector.api_client.PostResult.PostResultStatus;
+import io.wisetime.connector.config.ConnectorConfigKey;
+import io.wisetime.connector.config.RuntimeConfig;
+import io.wisetime.connector.config.TolerantObjectMapper;
+import io.wisetime.connector.config.info.ConnectorInfo;
+import io.wisetime.connector.metric.MetricInfo;
+import io.wisetime.connector.metric.MetricService;
+import io.wisetime.connector.test_util.SparkTestUtil;
+import io.wisetime.connector.test_util.TemporaryFolder;
+import io.wisetime.connector.test_util.TemporaryFolderExtension;
+import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
+import io.wisetime.generated.connect.TimeGroup;
+import io.wisetime.generated.connect.User;
+import java.io.IOException;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.jetty.server.Server;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author thomas.haines

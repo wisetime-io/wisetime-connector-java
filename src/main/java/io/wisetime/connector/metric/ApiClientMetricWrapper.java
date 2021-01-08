@@ -4,11 +4,10 @@
 
 package io.wisetime.connector.metric;
 
-import java.io.IOException;
-import java.util.List;
-
 import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.generated.connect.UpsertTagRequest;
+import java.io.IOException;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.Delegate;
 

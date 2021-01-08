@@ -4,14 +4,12 @@
 
 package io.wisetime.connector.template;
 
-import org.junit.jupiter.api.Test;
-
-import java.util.Collections;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeRow;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.Collections;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author vadym

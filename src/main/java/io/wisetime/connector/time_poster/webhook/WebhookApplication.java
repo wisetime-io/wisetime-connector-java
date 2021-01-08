@@ -4,26 +4,28 @@
 
 package io.wisetime.connector.time_poster.webhook;
 
+import static spark.Spark.get;
+import static spark.Spark.post;
+import static spark.Spark.staticFileLocation;
+import static spark.Spark.stop;
+
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-
 import com.google.common.collect.ImmutableMap;
-import io.wisetime.connector.api_client.PostResult.PostResultStatus;
-import io.wisetime.connector.config.ConnectorConfigKey;
-import io.wisetime.connector.config.RuntimeConfig;
-import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
-import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.HashMap;
-
 import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.api_client.JsonPayloadService;
 import io.wisetime.connector.api_client.PostResult;
+import io.wisetime.connector.api_client.PostResult.PostResultStatus;
+import io.wisetime.connector.config.ConnectorConfigKey;
+import io.wisetime.connector.config.RuntimeConfig;
 import io.wisetime.connector.metric.MetricService;
+import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
 import io.wisetime.generated.connect.TimeGroup;
+import java.util.HashMap;
+import java.util.Optional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import spark.ExceptionHandler;
 import spark.ExceptionHandlerImpl;
 import spark.ExceptionMapper;
@@ -32,11 +34,6 @@ import spark.Request;
 import spark.Response;
 import spark.servlet.SparkApplication;
 import spark.template.thymeleaf.ThymeleafTemplateEngine;
-
-import static spark.Spark.get;
-import static spark.Spark.post;
-import static spark.Spark.staticFileLocation;
-import static spark.Spark.stop;
 
 /**
  * Spark web application that implements WiseTime posted time web hook.

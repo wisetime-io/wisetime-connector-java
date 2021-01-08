@@ -8,7 +8,7 @@ import static io.wisetime.connector.datastore.CoreLocalDbTable.TABLE_TIME_GROUPS
 
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.api_client.PostResult.PostResultStatus;
-import io.wisetime.connector.datastore.SQLiteHelper;
+import io.wisetime.connector.datastore.SqLiteHelper;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -33,16 +33,16 @@ public class TimeGroupIdStore {
   // Time in days
   private static final long MAX_STATUS_STORAGE_TIME = 60;
 
-  private final SQLiteHelper sqLiteHelper;
+  private final SqLiteHelper sqLiteHelper;
 
-  public TimeGroupIdStore(SQLiteHelper sqLiteHelper) {
+  public TimeGroupIdStore(SqLiteHelper sqLiteHelper) {
     this.sqLiteHelper = sqLiteHelper;
     sqLiteHelper.createTable(TABLE_TIME_GROUPS_RECEIVED);
   }
 
   private void deleteOldRecords() {
-    sqLiteHelper.query().update("DELETE FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
-        " WHERE received_timestamp < ?")
+    sqLiteHelper.query().update("DELETE FROM " + TABLE_TIME_GROUPS_RECEIVED.getName()
+        + " WHERE received_timestamp < ?")
         .params(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(MAX_STATUS_STORAGE_TIME))
         .run();
   }
@@ -51,8 +51,8 @@ public class TimeGroupIdStore {
     return sqLiteHelper.query()
         // always return status for SUCCESS, TRANSIENT_FAILURE and PERMANENT_FAILURE
         // If a time group is IN_PROGRESS for more than 8 minutes: assume failure and allow to try again
-        .select("SELECT post_result FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
-            " WHERE time_group_id=? AND (received_timestamp > ? or post_result != ?)")
+        .select("SELECT post_result FROM " + TABLE_TIME_GROUPS_RECEIVED.getName()
+            + " WHERE time_group_id=? AND (received_timestamp > ? or post_result != ?)")
         .params(timeGroupId,
             System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(MAX_IN_PROGRESS_TIME),
             IN_PROGRESS)
@@ -66,8 +66,8 @@ public class TimeGroupIdStore {
    */
   public Optional<String> getPostStatusForFetchClient(String timeGroupId) {
     return sqLiteHelper.query()
-        .select("SELECT post_result FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
-            " WHERE time_group_id=?")
+        .select("SELECT post_result FROM " + TABLE_TIME_GROUPS_RECEIVED.getName()
+            + " WHERE time_group_id=?")
         .params(timeGroupId)
         .firstResult(rs -> rs.getString(1));
   }
@@ -76,8 +76,8 @@ public class TimeGroupIdStore {
     return sqLiteHelper.query()
         // always return status for SUCCESS, TRANSIENT_FAILURE and PERMANENT_FAILURE
         // If a time group is IN_PROGRESS for more than 5 minutes: assume failure and allow to try again
-        .select("SELECT post_result, message FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
-            " WHERE time_group_id=? AND (received_timestamp > ? or post_result != ?)")
+        .select("SELECT post_result, message FROM " + TABLE_TIME_GROUPS_RECEIVED.getName()
+            + " WHERE time_group_id=? AND (received_timestamp > ? or post_result != ?)")
         .params(timeGroupId,
             System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(MAX_IN_PROGRESS_TIME),
             IN_PROGRESS)
@@ -88,8 +88,8 @@ public class TimeGroupIdStore {
     return sqLiteHelper.query()
         // Get all statuses with SUCCESS or PERMANENT_FAILURE for updating
         // give the async immediate status updater some time to complete before retrying by table sweep
-        .select("SELECT time_group_id, post_result, message FROM " + TABLE_TIME_GROUPS_RECEIVED.getName() +
-            " WHERE (post_result = :success or post_result = :permFail) and received_timestamp < :ts")
+        .select("SELECT time_group_id, post_result, message FROM " + TABLE_TIME_GROUPS_RECEIVED.getName()
+            + " WHERE (post_result = :success or post_result = :permFail) and received_timestamp < :ts")
         .namedParam("success", PostResultStatus.SUCCESS.name())
         .namedParam("permFail", PostResultStatus.PERMANENT_FAILURE.name())
         .namedParam("ts", System.currentTimeMillis() - TimeUnit.MINUTES.toMillis(1))
@@ -103,15 +103,15 @@ public class TimeGroupIdStore {
     final Query query = sqLiteHelper.query();
     query.transaction().inNoResult(() -> {
       long timeStamp = System.currentTimeMillis();
-      UpdateResult result = query.update("UPDATE " + TABLE_TIME_GROUPS_RECEIVED.getName() +
-          " SET received_timestamp=?, post_result=?, message=? WHERE time_group_id=?")
+      UpdateResult result = query.update("UPDATE " + TABLE_TIME_GROUPS_RECEIVED.getName()
+          + " SET received_timestamp=?, post_result=?, message=? WHERE time_group_id=?")
           .params(timeStamp, postResult, message, timeGroupId)
           .run();
 
       if (result.affectedRows() == 0) {
         // new key value
-        query.update("INSERT INTO " + TABLE_TIME_GROUPS_RECEIVED.getName() +
-            " (time_group_id, post_result, received_timestamp, created_ts, message) VALUES (?,?,?,?,?)")
+        query.update("INSERT INTO " + TABLE_TIME_GROUPS_RECEIVED.getName()
+            + " (time_group_id, post_result, received_timestamp, created_ts, message) VALUES (?,?,?,?,?)")
             .params(timeGroupId, postResult, timeStamp, timeStamp, message)
             .run();
       }

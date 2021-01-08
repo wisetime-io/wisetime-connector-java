@@ -4,16 +4,14 @@
 
 package io.wisetime.connector.utils;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.google.common.collect.ImmutableList;
-
-import org.junit.jupiter.api.Test;
-
 import io.wisetime.connector.test_util.FakeEntities;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeRow;
 import io.wisetime.generated.connect.User;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author shane.xie@practiceinsight.io
@@ -34,8 +32,8 @@ class DurationCalculatorTest {
     final long result = DurationCalculator.of(timeGroup).calculate();
 
     assertThat(result)
-        .as("Default calculator configuration should use the TimeGroup duration " +
-            "and apply the user's experience weighting")
+        .as("Default calculator configuration should use the TimeGroup duration "
+        + "and apply the user's experience weighting")
         .isEqualTo(60);
   }
 

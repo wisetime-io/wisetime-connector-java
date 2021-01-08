@@ -4,28 +4,6 @@
 
 package io.wisetime.connector.api_client;
 
-import com.google.common.collect.Lists;
-
-import io.wisetime.generated.connect.SyncActivityTypesRequest;
-import io.wisetime.generated.connect.SyncSession;
-import io.wisetime.generated.connect.TagMetadataDeleteRequest;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-import java.util.ArrayList;
-
-import io.wisetime.connector.metric.ApiClientMetricWrapper;
-import io.wisetime.connector.metric.Metric;
-import io.wisetime.connector.metric.MetricService;
-import io.wisetime.generated.connect.AddKeywordsRequest;
-import io.wisetime.generated.connect.DeleteKeywordRequest;
-import io.wisetime.generated.connect.DeleteTagRequest;
-import io.wisetime.generated.connect.SubscribeRequest;
-import io.wisetime.generated.connect.TimeGroupStatus;
-import io.wisetime.generated.connect.UnsubscribeRequest;
-import io.wisetime.generated.connect.UpsertTagRequest;
-
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -35,6 +13,25 @@ import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
+
+import com.google.common.collect.Lists;
+import io.wisetime.connector.metric.ApiClientMetricWrapper;
+import io.wisetime.connector.metric.Metric;
+import io.wisetime.connector.metric.MetricService;
+import io.wisetime.generated.connect.AddKeywordsRequest;
+import io.wisetime.generated.connect.DeleteKeywordRequest;
+import io.wisetime.generated.connect.DeleteTagRequest;
+import io.wisetime.generated.connect.SubscribeRequest;
+import io.wisetime.generated.connect.SyncActivityTypesRequest;
+import io.wisetime.generated.connect.SyncSession;
+import io.wisetime.generated.connect.TagMetadataDeleteRequest;
+import io.wisetime.generated.connect.TimeGroupStatus;
+import io.wisetime.generated.connect.UnsubscribeRequest;
+import io.wisetime.generated.connect.UpsertTagRequest;
+import java.io.IOException;
+import java.util.ArrayList;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author yehor.lashkul

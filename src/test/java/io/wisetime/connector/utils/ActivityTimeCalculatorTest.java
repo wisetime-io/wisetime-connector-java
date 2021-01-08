@@ -4,19 +4,16 @@
 
 package io.wisetime.connector.utils;
 
+import static io.wisetime.connector.utils.ActivityTimeCalculator.startTime;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-
-import org.junit.jupiter.api.Test;
-
-import java.time.LocalDateTime;
-
 import io.wisetime.connector.test_util.FakeEntities;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeRow;
-
-import static io.wisetime.connector.utils.ActivityTimeCalculator.startTime;
-import static org.assertj.core.api.Assertions.assertThat;
+import java.time.LocalDateTime;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author shane.xie@practiceinsight.io

@@ -7,7 +7,6 @@ package io.wisetime.connector.template.format;
 import freemarker.core.Environment;
 import freemarker.core.TemplateNumberFormat;
 import freemarker.core.TemplateNumberFormatFactory;
-
 import java.util.Locale;
 
 /**

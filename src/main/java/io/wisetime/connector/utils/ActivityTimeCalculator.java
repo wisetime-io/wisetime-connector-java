@@ -4,14 +4,12 @@
 
 package io.wisetime.connector.utils;
 
-import org.apache.commons.lang3.StringUtils;
-
+import io.wisetime.generated.connect.TimeGroup;
+import io.wisetime.generated.connect.TimeRow;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
-
-import io.wisetime.generated.connect.TimeGroup;
-import io.wisetime.generated.connect.TimeRow;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Utility to calculate activity times relevant to WiseTime.

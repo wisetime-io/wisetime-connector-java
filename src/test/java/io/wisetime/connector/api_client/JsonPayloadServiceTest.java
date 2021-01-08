@@ -4,20 +4,18 @@
 
 package io.wisetime.connector.api_client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import io.wisetime.connector.config.TolerantObjectMapper;
-import io.wisetime.connector.config.info.ConnectorInfo;
-import io.wisetime.connector.config.info.ConnectorInfoProvider;
-import io.wisetime.connector.metric.MetricInfo;
-
 import static io.wisetime.connector.api_client.JsonPayloadService.CONNECTOR_INFO_KEY;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.wisetime.connector.config.TolerantObjectMapper;
+import io.wisetime.connector.config.info.ConnectorInfo;
+import io.wisetime.connector.config.info.ConnectorInfoProvider;
+import io.wisetime.connector.metric.MetricInfo;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author yehor.lashkul

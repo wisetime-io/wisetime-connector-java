@@ -87,5 +87,7 @@ public interface WiseTimeConnector {
   /**
    * Called when application is about to stop. Implementations should free the resources that the connector have acquired.
    */
-  default void shutdown() {}
+  default void shutdown() {
+
+  }
 }

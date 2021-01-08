@@ -4,11 +4,9 @@
 
 package io.wisetime.connector.test_util;
 
+import static java.nio.file.FileVisitResult.CONTINUE;
+
 import com.github.javafaker.Faker;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.FileVisitResult;
@@ -17,8 +15,8 @@ import java.nio.file.Path;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.stream.IntStream;
-
-import static java.nio.file.FileVisitResult.CONTINUE;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TemporaryFolder {
   private static final Logger log = LoggerFactory.getLogger(TemporaryFolder.class);

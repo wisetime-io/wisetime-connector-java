@@ -12,7 +12,7 @@ import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.api_client.PostResult.PostResultStatus;
-import io.wisetime.connector.datastore.SQLiteHelper;
+import io.wisetime.connector.datastore.SqLiteHelper;
 import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.time_poster.TimePoster;
 import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
@@ -51,7 +51,7 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
 
   @SuppressWarnings("ParameterNumber")
   public FetchClientTimePoster(WiseTimeConnector wiseTimeConnector, ApiClient apiClient, HealthCheck healthCheck,
-      Supplier<ExecutorService> executorProvider, SQLiteHelper sqLiteHelper, int timeGroupsFetchLimit) {
+      Supplier<ExecutorService> executorProvider, SqLiteHelper sqLiteHelper, int timeGroupsFetchLimit) {
     this(wiseTimeConnector, apiClient, healthCheck, executorProvider, new TimeGroupIdStore(sqLiteHelper),
         timeGroupsFetchLimit);
   }

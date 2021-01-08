@@ -4,15 +4,13 @@
 
 package io.wisetime.connector.api_client.support;
 
-import com.google.common.collect.Lists;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.javafaker.Faker;
-
+import com.google.common.collect.Lists;
 import org.apache.http.message.BasicHeader;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  * @author thomas.haines

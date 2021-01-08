@@ -4,21 +4,20 @@
 
 package io.wisetime.connector.api_client;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.wisetime.connector.WiseTimeConnector;
 import io.wisetime.connector.metric.Metric;
 import io.wisetime.connector.metric.MetricService;
 import io.wisetime.connector.metric.WiseTimeConnectorMetricWrapper;
 import io.wisetime.generated.connect.TimeGroup;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import spark.Request;
-
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 /**
  * @author vadym

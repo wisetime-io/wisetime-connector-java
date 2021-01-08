@@ -5,7 +5,6 @@
 package io.wisetime.connector.time_poster.webhook;
 
 import javax.servlet.FilterConfig;
-
 import spark.servlet.SparkApplication;
 import spark.servlet.SparkFilter;
 

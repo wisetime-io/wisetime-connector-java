@@ -1,10 +1,14 @@
 apply plugin: 'checkstyle'
 
 checkstyle {
-    toolVersion = '8.1'
+    toolVersion = "8.38"
     configFile = new File(rootDir, 'gradle/conf/checkstyle.xml')
     configProperties.checkstyleConfigDir = new File(rootDir, 'gradle/conf')
-    configProperties.suppressionFile = new File(rootDir, 'gradle/conf/suppression.xml')
+    configProperties.suppressionFile = new File(rootDir, 'gradle/conf/checkstyle_suppressions.xml')
     ignoreFailures = false
     showViolations = true
 }
+
+checkstyleMain
+        .exclude('com/google/**')
+        .exclude('**/generated/**')

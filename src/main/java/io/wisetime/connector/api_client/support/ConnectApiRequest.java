@@ -4,6 +4,9 @@
 
 package io.wisetime.connector.api_client.support;
 
+import java.io.IOException;
+import javax.annotation.Nullable;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.StatusLine;
@@ -13,12 +16,6 @@ import org.apache.http.client.fluent.Request;
 import org.apache.http.client.fluent.Response;
 import org.apache.http.entity.ContentType;
 import org.apache.http.util.EntityUtils;
-
-import java.io.IOException;
-
-import javax.annotation.Nullable;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Encapsulate a conventional http request and add authentication authentication headers

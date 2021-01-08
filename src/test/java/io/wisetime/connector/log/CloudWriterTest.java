@@ -4,14 +4,12 @@
 
 package io.wisetime.connector.log;
 
-import org.junit.jupiter.api.Test;
-
-import java.net.URL;
-import java.util.Map;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.wisetime.connector.config.PropertyFileUtil;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import java.net.URL;
+import java.util.Map;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author thomas.haines

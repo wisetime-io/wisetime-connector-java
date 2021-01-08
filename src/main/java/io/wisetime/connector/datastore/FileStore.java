@@ -4,12 +4,11 @@
 
 package io.wisetime.connector.datastore;
 
-import org.codejargon.fluentjdbc.api.query.Query;
-import org.codejargon.fluentjdbc.api.query.UpdateResult;
+import static io.wisetime.connector.datastore.CoreLocalDbTable.TABLE_KEY_MAP;
 
 import java.util.Optional;
-
-import static io.wisetime.connector.datastore.CoreLocalDbTable.TABLE_KEY_MAP;
+import org.codejargon.fluentjdbc.api.query.Query;
+import org.codejargon.fluentjdbc.api.query.UpdateResult;
 
 /**
  * Sqlite implementation of {@link ConnectorStore}. If {@link io.wisetime.connector.config.ConnectorConfigKey#DATA_DIR} is
@@ -20,9 +19,9 @@ import static io.wisetime.connector.datastore.CoreLocalDbTable.TABLE_KEY_MAP;
  */
 public class FileStore implements ConnectorStore {
 
-  private SQLiteHelper sqLiteHelper;
+  private SqLiteHelper sqLiteHelper;
 
-  public FileStore(SQLiteHelper sqLiteHelper) {
+  public FileStore(SqLiteHelper sqLiteHelper) {
     this.sqLiteHelper = sqLiteHelper;
     sqLiteHelper.createTable(TABLE_KEY_MAP);
   }

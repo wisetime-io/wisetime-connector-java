@@ -5,21 +5,18 @@
 package io.wisetime.connector.template;
 
 import com.google.common.collect.ImmutableMap;
-
 import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
-
-import java.io.IOException;
-import java.io.StringWriter;
-
 import io.wisetime.connector.template.format.DurationNumberFormatFactory;
 import io.wisetime.connector.template.format.PrintSubmittedDateFormatFactory;
 import io.wisetime.connector.template.loader.TemplateLoaderHelper;
 import io.wisetime.connector.template.loader.TemplateLoaderHelperFactory;
 import io.wisetime.generated.connect.TimeGroup;
+import java.io.IOException;
+import java.io.StringWriter;
 
 /**
  * Template to format user activity text based on Freemarker engine.

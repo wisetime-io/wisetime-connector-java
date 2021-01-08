@@ -1,7 +1,7 @@
 apply plugin: "jacoco"
 
 jacoco {
-    toolVersion = "0.8.3"
+    toolVersion = "0.8.6"
 }
 
 jacocoTestReport {
@@ -16,18 +16,18 @@ jacocoTestCoverageVerification {
     violationRules {
         rule {
             // https://docs.gradle.org/4.10/javadoc/org/gradle/testing/jacoco/tasks/rules/JacocoViolationRule.html
-            element = 'PACKAGE'
+            element = 'BUNDLE'
             limit {
                 counter = 'LINE'
                 value = 'COVEREDRATIO'
-                minimum = 0.7
+                minimum = 0.5
             }
             excludes = [
                     'io.wisetime.connector.log',
                     'io.wisetime.connector.api_client.support',
                     'io.wisetime.connector.datastore',
                     'io.wisetime.connector.time_poster',
-                    
+
                     // code coverage candidates:
                     'io.wisetime.connector.controller',
                     'io.wisetime.connector',
@@ -35,7 +35,7 @@ jacocoTestCoverageVerification {
             ]
         }
         rule {
-            element = 'PACKAGE'
+            element = 'BUNDLE'
             limit {
                 counter = 'LINE'
                 value = 'COVEREDRATIO'
@@ -46,7 +46,7 @@ jacocoTestCoverageVerification {
             ]
         }
         rule {
-            element = 'PACKAGE'
+            element = 'BUNDLE'
             limit {
                 counter = 'LINE'
                 value = 'COVEREDRATIO'
@@ -57,7 +57,7 @@ jacocoTestCoverageVerification {
             ]
         }
         rule {
-            element = 'PACKAGE'
+            element = 'BUNDLE'
             limit {
                 counter = 'LINE'
                 value = 'COVEREDRATIO'
@@ -67,7 +67,7 @@ jacocoTestCoverageVerification {
                     'io.wisetime.connector.api_client.support'
             ]
         }
-        
+
     }
 }
 

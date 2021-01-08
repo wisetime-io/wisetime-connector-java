@@ -4,15 +4,13 @@
 
 package io.wisetime.connector.log;
 
+import ch.qos.logback.classic.Level;
 import com.amazonaws.services.logs.model.InputLogEvent;
-
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import ch.qos.logback.classic.Level;
 import lombok.Data;
 
 /**
@@ -25,7 +23,7 @@ class LogQueueCW {
    *   a. The maximum batch size is 1,048,576 bytes, and this size is calculated as the sum of all event messages in UTF-8,
    *      plus 26 bytes for each log event.
    *   b.
-   * <pre>
+   * </pre>
    * @return List to send to AWS
    */
   PutLogEventList createListFromQueue(Queue<LogEntryCW> messageQueue) {

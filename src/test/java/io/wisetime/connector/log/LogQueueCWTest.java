@@ -4,15 +4,13 @@
 
 package io.wisetime.connector.log;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-
-import java.util.concurrent.ConcurrentLinkedQueue;
+import static org.assertj.core.api.Assertions.assertThat;
 
 import io.github.benas.randombeans.EnhancedRandomBuilder;
 import io.github.benas.randombeans.api.EnhancedRandom;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author thomas.haines

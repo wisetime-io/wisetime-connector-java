@@ -4,6 +4,16 @@
 
 package io.wisetime.connector.datastore;
 
+import static io.wisetime.connector.config.ConnectorConfigKey.DATA_DIR;
+
+import io.wisetime.connector.config.ConnectorConfigKey;
+import io.wisetime.connector.config.RuntimeConfig;
+import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import javax.sql.DataSource;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.codejargon.fluentjdbc.api.FluentJdbc;
 import org.codejargon.fluentjdbc.api.FluentJdbcBuilder;
@@ -11,28 +21,15 @@ import org.codejargon.fluentjdbc.api.mapper.Mappers;
 import org.codejargon.fluentjdbc.api.query.Query;
 import org.sqlite.SQLiteDataSource;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
-
-import javax.sql.DataSource;
-
-import io.wisetime.connector.config.ConnectorConfigKey;
-import io.wisetime.connector.config.RuntimeConfig;
-import lombok.extern.slf4j.Slf4j;
-
-import static io.wisetime.connector.config.ConnectorConfigKey.DATA_DIR;
-
 /**
  * @author galya.bogdanova
  */
 @Slf4j
-public class SQLiteHelper {
+public class SqLiteHelper {
 
   private final FluentJdbc fluentJdbc;
 
-  public SQLiteHelper(File databaseFile) {
+  public SqLiteHelper(File databaseFile) {
     this.fluentJdbc = setupDataSource(databaseFile);
   }
 
@@ -40,7 +37,7 @@ public class SQLiteHelper {
    * @param persistentStorageOnly TODO(Dev) Improve explanation of use case for not using location by convention if no
    *                              explicit location is provided via config.
    */
-  public SQLiteHelper(boolean persistentStorageOnly) {
+  public SqLiteHelper(boolean persistentStorageOnly) {
     final String persistentStoreDirPath = RuntimeConfig.getString(DATA_DIR).orElse(null);
     if (persistentStorageOnly && StringUtils.isBlank(persistentStoreDirPath)) {
       throw new IllegalArgumentException(String.format(
