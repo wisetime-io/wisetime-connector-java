@@ -23,9 +23,6 @@ jacocoTestCoverageVerification {
                 minimum = 0.5
             }
             excludes = [
-                    'io.wisetime.connector.log',
-                    'io.wisetime.connector.api_client.support',
-                    'io.wisetime.connector.datastore',
                     'io.wisetime.connector.time_poster',
 
                     // code coverage candidates:
