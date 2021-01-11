@@ -34,40 +34,6 @@ jacocoTestCoverageVerification {
                     'io.wisetime.generated.connect'
             ]
         }
-        rule {
-            element = 'BUNDLE'
-            limit {
-                counter = 'LINE'
-                value = 'COVEREDRATIO'
-                minimum = 0.6
-            }
-            includes = [
-                    'io.wisetime.connector.datastore'
-            ]
-        }
-        rule {
-            element = 'BUNDLE'
-            limit {
-                counter = 'LINE'
-                value = 'COVEREDRATIO'
-                minimum = 0.5
-            }
-            includes = [
-                    'io.wisetime.connector.log'
-            ]
-        }
-        rule {
-            element = 'BUNDLE'
-            limit {
-                counter = 'LINE'
-                value = 'COVEREDRATIO'
-                minimum = 0.2
-            }
-            includes = [
-                    'io.wisetime.connector.api_client.support'
-            ]
-        }
-
     }
 }
 
