@@ -1,11 +1,14 @@
 apply plugin: "jacoco"
 
 ext {
+    jcLineMin = 0.5
+    jcClassMin = 0.8
+    jcInstructionMin = 0.4
+
     jacocoExcludes = [
         'io/wisetime/connector/time_poster/**',
         // code coverage candidates:
         'io/wisetime/connector/controller/**',
-        'io/wisetime/connector/**',
         'io/wisetime/generated/connect/**'
     ]
 }
@@ -36,7 +39,23 @@ jacocoTestCoverageVerification {
             limit {
                 counter = 'LINE'
                 value = 'COVEREDRATIO'
-                minimum = 0.5
+                minimum = jcLineMin
+            }
+        }
+        rule {
+            element = 'BUNDLE'
+            limit {
+                counter = 'CLASS'
+                value = 'COVEREDRATIO'
+                minimum = jcClassMin
+            }
+        }
+        rule {
+            element = 'BUNDLE'
+            limit {
+                counter = 'INSTRUCTION'
+                value = 'COVEREDRATIO'
+                minimum = jcInstructionMin
             }
         }
     }
