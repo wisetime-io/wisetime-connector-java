@@ -4,10 +4,9 @@
 
 package io.wisetime.connector.utils;
 
-import java.util.function.Function;
-
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeRow;
+import java.util.function.Function;
 
 /**
  * Utility to assist with calculating durations for a {@link TimeGroup}.

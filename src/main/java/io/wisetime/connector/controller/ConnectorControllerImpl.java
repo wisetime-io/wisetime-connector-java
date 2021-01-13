@@ -20,7 +20,7 @@ import io.wisetime.connector.config.TolerantObjectMapper;
 import io.wisetime.connector.config.info.ConnectorInfoProvider;
 import io.wisetime.connector.config.info.ConstantConnectorInfoProvider;
 import io.wisetime.connector.datastore.FileStore;
-import io.wisetime.connector.datastore.SQLiteHelper;
+import io.wisetime.connector.datastore.SqLiteHelper;
 import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.health.HealthIndicator;
 import io.wisetime.connector.health.WiseTimeConnectorHealthIndicator;
@@ -106,7 +106,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     ApiClient apiClient = new ApiClientMetricWrapper(configuration.getApiClient(), metricService);
     apiClient = new ApiClientTagWrapper(apiClient, tagRunner);
 
-    final SQLiteHelper sqLiteHelper = new SQLiteHelper(configuration.isForcePersistentStorage());
+    final SqLiteHelper sqLiteHelper = new SqLiteHelper(configuration.isForcePersistentStorage());
     connectorModule = new ConnectorModule(apiClient, new FileStore(sqLiteHelper),
         new ConnectorModule.IntervalConfig()
             .setActivityTypeSlowLoopIntervalMinutes(
@@ -233,7 +233,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
 
   private TimePoster createTimePoster(ConnectorControllerConfiguration configuration,
       ApiClient apiClient,
-      SQLiteHelper sqLiteHelper,
+      SqLiteHelper sqLiteHelper,
       ConnectorInfoProvider connectorInfoProvider) {
     final ConnectorControllerBuilderImpl.PostedTimeLoadMode mode = configuration.getPostedTimeLoadMode();
     switch (mode) {

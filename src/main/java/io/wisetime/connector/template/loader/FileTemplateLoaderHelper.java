@@ -6,7 +6,6 @@ package io.wisetime.connector.template.loader;
 
 import freemarker.cache.FileTemplateLoader;
 import freemarker.cache.TemplateLoader;
-
 import java.io.File;
 import java.io.IOException;
 

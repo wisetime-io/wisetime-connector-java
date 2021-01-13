@@ -4,39 +4,30 @@
 
 package io.wisetime.connector.api_client;
 
-import com.google.common.collect.ImmutableList;
+import static java.util.Optional.empty;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-
+import com.google.common.collect.ImmutableList;
+import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.connector.utils.EmptyResponse;
+import io.wisetime.generated.connect.AddKeywordsRequest;
+import io.wisetime.generated.connect.AddKeywordsResponse;
 import io.wisetime.generated.connect.BatchUpsertTagRequest;
 import io.wisetime.generated.connect.BatchUpsertTagResponse;
+import io.wisetime.generated.connect.DeleteKeywordRequest;
+import io.wisetime.generated.connect.DeleteKeywordResponse;
+import io.wisetime.generated.connect.DeleteTagRequest;
+import io.wisetime.generated.connect.DeleteTagResponse;
 import io.wisetime.generated.connect.HealthCheckFailureNotify;
 import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
+import io.wisetime.generated.connect.SubscribeRequest;
+import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.SyncActivityTypesRequest;
 import io.wisetime.generated.connect.SyncActivityTypesResponse;
 import io.wisetime.generated.connect.SyncSession;
 import io.wisetime.generated.connect.TagMetadataDeleteRequest;
 import io.wisetime.generated.connect.TagMetadataDeleteResponse;
-import org.apache.http.message.BasicNameValuePair;
-
-import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
-
-import io.wisetime.connector.api_client.support.RestRequestExecutor;
-import io.wisetime.generated.connect.AddKeywordsRequest;
-import io.wisetime.generated.connect.AddKeywordsResponse;
-import io.wisetime.generated.connect.DeleteKeywordRequest;
-import io.wisetime.generated.connect.DeleteKeywordResponse;
-import io.wisetime.generated.connect.DeleteTagRequest;
-import io.wisetime.generated.connect.DeleteTagResponse;
-import io.wisetime.generated.connect.SubscribeRequest;
-import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.TeamInfoResult;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeGroupStatus;
@@ -44,8 +35,13 @@ import io.wisetime.generated.connect.UnsubscribeRequest;
 import io.wisetime.generated.connect.UnsubscribeResult;
 import io.wisetime.generated.connect.UpsertTagRequest;
 import io.wisetime.generated.connect.UpsertTagResponse;
-
-import static java.util.Optional.empty;
+import java.io.IOException;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ForkJoinPool;
+import org.apache.http.message.BasicNameValuePair;
 
 /**
  * Multi-thread implementation of {@link ApiClient}. {@link RestRequestExecutor} is responsible for handling authentication.

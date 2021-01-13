@@ -4,35 +4,6 @@
 
 package io.wisetime.connector.api_client;
 
-import com.google.common.collect.ImmutableList;
-
-import com.github.javafaker.Faker;
-
-import io.wisetime.generated.connect.ActivityType;
-import io.wisetime.generated.connect.BatchUpsertTagRequest;
-import io.wisetime.generated.connect.BatchUpsertTagResponse;
-import io.wisetime.generated.connect.HealthCheckFailureNotify;
-import io.wisetime.generated.connect.SyncActivityTypesRequest;
-import io.wisetime.generated.connect.SyncActivityTypesResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.IntStream;
-
-import io.wisetime.connector.api_client.support.RestRequestExecutor;
-import io.wisetime.generated.connect.AddKeywordsRequest;
-import io.wisetime.generated.connect.AddKeywordsResponse;
-import io.wisetime.generated.connect.DeleteTagRequest;
-import io.wisetime.generated.connect.DeleteTagResponse;
-import io.wisetime.generated.connect.TimeGroupStatus;
-import io.wisetime.generated.connect.UpsertTagRequest;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -43,6 +14,31 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.mockito.internal.verification.VerificationModeFactory.times;
+
+import com.github.javafaker.Faker;
+import com.google.common.collect.ImmutableList;
+import io.wisetime.connector.api_client.support.RestRequestExecutor;
+import io.wisetime.generated.connect.ActivityType;
+import io.wisetime.generated.connect.AddKeywordsRequest;
+import io.wisetime.generated.connect.AddKeywordsResponse;
+import io.wisetime.generated.connect.BatchUpsertTagRequest;
+import io.wisetime.generated.connect.BatchUpsertTagResponse;
+import io.wisetime.generated.connect.DeleteTagRequest;
+import io.wisetime.generated.connect.DeleteTagResponse;
+import io.wisetime.generated.connect.HealthCheckFailureNotify;
+import io.wisetime.generated.connect.SyncActivityTypesRequest;
+import io.wisetime.generated.connect.SyncActivityTypesResponse;
+import io.wisetime.generated.connect.TimeGroupStatus;
+import io.wisetime.generated.connect.UpsertTagRequest;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.IntStream;
+import org.apache.http.NameValuePair;
+import org.apache.http.message.BasicNameValuePair;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 /**
  * @author shane.xie@practiceinsight.io

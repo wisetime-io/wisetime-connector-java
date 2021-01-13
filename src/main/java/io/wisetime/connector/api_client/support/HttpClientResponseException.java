@@ -30,10 +30,10 @@ public class HttpClientResponseException extends HttpResponseException {
 
   @Override
   public String toString() {
-    return "HttpClientResponseException{" +
-        "content='" + content + '\'' +
-        ", statusCode=" + statusCode +
-        ", message='" + message + '\'' +
-        '}';
+    return "HttpClientResponseException{"
+        + "content='" + content + '\''
+        + ", statusCode=" + statusCode
+        + ", message='" + message + '\''
+        + '}';
   }
 }

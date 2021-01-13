@@ -4,17 +4,16 @@
 
 package io.wisetime.connector.test_util;
 
+import static java.util.Arrays.stream;
+
+import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
 import org.junit.jupiter.api.extension.AfterEachCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
 import org.junit.jupiter.api.extension.TestInstancePostProcessor;
-
-import java.lang.reflect.Field;
-import java.util.ArrayList;
-import java.util.Collection;
-
-import static java.util.Arrays.stream;
 
 public class TemporaryFolderExtension
     implements AfterEachCallback, TestInstancePostProcessor, ParameterResolver {

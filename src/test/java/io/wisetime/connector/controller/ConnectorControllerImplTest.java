@@ -31,18 +31,18 @@ class ConnectorControllerImplTest {
         .build();
 
     assertThat(connectorController.tagTaskSchedule.getPeriodMs())
-        .as("Tag sync interval minutes shouldn't be changed without due consideration as it affects all " +
-            "downstream connectors")
+        .as("Tag sync interval minutes shouldn't be changed without due consideration as it affects all "
+        + "downstream connectors")
         .isEqualTo(TimeUnit.MINUTES.toMillis(1));
 
     assertThat(connectorController.tagSlowLoopTaskSchedule.getPeriodMs())
-        .as("Tag slow loop sync interval minutes shouldn't be changed without due consideration as it affects all " +
-            "downstream connectors")
+        .as("Tag slow loop sync interval minutes shouldn't be changed without due consideration as it affects all "
+        + "downstream connectors")
         .isEqualTo(TimeUnit.MINUTES.toMillis(5));
 
     assertThat(connectorController.activityTypeTaskSchedule.getPeriodMs())
-        .as("Activity type sync interval minutes shouldn't be changed without due consideration as it affects all " +
-            "downstream connectors")
+        .as("Activity type sync interval minutes shouldn't be changed without due consideration as it affects all "
+        + "downstream connectors")
         .isEqualTo(TimeUnit.MINUTES.toMillis(5));
 
     assertThat(connectorController.activityTypeSlowLoopTaskSchedule.getPeriodMs())

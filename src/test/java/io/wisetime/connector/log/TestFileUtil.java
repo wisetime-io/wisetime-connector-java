@@ -5,7 +5,6 @@
 package io.wisetime.connector.log;
 
 import com.amazonaws.util.IOUtils;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;

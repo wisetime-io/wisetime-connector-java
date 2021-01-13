@@ -6,10 +6,8 @@ package io.wisetime.connector.api_client;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.base.Preconditions;
-
-import org.apache.commons.lang3.exception.ExceptionUtils;
-
 import java.util.Optional;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 
 /**
  * Indicator of posted time status.
@@ -17,6 +15,7 @@ import java.util.Optional;
  * @author thomas.haines
  * @author shane.xie@practiceinsight.io
  */
+@SuppressWarnings({"MethodName", "AbbreviationAsWordInName"})
 public class PostResult {
 
   private final PostResultStatus status;

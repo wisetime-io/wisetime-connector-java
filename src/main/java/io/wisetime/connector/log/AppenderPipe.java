@@ -4,16 +4,14 @@
 
 package io.wisetime.connector.log;
 
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.UnsynchronizedAppenderBase;
 import com.amazonaws.services.logs.model.InputLogEvent;
-
 import java.util.UUID;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.TimeUnit;
-
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.UnsynchronizedAppenderBase;
 
 /**
  * This class is not intended to be constructed via the joran xml logback constructor. It is constructed explicitly, and

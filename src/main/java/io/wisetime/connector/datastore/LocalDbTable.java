@@ -5,7 +5,6 @@
 package io.wisetime.connector.datastore;
 
 import java.util.List;
-
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.ToString;

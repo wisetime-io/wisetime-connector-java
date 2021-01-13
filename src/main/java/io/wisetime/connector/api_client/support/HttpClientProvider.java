@@ -4,6 +4,7 @@
 
 package io.wisetime.connector.api_client.support;
 
+import javax.net.ssl.SSLContext;
 import org.apache.http.client.HttpClient;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
@@ -18,8 +19,6 @@ import org.apache.http.impl.client.StandardHttpRequestRetryHandler;
 import org.apache.http.impl.conn.PoolingHttpClientConnectionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import javax.net.ssl.SSLContext;
 
 /**
  * <pre>

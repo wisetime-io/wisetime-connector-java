@@ -4,19 +4,17 @@
 
 package io.wisetime.connector.config;
 
-import org.apache.commons.io.FileUtils;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import static io.wisetime.connector.config.ConnectorConfigKey.CONNECTOR_PROPERTIES_FILE;
+import static org.assertj.core.api.Assertions.assertThat;
 
+import io.wisetime.connector.test_util.FakerUtil;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-
-import io.wisetime.connector.test_util.FakerUtil;
-
-import static io.wisetime.connector.config.ConnectorConfigKey.CONNECTOR_PROPERTIES_FILE;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.apache.commons.io.FileUtils;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author thomas.haines

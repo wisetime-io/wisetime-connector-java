@@ -4,9 +4,8 @@
 
 package io.wisetime.connector.datastore;
 
-import java.util.Optional;
-
 import io.wisetime.connector.WiseTimeConnector;
+import java.util.Optional;
 
 /**
  * {@link WiseTimeConnector} implementations can use this storage to persist data between

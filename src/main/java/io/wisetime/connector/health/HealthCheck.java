@@ -4,14 +4,13 @@
 
 package io.wisetime.connector.health;
 
+import io.wisetime.connector.WiseTimeConnector;
+import io.wisetime.connector.config.ConnectorConfigKey;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
-
-import io.wisetime.connector.WiseTimeConnector;
-import io.wisetime.connector.config.ConnectorConfigKey;
 import lombok.extern.slf4j.Slf4j;
 
 /**

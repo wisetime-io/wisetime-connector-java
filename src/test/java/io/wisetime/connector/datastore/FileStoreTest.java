@@ -4,14 +4,12 @@
 
 package io.wisetime.connector.datastore;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.github.javafaker.Faker;
-
-import org.junit.jupiter.api.Test;
-
 import java.io.File;
 import java.util.Optional;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author thomas.haines
@@ -23,7 +21,7 @@ class FileStoreTest {
   private final Faker faker = new Faker();
 
   FileStoreTest() {
-    final SQLiteHelper sqLiteHelper = new SQLiteHelper(new File("temp.db"));
+    final SqLiteHelper sqLiteHelper = new SqLiteHelper(new File("temp.db"));
     this.fileStore = new FileStore(sqLiteHelper);
   }
 

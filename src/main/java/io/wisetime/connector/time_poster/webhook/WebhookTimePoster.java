@@ -5,22 +5,19 @@
 package io.wisetime.connector.time_poster.webhook;
 
 import com.google.common.annotations.VisibleForTesting;
-
-import io.wisetime.connector.datastore.SQLiteHelper;
+import io.wisetime.connector.WiseTimeConnector;
+import io.wisetime.connector.api_client.JsonPayloadService;
+import io.wisetime.connector.datastore.SqLiteHelper;
+import io.wisetime.connector.metric.MetricService;
+import io.wisetime.connector.time_poster.TimePoster;
 import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
+import java.io.IOException;
+import java.net.URI;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.http.client.fluent.Executor;
 import org.apache.http.client.fluent.Request;
 import org.eclipse.jetty.server.Server;
-
-import java.io.IOException;
-import java.net.URI;
-
-import io.wisetime.connector.WiseTimeConnector;
-import io.wisetime.connector.api_client.JsonPayloadService;
-import io.wisetime.connector.metric.MetricService;
-import io.wisetime.connector.time_poster.TimePoster;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Wrapper around jetty server with spark application.
@@ -38,7 +35,7 @@ public class WebhookTimePoster implements TimePoster {
   private final Server server;
 
   public WebhookTimePoster(int port, JsonPayloadService payloadService, WiseTimeConnector wiseTimeConnector,
-                           MetricService metricService, SQLiteHelper sqLiteHelper) {
+                           MetricService metricService, SqLiteHelper sqLiteHelper) {
     this(port, payloadService, wiseTimeConnector, metricService, new TimeGroupIdStore(sqLiteHelper));
   }
 

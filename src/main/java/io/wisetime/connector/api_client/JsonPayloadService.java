@@ -8,11 +8,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import java.io.IOException;
-
 import io.wisetime.connector.config.info.ConnectorInfo;
 import io.wisetime.connector.config.info.ConnectorInfoProvider;
+import java.io.IOException;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -43,6 +41,12 @@ public class JsonPayloadService {
     return write(payload, false);
   }
 
+  private String write(Object payload, boolean withInfo) throws JsonProcessingException {
+    return withInfo
+        ? writeNodeWithInfo(mapper.valueToTree(payload))
+        : mapper.writeValueAsString(payload);
+  }
+
   /**
    * Serializes any Java payload as a JSON String and adds {@link ConnectorInfo} to it
    */
@@ -56,12 +60,6 @@ public class JsonPayloadService {
   public String writeWithInfo(String key, String value) throws JsonProcessingException {
     ObjectNode payload = mapper.createObjectNode().put(key, value);
     return writeWithInfo(payload);
-  }
-
-  private String write(Object payload, boolean withInfo) throws JsonProcessingException {
-    return withInfo
-        ? writeNodeWithInfo(mapper.valueToTree(payload))
-        : mapper.writeValueAsString(payload);
   }
 
   private String writeNodeWithInfo(ObjectNode payload) throws JsonProcessingException {

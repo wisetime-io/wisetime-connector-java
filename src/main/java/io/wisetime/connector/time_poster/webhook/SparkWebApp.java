@@ -4,6 +4,8 @@
 
 package io.wisetime.connector.time_poster.webhook;
 
+import java.io.File;
+import java.net.URL;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
@@ -12,10 +14,6 @@ import org.eclipse.jetty.server.handler.HandlerCollection;
 import org.eclipse.jetty.servlet.FilterHolder;
 import org.eclipse.jetty.util.thread.QueuedThreadPool;
 import org.eclipse.jetty.webapp.WebAppContext;
-
-import java.io.File;
-import java.net.URL;
-
 import spark.servlet.SparkApplication;
 
 /**

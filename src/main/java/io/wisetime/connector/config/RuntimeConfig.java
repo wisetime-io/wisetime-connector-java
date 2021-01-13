@@ -4,16 +4,9 @@
 
 package io.wisetime.connector.config;
 
+import static io.wisetime.connector.config.ConnectorConfigKey.CONNECTOR_PROPERTIES_FILE;
+
 import com.google.common.annotations.VisibleForTesting;
-
-import org.apache.commons.collections4.map.CaseInsensitiveMap;
-import org.apache.commons.configuration2.CompositeConfiguration;
-import org.apache.commons.configuration2.MapConfiguration;
-import org.apache.commons.configuration2.SystemConfiguration;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -21,8 +14,13 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Properties;
-
-import static io.wisetime.connector.config.ConnectorConfigKey.CONNECTOR_PROPERTIES_FILE;
+import org.apache.commons.collections4.map.CaseInsensitiveMap;
+import org.apache.commons.configuration2.CompositeConfiguration;
+import org.apache.commons.configuration2.MapConfiguration;
+import org.apache.commons.configuration2.SystemConfiguration;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Provides runtime configuration for WiseTime connectors
@@ -69,8 +67,28 @@ public class RuntimeConfig {
 
   }
 
+  /**
+   * Get String config value for key
+   *
+   * @param configKey the key for which to get the value
+   * @return the String value, or an empty optional if there is no value configured for the key
+   */
+  public static Optional<String> getString(RuntimeConfigKey configKey) {
+    return getInstance().getString(configKey.getConfigKey());
+  }
+
   private Optional<String> getString(String key) {
     return Optional.ofNullable(StringUtils.trimToNull(config.getString(key)));
+  }
+
+  /**
+   * Get Integer config value for key
+   *
+   * @param configKey the key for which to get the value
+   * @return the Integer value, or an empty optional if there is no value configured for the key
+   */
+  public static Optional<Integer> getInt(RuntimeConfigKey configKey) {
+    return getInstance().getInt(configKey.getConfigKey());
   }
 
   private Optional<Integer> getInt(String key) {
@@ -97,26 +115,6 @@ public class RuntimeConfig {
     }
     // not provided or could not be parsed to boolean
     return Optional.empty();
-  }
-
-  /**
-   * Get Integer config value for key
-   *
-   * @param configKey the key for which to get the value
-   * @return the Integer value, or an empty optional if there is no value configured for the key
-   */
-  public static Optional<Integer> getInt(RuntimeConfigKey configKey) {
-    return getInstance().getInt(configKey.getConfigKey());
-  }
-
-  /**
-   * Get String config value for key
-   *
-   * @param configKey the key for which to get the value
-   * @return the String value, or an empty optional if there is no value configured for the key
-   */
-  public static Optional<String> getString(RuntimeConfigKey configKey) {
-    return getInstance().getString(configKey.getConfigKey());
   }
 
   /**

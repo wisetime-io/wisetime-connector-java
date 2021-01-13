@@ -4,14 +4,13 @@
 
 package io.wisetime.connector.log;
 
+import ch.qos.logback.classic.filter.ThresholdFilter;
+import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.core.spi.FilterReply;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-
-import ch.qos.logback.classic.filter.ThresholdFilter;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.spi.FilterReply;
 
 /**
  * <pre>

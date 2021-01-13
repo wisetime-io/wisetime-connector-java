@@ -12,7 +12,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.connector.api_client.PostResult.PostResultStatus;
-import io.wisetime.connector.datastore.SQLiteHelper;
+import io.wisetime.connector.datastore.SqLiteHelper;
 import java.io.File;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.tuple.Pair;
@@ -24,11 +24,11 @@ import org.junit.jupiter.api.Test;
 class TimeGroupIdStoreTest {
 
   private final TimeGroupIdStore timeGroupIdStore;
-  private final SQLiteHelper sqLiteHelper;
+  private final SqLiteHelper sqLiteHelper;
   private final Faker faker = new Faker();
 
   TimeGroupIdStoreTest() {
-    sqLiteHelper = new SQLiteHelper(new File("temp.db"));
+    sqLiteHelper = new SqLiteHelper(new File("temp.db"));
     this.timeGroupIdStore = new TimeGroupIdStore(sqLiteHelper);
   }
 
@@ -69,8 +69,8 @@ class TimeGroupIdStoreTest {
   @Test
   void deleteOldOnInsert() {
     final String oldId = faker.numerify("tg##########");
-    sqLiteHelper.query().update("INSERT INTO " + TABLE_TIME_GROUPS_RECEIVED.getName() +
-        " (time_group_id, post_result, received_timestamp, created_ts, message) VALUES (?,?,?,?,?)")
+    sqLiteHelper.query().update("INSERT INTO " + TABLE_TIME_GROUPS_RECEIVED.getName()
+        + " (time_group_id, post_result, received_timestamp, created_ts, message) VALUES (?,?,?,?,?)")
         .params(oldId, PostResultStatus.SUCCESS.name(), System.currentTimeMillis() - TimeUnit.DAYS.toMillis(70),
             System.currentTimeMillis() - TimeUnit.DAYS.toMillis(70), "")
         .run();
