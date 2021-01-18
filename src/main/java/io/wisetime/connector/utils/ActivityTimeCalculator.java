@@ -6,14 +6,13 @@ package io.wisetime.connector.utils;
 
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeRow;
-import org.apache.commons.lang3.StringUtils;
-
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import org.apache.commons.lang3.StringUtils;
 
 /**
  * Utility to calculate activity times relevant to WiseTime.
