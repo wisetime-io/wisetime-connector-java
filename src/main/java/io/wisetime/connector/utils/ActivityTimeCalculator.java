@@ -39,7 +39,7 @@ public class ActivityTimeCalculator {
   }
 
   /**
-   * This method is deprecated. Please use ActivityTimeCalculator#startInstant.
+   * This method is deprecated. Please use {@link ActivityTimeCalculator#startInstant}.
    *
    * The start time of a {@link TimeGroup} is the first observed time of the earliest {@link TimeRow} in the group.
    *
