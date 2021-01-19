@@ -20,11 +20,9 @@ import com.google.common.collect.ImmutableList;
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.generated.connect.ActivityType;
 import io.wisetime.generated.connect.AddKeywordsRequest;
-import io.wisetime.generated.connect.AddKeywordsResponse;
 import io.wisetime.generated.connect.BatchUpsertTagRequest;
 import io.wisetime.generated.connect.BatchUpsertTagResponse;
 import io.wisetime.generated.connect.DeleteTagRequest;
-import io.wisetime.generated.connect.DeleteTagResponse;
 import io.wisetime.generated.connect.HealthCheckFailureNotify;
 import io.wisetime.generated.connect.SyncActivityTypesRequest;
 import io.wisetime.generated.connect.SyncActivityTypesResponse;
@@ -70,9 +68,6 @@ class DefaultApiClientTest {
 
   @Test
   void tagAddKeywordsBatch_completes_on_no_error() throws IOException {
-    when(requestExecutor.executeTypedBodyRequest(any(), any(), any(), any()))
-        .thenReturn(new AddKeywordsResponse());
-
     apiClient.tagAddKeywordsBatch(fakeAddKeywordsRequests(5));
 
     verify(requestExecutor, times(5)).executeTypedBodyRequest(
@@ -87,7 +82,7 @@ class DefaultApiClientTest {
     //mockito answer is not synchronised. it is not guaranteed that only 1 return will be UpsertTagResponse on thread race
     IOException expectedException = new IOException();
     when(requestExecutor.executeTypedBodyRequest(any(), any(), any()))
-        .thenReturn(new AddKeywordsResponse())
+        .thenReturn(null)
         .thenThrow(expectedException);
 
     assertThatThrownBy(() -> apiClient.tagAddKeywordsBatch(fakeAddKeywordsRequests(1000)))
@@ -117,9 +112,6 @@ class DefaultApiClientTest {
 
   @Test
   void tagDelete_completes_on_no_error() throws IOException {
-    when(requestExecutor.executeTypedBodyRequest(any(), any(), any()))
-        .thenReturn(new DeleteTagResponse());
-
     apiClient.tagDelete(new DeleteTagRequest().name("name"));
 
     verify(requestExecutor).executeTypedBodyRequest(
@@ -165,9 +157,6 @@ class DefaultApiClientTest {
 
   @Test
   void updatePostedTimeStatus() throws IOException {
-    when(requestExecutor.executeTypedBodyRequest(any(), any(), any()))
-        .thenReturn(new DeleteTagResponse());
-
     TimeGroupStatus status = new TimeGroupStatus();
     apiClient.updatePostedTimeStatus(status);
 

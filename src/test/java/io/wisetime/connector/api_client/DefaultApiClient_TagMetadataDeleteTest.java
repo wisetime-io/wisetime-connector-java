@@ -7,7 +7,6 @@ package io.wisetime.connector.api_client;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -16,7 +15,6 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 import com.github.javafaker.Faker;
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.generated.connect.TagMetadataDeleteRequest;
-import io.wisetime.generated.connect.TagMetadataDeleteResponse;
 import java.io.IOException;
 import org.assertj.core.util.Lists;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,16 +40,9 @@ public class DefaultApiClient_TagMetadataDeleteTest {
 
   @Test
   void tagMetadataDelete_completes_on_no_error() throws IOException {
-    final TagMetadataDeleteResponse response = new TagMetadataDeleteResponse();
     final TagMetadataDeleteRequest request = fakeTagMetadataDeleteRequest();
 
-    when(requestExecutor.executeTypedBodyRequest(any(), any(), eq(request)))
-        .thenReturn(response);
-
-    TagMetadataDeleteResponse result = apiClient.tagMetadataDelete(request);
-    assertThat(result)
-        .as("get response is passed back")
-        .isEqualTo(response);
+    apiClient.tagMetadataDelete(request);
 
     ArgumentCaptor<TagMetadataDeleteRequest> captor = ArgumentCaptor.forClass(TagMetadataDeleteRequest.class);
     verify(requestExecutor, times(1)).executeTypedBodyRequest(

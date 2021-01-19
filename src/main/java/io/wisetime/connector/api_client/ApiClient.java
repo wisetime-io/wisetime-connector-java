@@ -6,23 +6,18 @@ package io.wisetime.connector.api_client;
 
 import io.wisetime.generated.connect.AddKeywordsRequest;
 import io.wisetime.generated.connect.DeleteKeywordRequest;
-import io.wisetime.generated.connect.DeleteKeywordResponse;
 import io.wisetime.generated.connect.DeleteTagRequest;
 import io.wisetime.generated.connect.HealthCheckFailureNotify;
 import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
 import io.wisetime.generated.connect.SubscribeRequest;
-import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.SyncActivityTypesRequest;
 import io.wisetime.generated.connect.SyncActivityTypesResponse;
 import io.wisetime.generated.connect.SyncSession;
 import io.wisetime.generated.connect.TagMetadataDeleteRequest;
-import io.wisetime.generated.connect.TagMetadataDeleteResponse;
 import io.wisetime.generated.connect.TeamInfoResult;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeGroupStatus;
-import io.wisetime.generated.connect.UnsubscribeRequest;
-import io.wisetime.generated.connect.UnsubscribeResult;
 import io.wisetime.generated.connect.UpsertTagRequest;
 import java.io.IOException;
 import java.util.List;
@@ -87,7 +82,7 @@ public interface ApiClient {
    * @param deleteKeywordRequest contains info about the keyword to be deleted from a tag
    * @throws IOException The {@link IOException}
    */
-  DeleteKeywordResponse tagDeleteKeyword(DeleteKeywordRequest deleteKeywordRequest) throws IOException;
+  void tagDeleteKeyword(DeleteKeywordRequest deleteKeywordRequest) throws IOException;
 
   /**
    * Delete specific metadata from a tag.
@@ -95,7 +90,7 @@ public interface ApiClient {
    * @param tagMetadataDeleteRequest contains info about the metadata to be deleted from a tag
    * @throws IOException The {@link IOException}
    */
-  TagMetadataDeleteResponse tagMetadataDelete(TagMetadataDeleteRequest tagMetadataDeleteRequest) throws IOException;
+  void tagMetadataDelete(TagMetadataDeleteRequest tagMetadataDeleteRequest) throws IOException;
 
   /**
    * Start activity types sync session.
@@ -155,19 +150,16 @@ public interface ApiClient {
    * your team.
    *
    * @param subscribeRequest information about the webhook to be created
-   * @return the subscription result will contain the webhook ID that was assigned to the new webhook
    * @throws IOException The {@link IOException}
    */
-  SubscribeResult postedTimeSubscribe(SubscribeRequest subscribeRequest) throws IOException;
+  void postedTimeSubscribe(SubscribeRequest subscribeRequest) throws IOException;
 
   /**
    * Deletes a posted time webhook.
    *
-   * @param unsubscribeRequest contains the webhook ID to be removed
-   * @return {@link UnsubscribeResult} if webhook has been removed successfully
    * @throws IOException if request is unsuccessful
    */
-  UnsubscribeResult postedTimeUnsubscribe(UnsubscribeRequest unsubscribeRequest) throws IOException;
+  void postedTimeUnsubscribe() throws IOException;
 
   /**
    * Fetches a posted time group.

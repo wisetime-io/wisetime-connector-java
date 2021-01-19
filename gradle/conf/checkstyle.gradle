@@ -1,7 +1,6 @@
 apply plugin: 'checkstyle'
 
 checkstyle {
-    toolVersion = "8.38"
     configFile = new File(rootDir, 'gradle/conf/checkstyle.xml')
     configProperties.checkstyleConfigDir = new File(rootDir, 'gradle/conf')
     configProperties.suppressionFile = new File(rootDir, 'gradle/conf/checkstyle_suppressions.xml')

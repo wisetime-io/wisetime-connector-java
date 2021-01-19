@@ -7,6 +7,7 @@ package io.wisetime.connector.api_client;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import io.wisetime.connector.config.ConnectorConfigKey;
@@ -20,20 +21,15 @@ import io.wisetime.generated.connect.DeleteTagRequest;
 import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
 import io.wisetime.generated.connect.SubscribeRequest;
-import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.SyncActivityTypesRequest;
 import io.wisetime.generated.connect.SyncActivityTypesResponse;
 import io.wisetime.generated.connect.SyncSession;
 import io.wisetime.generated.connect.TeamInfoResult;
-import io.wisetime.generated.connect.UnsubscribeRequest;
-import io.wisetime.generated.connect.UnsubscribeResult;
 import io.wisetime.generated.connect.UpsertTagRequest;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneOffset;
-import java.util.Optional;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
+import lombok.RequiredArgsConstructor;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,39 +42,43 @@ import org.slf4j.LoggerFactory;
  *
  * @author thomas.haines
  */
-class DefaultApiClientIntegrationTest {
+@RequiredArgsConstructor
+class DefaultApiClientRunner {
 
-  private static final Logger log = LoggerFactory.getLogger(DefaultApiClientIntegrationTest.class);
-  private static DefaultApiClient defaultApiClient;
+  private static final Logger log = LoggerFactory.getLogger(DefaultApiClientRunner.class);
+  private final DefaultApiClient defaultApiClient;
 
-  @BeforeAll
-  static void setup() {
-    Optional<String> apiKey = RuntimeConfig.getString(ConnectorConfigKey.API_KEY);
-    boolean runnable = apiKey.isPresent()
-        && !RuntimeConfig.getString(ConnectorConfigKey.API_BASE_URL).orElse("").contains("wisetime.io");
-    if (!runnable) {
-      log.info("DefaultApiClientIntegrationTest skipped");
-      return;
-    }
-    defaultApiClient = new DefaultApiClient(apiKey.get());
+  public static void main(String[] args) throws Exception {
+    String apiKey = RuntimeConfig.getString(ConnectorConfigKey.API_KEY)
+        .orElseThrow(() -> new IllegalStateException("API_KEY is mandatory"));
+    Preconditions.checkState(RuntimeConfig.getString(ConnectorConfigKey.API_BASE_URL).orElse("").contains("wisetime.io"),
+        "api base url is required");
+    final DefaultApiClientRunner runner = new DefaultApiClientRunner(new DefaultApiClient(apiKey));
+
+    runner.testTeamInfo();
+    runner.tagUpsert();
+    runner.tagUpsert_hasSpace();
+    runner.tagUpsert_hasSlash();
+    runner.tagDelete();
+    runner.tagAddKeywords();
+    runner.tagDeleteKeyword();
+    runner.tagAddKeywords_hasSlash();
+    runner.tagDeleteKeyword_hasSlash();
+    runner.activityTypesSyncSession();
+    runner.syncActivityTypes_noSession();
+    runner.postedTimeSubscribe();
+    runner.postedTimeUnsubscribe();
+    runner.managedTimeConfig();
   }
 
-  @Test
   void testTeamInfo() throws IOException {
-    if (defaultApiClient == null) {
-      return;
-    }
     TeamInfoResult teamInfoResult = defaultApiClient.teamInfo();
     assertThat(teamInfoResult.getTeamName())
         .isNotBlank();
     log.info(teamInfoResult.toString());
   }
 
-  @Test
   void tagUpsert() throws IOException {
-    if (defaultApiClient == null) {
-      return;
-    }
     UpsertTagRequest request = new UpsertTagRequest();
     request.setName("CreatedViaApi");
     request.setDescription("Tag from API");
@@ -87,11 +87,7 @@ class DefaultApiClientIntegrationTest {
     defaultApiClient.tagUpsert(request);
   }
 
-  @Test
   void tagUpsert_hasSpace() throws IOException {
-    if (defaultApiClient == null) {
-      return;
-    }
     UpsertTagRequest request = new UpsertTagRequest();
     request.setName("CreatedViaApi with space");
     request.setDescription("Tag from API");
@@ -100,11 +96,7 @@ class DefaultApiClientIntegrationTest {
     defaultApiClient.tagUpsert(request);
   }
 
-  @Test
   void tagUpsert_hasSlash() throws IOException {
-    if (defaultApiClient == null) {
-      return;
-    }
     UpsertTagRequest request = new UpsertTagRequest();
     request.setName("tag/name");
     request.setDescription("Tag from API with slash");
@@ -113,21 +105,13 @@ class DefaultApiClientIntegrationTest {
     defaultApiClient.tagUpsert(request);
   }
 
-  @Test
   void tagDelete() throws IOException {
-    if (defaultApiClient == null) {
-      return;
-    }
     defaultApiClient.tagDelete(new DeleteTagRequest().name("CreatedViaApi"));
     defaultApiClient.tagDelete(new DeleteTagRequest().name("CreatedViaApi with space"));
     defaultApiClient.tagDelete(new DeleteTagRequest().name("tag/name"));
   }
 
-  @Test
   void tagAddKeywords() throws IOException {
-    if (defaultApiClient == null) {
-      return;
-    }
     defaultApiClient.tagAddKeywords(
         new AddKeywordsRequest()
             .tagName("CreatedViaApi")
@@ -135,20 +119,12 @@ class DefaultApiClientIntegrationTest {
     );
   }
 
-  @Test
   void tagDeleteKeyword() throws IOException {
-    if (defaultApiClient == null) {
-      return;
-    }
     defaultApiClient.tagDeleteKeyword(new DeleteKeywordRequest().tagName("CreatedViaApi").keyword("keyword_from_API"));
     defaultApiClient.tagDeleteKeyword(new DeleteKeywordRequest().tagName("CreatedViaApi").keyword("keyword with space"));
   }
 
-  @Test
   void tagAddKeywords_hasSlash() throws IOException {
-    if (defaultApiClient == null) {
-      return;
-    }
     defaultApiClient.tagAddKeywords(
         new AddKeywordsRequest()
             .tagName("tag/name")
@@ -156,21 +132,12 @@ class DefaultApiClientIntegrationTest {
     );
   }
 
-  @Test
   void tagDeleteKeyword_hasSlash() throws IOException {
-    if (defaultApiClient == null) {
-      return;
-    }
     defaultApiClient.tagDeleteKeyword(new DeleteKeywordRequest().tagName("tag/name").keyword("key/word"));
     defaultApiClient.tagDeleteKeyword(new DeleteKeywordRequest().tagName("tag/name").keyword("key/word 1"));
   }
 
-  @Test
   void activityTypesSyncSession() throws IOException {
-    if (defaultApiClient == null) {
-      return;
-    }
-
     final SyncSession syncSession = defaultApiClient.activityTypesStartSyncSession();
     assertThat(syncSession.getSyncSessionId()).isNotBlank();
     defaultApiClient.activityTypesCancelSyncSession(syncSession);
@@ -185,12 +152,7 @@ class DefaultApiClientIntegrationTest {
     defaultApiClient.activityTypesCompleteSyncSession(syncSession2);
   }
 
-  @Test
   void syncActivityTypes_noSession() throws IOException {
-    if (defaultApiClient == null) {
-      return;
-    }
-
     final SyncActivityTypesResponse response = defaultApiClient
         .syncActivityTypes(new SyncActivityTypesRequest()
             .activityTypes(ImmutableList.of(new ActivityType()
@@ -202,34 +164,18 @@ class DefaultApiClientIntegrationTest {
         .isEmpty();
   }
 
-  @Test
   void postedTimeSubscribe() throws IOException {
-    if (defaultApiClient == null) {
-      return;
-    }
     SubscribeRequest subscribeRequest = new SubscribeRequest();
     subscribeRequest.callbackUrl("http://testurl");
     subscribeRequest.setCallerKey("sample-caller-key");
-    SubscribeResult response = defaultApiClient.postedTimeSubscribe(subscribeRequest);
-    log.info(response.toString());
+    defaultApiClient.postedTimeSubscribe(subscribeRequest);
   }
 
-  @Test
   void postedTimeUnsubscribe() throws IOException {
-    if (defaultApiClient == null) {
-      return;
-    }
-    UnsubscribeRequest unsubscribeRequest = new UnsubscribeRequest();
-    UnsubscribeResult response = defaultApiClient.postedTimeUnsubscribe(unsubscribeRequest);
-    log.info(response.toString());
+    defaultApiClient.postedTimeUnsubscribe();
   }
 
-  @Test
   void managedTimeConfig() throws IOException {
-    if (defaultApiClient == null) {
-      return;
-    }
-
     ConnectorInfo connectorInfo = Mockito.mock(ConnectorInfo.class);
     when(connectorInfo.getClientTimeZoneOffset()).thenReturn(ZoneOffset.ofHours(3).getId());
 
