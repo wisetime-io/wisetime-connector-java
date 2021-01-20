@@ -11,30 +11,22 @@ import com.google.common.collect.ImmutableList;
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.connector.utils.EmptyResponse;
 import io.wisetime.generated.connect.AddKeywordsRequest;
-import io.wisetime.generated.connect.AddKeywordsResponse;
 import io.wisetime.generated.connect.BatchUpsertTagRequest;
 import io.wisetime.generated.connect.BatchUpsertTagResponse;
 import io.wisetime.generated.connect.DeleteKeywordRequest;
-import io.wisetime.generated.connect.DeleteKeywordResponse;
 import io.wisetime.generated.connect.DeleteTagRequest;
-import io.wisetime.generated.connect.DeleteTagResponse;
 import io.wisetime.generated.connect.HealthCheckFailureNotify;
 import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
 import io.wisetime.generated.connect.SubscribeRequest;
-import io.wisetime.generated.connect.SubscribeResult;
 import io.wisetime.generated.connect.SyncActivityTypesRequest;
 import io.wisetime.generated.connect.SyncActivityTypesResponse;
 import io.wisetime.generated.connect.SyncSession;
 import io.wisetime.generated.connect.TagMetadataDeleteRequest;
-import io.wisetime.generated.connect.TagMetadataDeleteResponse;
 import io.wisetime.generated.connect.TeamInfoResult;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeGroupStatus;
-import io.wisetime.generated.connect.UnsubscribeRequest;
-import io.wisetime.generated.connect.UnsubscribeResult;
 import io.wisetime.generated.connect.UpsertTagRequest;
-import io.wisetime.generated.connect.UpsertTagResponse;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -65,11 +57,7 @@ public class DefaultApiClient implements ApiClient {
 
   @Override
   public void tagUpsert(UpsertTagRequest upsertTagRequest) throws IOException {
-    restRequestExecutor.executeTypedBodyRequest(
-        UpsertTagResponse.class,
-        EndpointPath.TagUpsert,
-        upsertTagRequest
-    );
+    restRequestExecutor.executeTypedBodyRequest(Object.class, EndpointPath.TagUpsert, upsertTagRequest);
   }
 
   @Override
@@ -86,20 +74,12 @@ public class DefaultApiClient implements ApiClient {
 
   @Override
   public void tagDelete(DeleteTagRequest deleteTagRequest) throws IOException {
-    restRequestExecutor.executeTypedBodyRequest(
-        DeleteTagResponse.class,
-        EndpointPath.TagDelete,
-        deleteTagRequest
-    );
+    restRequestExecutor.executeTypedBodyRequest(Object.class, EndpointPath.TagDelete, deleteTagRequest);
   }
 
   @Override
   public void tagAddKeywords(AddKeywordsRequest addKeywordsRequest) throws IOException {
-    restRequestExecutor.executeTypedBodyRequest(
-        AddKeywordsResponse.class,
-        EndpointPath.TagAddKeyword,
-        addKeywordsRequest
-    );
+    restRequestExecutor.executeTypedBodyRequest(Object.class, EndpointPath.TagAddKeyword, addKeywordsRequest);
   }
 
   @Override
@@ -135,21 +115,13 @@ public class DefaultApiClient implements ApiClient {
   }
 
   @Override
-  public DeleteKeywordResponse tagDeleteKeyword(DeleteKeywordRequest deleteKeywordRequest) throws IOException {
-    return restRequestExecutor.executeTypedBodyRequest(
-        DeleteKeywordResponse.class,
-        EndpointPath.TagDeleteKeyword,
-        deleteKeywordRequest
-    );
+  public void tagDeleteKeyword(DeleteKeywordRequest deleteKeywordRequest) throws IOException {
+    restRequestExecutor.executeTypedBodyRequest(Object.class, EndpointPath.TagDeleteKeyword, deleteKeywordRequest);
   }
 
   @Override
-  public TagMetadataDeleteResponse tagMetadataDelete(TagMetadataDeleteRequest tagMetadataDeleteRequest) throws IOException {
-    return restRequestExecutor.executeTypedBodyRequest(
-        TagMetadataDeleteResponse.class,
-        EndpointPath.TagMetadataDelete,
-        tagMetadataDeleteRequest
-    );
+  public void tagMetadataDelete(TagMetadataDeleteRequest tagMetadataDeleteRequest) throws IOException {
+    restRequestExecutor.executeTypedBodyRequest(Object.class, EndpointPath.TagMetadataDelete, tagMetadataDeleteRequest);
   }
 
   @Override
@@ -181,21 +153,13 @@ public class DefaultApiClient implements ApiClient {
   }
 
   @Override
-  public SubscribeResult postedTimeSubscribe(SubscribeRequest subscribeRequest) throws IOException {
-    return restRequestExecutor.executeTypedBodyRequest(
-        SubscribeResult.class,
-        EndpointPath.PostedTimeSubscribe,
-        subscribeRequest
-    );
+  public void postedTimeSubscribe(SubscribeRequest subscribeRequest) throws IOException {
+    restRequestExecutor.executeTypedBodyRequest(Object.class, EndpointPath.PostedTimeSubscribe, subscribeRequest);
   }
 
   @Override
-  public UnsubscribeResult postedTimeUnsubscribe(UnsubscribeRequest unsubscribeRequest) throws IOException {
-    return restRequestExecutor.executeTypedBodyRequest(
-        UnsubscribeResult.class,
-        EndpointPath.PostedTimeUnsubscribe,
-        unsubscribeRequest
-    );
+  public void postedTimeUnsubscribe() throws IOException {
+    restRequestExecutor.executeTypedRequest(Object.class, EndpointPath.PostedTimeUnsubscribe);
   }
 
   @Override

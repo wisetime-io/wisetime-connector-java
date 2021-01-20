@@ -14,7 +14,6 @@ buildscript {
         }
     }
     dependencies {
-        classpath "org.openapitools:openapi-generator-gradle-plugin:3.3.4"
         classpath "io.codearte.gradle.nexus:gradle-nexus-staging-plugin:0.21.0"
     }
 }
@@ -24,18 +23,18 @@ plugins {
     id 'maven'
     id 'maven-publish'
     id 'application'
-    id "io.freefair.lombok" version "5.0.0"
+    id "io.freefair.lombok" version "5.3.0"
     id "fr.brouillard.oss.gradle.jgitver" version "0.9.1"
     id "com.github.ben-manes.versions" version "0.35.0"
     id "io.wisetime.versionChecker" version "0.10.15"
     id 'de.marcphilipp.nexus-publish' version '0.3.1' apply false
+    id("org.openapi.generator") version "4.2.1"
 }
 
 repositories {
     jcenter()
 }
 
-apply plugin: 'org.openapi.generator'
 apply from: "$rootDir/gradle/conf/checkstyle.gradle"
 apply from: "$rootDir/gradle/conf/jacoco.gradle"
 group = 'io.wisetime'
@@ -43,7 +42,6 @@ group = 'io.wisetime'
 archivesBaseName = 'wisetime-connector'
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
-mainClassName = 'io.wisetime.connector.example.FolderWatchConnectApp'
 
 jgitver {
     autoIncrementPatch(false)

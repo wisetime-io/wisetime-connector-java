@@ -26,7 +26,6 @@ import io.wisetime.generated.connect.SyncActivityTypesRequest;
 import io.wisetime.generated.connect.SyncSession;
 import io.wisetime.generated.connect.TagMetadataDeleteRequest;
 import io.wisetime.generated.connect.TimeGroupStatus;
-import io.wisetime.generated.connect.UnsubscribeRequest;
 import io.wisetime.generated.connect.UpsertTagRequest;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -96,7 +95,7 @@ class ApiClientMetricWrapperTest {
     apiClientMetricWrapper.fetchTimeGroups(1);
     apiClientMetricWrapper.postedTimeSubscribe(new SubscribeRequest());
     apiClientMetricWrapper.tagAddKeywords(new AddKeywordsRequest());
-    apiClientMetricWrapper.postedTimeUnsubscribe(new UnsubscribeRequest());
+    apiClientMetricWrapper.postedTimeUnsubscribe();
     apiClientMetricWrapper.tagAddKeywordsBatch(singletonList(new AddKeywordsRequest()));
     apiClientMetricWrapper.tagDelete(new DeleteTagRequest());
     apiClientMetricWrapper.tagDeleteKeyword(new DeleteKeywordRequest());
