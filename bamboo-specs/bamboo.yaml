@@ -1,0 +1,74 @@
+---
+version: 2
+plan:
+  project-key: CAPI
+  key: WCA
+  name: wisetime-connector-artifact
+stages:
+  - ARTIFACT1:
+      manual: false
+      final: false
+      jobs:
+        - save source artifact
+save source artifact:
+  key: SSA
+  tasks:
+    - checkout:
+        repository: wisetime-connector-java-stash
+        path: wisetime-connector-java
+        force-clean-build: 'false'
+    - script:
+        interpreter: SHELL
+        scripts:
+          - |-
+            export PROJ_NAME=wisetime-connector-java
+            rm -rf $PROJ_NAME/.git && tar chfvz $PROJ_NAME-src.tgz -C $PROJ_NAME . && rm -rf $PROJ_NAME
+            echo "Created tar.gz at $PROJ_NAME-src.tgz"
+  artifacts:
+    - name: wisetime-connector-java
+      location: ./
+      pattern: wisetime-connector-java-src.tgz
+      shared: true
+      required: true
+triggers: []
+branches:
+  create: manually
+  delete: never
+  link-to-jira: true
+notifications:
+  - events:
+      - job-failed
+    recipients:
+      - responsible
+      - committers
+labels: []
+other:
+  concurrent-build-plugin: system-default
+---
+version: 2
+plan:
+  key: CAPI-WCA
+plan-permissions:
+  - users:
+      - jordan
+    groups:
+      - wisetime-dev
+    permissions:
+      - view
+      - edit
+      - build
+  - users:
+      - alvin
+      - thomas
+      - bartlomiej
+    permissions:
+      - view
+      - edit
+      - build
+      - clone
+      - admin
+  - roles:
+      - logged-in
+    permissions:
+      - view
+...
