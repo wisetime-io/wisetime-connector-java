@@ -144,19 +144,7 @@ deployment-permissions:
       - view
 
 environment-permissions:
-  - hq-stage-eu:
-      - groups:
-          - bamboo-deploy-team-staging
-        permissions:
-          - view
-          - deploy
-      - groups:
-          - bamboo-admin
-        permissions:
-          - view
-          - edit
-          - deploy
-  - hq-prod-eu:
+  - Maven Central:
       - groups:
           - bamboo-deploy-team-prod
         permissions:
