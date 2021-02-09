@@ -4,6 +4,7 @@
 
 package io.wisetime.connector.utils;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeRow;
 import java.util.function.Function;
@@ -18,6 +19,9 @@ public class DurationCalculator {
   private TimeGroup timeGroup;
   private DurationSource durationSource = DurationSource.TIME_GROUP;
   private boolean useExperienceWeighting = true;
+
+  // default to 0.01 hour rounding
+  private int roundToNearestSeconds = 36;
 
   /**
    * Create a DurationCalculator for a {@link TimeGroup}.
@@ -50,6 +54,14 @@ public class DurationCalculator {
    */
   public DurationCalculator useDurationFrom(final DurationSource durationSource) {
     this.durationSource = durationSource;
+    return this;
+  }
+
+  /**
+   * Tell the calculator how many seconds to round to nearest value of.
+   */
+  public DurationCalculator roundToNearestSeconds(final int roundToNearestSeconds) {
+    this.roundToNearestSeconds = roundToNearestSeconds;
     return this;
   }
 
@@ -105,7 +117,24 @@ public class DurationCalculator {
         .andThen(applyExperienceWeighting)
         .apply(durationSource);
 
-    return (long) Math.ceil(totalDuration);
+    long secondsValue = (long) Math.ceil(totalDuration);
+
+    if (roundToNearestSeconds >= 2) {
+      return getRoundedSecs(secondsValue);
+    } else {
+      return secondsValue;
+    }
+  }
+
+  @VisibleForTesting
+  long getRoundedSecs(Long rawSumSecs) {
+    long roundModFromRaw = rawSumSecs % roundToNearestSeconds;
+    if (roundModFromRaw > 0) {
+      // round up to nearest `secondsRoundVal` number of seconds
+      return (roundToNearestSeconds - roundModFromRaw) + rawSumSecs;
+    } else {
+      return rawSumSecs;
+    }
   }
 
   /**
