@@ -29,7 +29,9 @@ class DurationCalculatorTest {
         .totalDurationSecs(120)
         .user(user);
 
-    final long result = DurationCalculator.of(timeGroup).calculate();
+    final long result = DurationCalculator.of(timeGroup)
+        .roundToNearestSeconds(1)
+        .calculate();
 
     assertThat(result)
         .as("Default calculator configuration should use the TimeGroup duration "
@@ -46,6 +48,7 @@ class DurationCalculatorTest {
     final long result = DurationCalculator
         .of(timeGroup)
         .disregardExperienceWeighting()
+        .roundToNearestSeconds(1)
         .useDurationFrom(DurationSource.TIME_GROUP)
         .calculate();
 
@@ -67,12 +70,33 @@ class DurationCalculatorTest {
     final long result = DurationCalculator
         .of(timeGroup)
         .disregardExperienceWeighting()
+        .roundToNearestSeconds(1)
         .useDurationFrom(DurationSource.SUM_TIME_ROWS)
         .calculate();
 
     assertThat(result)
         .as("Duration should be taken from the time rows")
         .isEqualTo(150);
+  }
+
+  @Test
+  void config_useRoundToNearestSeconds() {
+    final User user = fakeEntities.randomUser();
+
+    final TimeGroup timeGroup = fakeEntities
+        .randomTimeGroup()
+        .totalDurationSecs(420)
+        .user(user);
+
+    final long result = DurationCalculator
+        .of(timeGroup)
+        .disregardExperienceWeighting()
+        .roundToNearestSeconds(300)
+        .calculate();
+
+    assertThat(result)
+        .as("The user's experience weighting should be taken into account, and result rounded up")
+        .isEqualTo(600);
   }
 
   @Test
@@ -87,6 +111,7 @@ class DurationCalculatorTest {
     final long result = DurationCalculator
         .of(timeGroup)
         .useExperienceWeighting()
+        .roundToNearestSeconds(1)
         .useDurationFrom(DurationSource.TIME_GROUP)
         .calculate();
 
@@ -107,6 +132,7 @@ class DurationCalculatorTest {
     final long result = DurationCalculator
         .of(timeGroup)
         .disregardExperienceWeighting()
+        .roundToNearestSeconds(1)
         .useDurationFrom(DurationSource.TIME_GROUP)
         .calculate();
 
