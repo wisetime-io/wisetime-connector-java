@@ -1,0 +1,160 @@
+---
+version: 2
+plan:
+  project-key: CAPI
+  key: WCA
+  name: wisetime-connector-artifact
+stages:
+  - ARTIFACT1:
+      manual: false
+      final: false
+      jobs:
+        - save source artifact
+save source artifact:
+  key: SSA
+  tasks:
+    - checkout:
+        repository: wisetime-connector-java-stash
+        path: wisetime-connector-java
+        force-clean-build: 'false'
+    - script:
+        interpreter: SHELL
+        scripts:
+          - |-
+            export PROJ_NAME=wisetime-connector-java
+            rm -rf $PROJ_NAME/.git && tar chfvz $PROJ_NAME-src.tgz -C $PROJ_NAME . && rm -rf $PROJ_NAME
+            echo "Created tar.gz at $PROJ_NAME-src.tgz"
+  artifacts:
+    - name: wisetime-connector-java
+      location: ./
+      pattern: wisetime-connector-java-src.tgz
+      shared: true
+      required: true
+triggers: []
+branches:
+  create: manually
+  delete: never
+  link-to-jira: true
+notifications:
+  - events:
+      - job-failed
+    recipients:
+      - responsible
+      - committers
+labels: []
+other:
+  concurrent-build-plugin: system-default
+---
+version: 2
+plan:
+  key: CAPI-WCA
+plan-permissions:
+  - groups:
+      - bamboo-build-team
+    permissions:
+      - view
+      - edit
+      - build
+  - groups:
+      - bamboo-admin
+    permissions:
+      - view
+      - edit
+      - build
+      - clone
+      - admin
+  - roles:
+      - logged-in
+    permissions:
+      - view
+...
+---
+version: 2
+deployment:
+  name: _Publish wisetime-connector-java library
+  source-plan: CAPI-WCA
+release-naming:
+  next-version-name: 1.3.11
+  applies-to-branches: false
+  auto-increment: true
+  auto-increment-variables: []
+environments:
+  - Maven Central
+Maven Central:
+  triggers: []
+  tasks:
+    - clean
+    - artifact-download:
+        artifacts:
+          - {}
+    - script:
+        interpreter: SHELL
+        scripts:
+          - |-
+            tar xzf wisetime-connector-java-src.tgz
+            echo "Archive extracted"
+            ls -la
+    - script:
+        interpreter: SHELL
+        scripts:
+          - |-
+            echo "releasing version: $bamboo_deploy_version to Maven Central"
+            ./gradlew clean build publishToSonatype closeAndReleaseRepository -x test -Pversion=$bamboo_deploy_version -Dorg.gradle.internal.http.socketTimeout=60000 --info
+  final-tasks:
+    - script:
+        interpreter: SHELL
+        scripts:
+          - |-
+            #!/bin/bash
+            set -o errexit ; set -o errtrace ; set -o pipefail
+
+            author="$bamboo_ManualBuildTriggerReason_userName"
+            threadKey=''
+            detailsUrl="$bamboo_resultsUrl"
+            buildPlan="$bamboo_shortPlanName"
+            message=''
+
+            if [ "$bamboo_jobFailed" = true ] ; then
+                threadKey='failed'
+                message="Bamboo deployment plan *$buildPlan* started by $author *failed*. Details on <$detailsUrl|Bamboo>."
+            else
+                threadKey='success'
+                message="Bamboo deploy plan *$buildPlan* started by *$author* finished successfully. Details on <$detailsUrl|Bamboo>."
+            fi
+
+            curl -XPOST 'https://chat.googleapis.com/v1/spaces/AAAAkPqy808/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=kjHX7ucCYG6RmKLzCBRuyRVf8V9H36joRxJaF_-2a70%3D&threadKey='$threadKey\
+              -d "{\"text\":\"$message\"}"\
+              -H "Content-type: application/json"
+  variables: {}
+  requirements: []
+  notifications: []
+---
+version: 2
+deployment:
+  name: _Publish wisetime-connector-java library
+deployment-permissions:
+  - groups:
+      - bamboo-admin
+    permissions:
+      - view
+      - edit
+  - roles:
+      - logged-in
+    permissions:
+      - view
+
+environment-permissions:
+  - Maven Central:
+      - groups:
+          - bamboo-deploy-team-prod
+        permissions:
+          - view
+          - deploy
+      - groups:
+          - bamboo-admin
+        permissions:
+          - view
+          - edit
+          - deploy
+...
+
