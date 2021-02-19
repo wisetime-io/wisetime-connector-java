@@ -43,7 +43,7 @@ steps:
       GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false
     commands:
       - echo ${DRONE_MACHINE}
-      - ./gradlew check
+      - ./gradlew clean test check
 
   - name: save-cache
     image: drillster/drone-volume-cache
