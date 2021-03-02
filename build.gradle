@@ -4,7 +4,7 @@
 
 buildscript {
     repositories {
-        jcenter()
+        mavenCentral()
         maven {
             // WT published releases
             url 'https://s3.eu-central-1.amazonaws.com/artifacts.wisetime.com/mvn2/plugins'
@@ -32,7 +32,7 @@ plugins {
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 apply from: "$rootDir/gradle/conf/checkstyle.gradle"
