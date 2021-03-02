@@ -1,0 +1,1 @@
+SparkJava serves requests via filter. Static files must be in src/main/resources to be served.
