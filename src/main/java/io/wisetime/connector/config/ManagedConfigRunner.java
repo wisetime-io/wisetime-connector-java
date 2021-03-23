@@ -73,10 +73,8 @@ public class ManagedConfigRunner extends TimerTask implements HealthIndicator {
       log.info("Skip manage config timer instantiation, previous manage config process is yet to complete");
       return;
     }
-
-    final ZoneId zoneId = ZoneId.of(connectorInfoProvider.get().getClientTimeZoneOffset());
-
     try {
+      final ZoneId zoneId = ZoneId.of(connectorInfoProvider.get().getClientTimeZoneOffset());
       // Request a new managed config when the connector service has expired
       if (cachedServiceExpiryDate == null
           || ZonedDateTime.now(zoneId).plusMinutes(getRenewalThresholdMins()).isAfter(cachedServiceExpiryDate)) {
@@ -87,7 +85,7 @@ public class ManagedConfigRunner extends TimerTask implements HealthIndicator {
       lastSuccessfulRun = DateTime.now();
 
     } catch (Exception e) {
-      LoggerFactory.getLogger(ManagedConfigRunner.class).error(e.getMessage(), e);
+      LoggerFactory.getLogger(ManagedConfigRunner.class).error("Failed to load managed config", e);
     } finally {
       // ensure lock is released
       runLock.set(false);
