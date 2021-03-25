@@ -24,9 +24,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.ToString;
+import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -38,17 +37,7 @@ class LocalAdapterCW implements LoggingBridge {
   private final ConcurrentLinkedQueue<LogQueueCW.LogEntryCW> messageQueue = new ConcurrentLinkedQueue<>();
 
   private final LogQueueCW logQueueCW = new LogQueueCW();
-
-  private AwsLogsWrapper awsLogWrapper;
-
-  private String logGroupName;
-
-  /**
-   * The basic structure of the PutLogEvents API is you do a call to PutLogEvents and it returns to you a result that
-   * includes the sequence number. That same sequence number must be used in the subsequent put for the same (log group,
-   * log stream) pair.
-   */
-  private String cloudWatchNextSequenceToken;
+  private AwsLogsConfig awsLogWrapper;
 
   /**
    * Initialise this instance of {@code LocalAdapterCW}.
@@ -60,7 +49,7 @@ class LocalAdapterCW implements LoggingBridge {
 
   @Override
   public void writeMessage(LogQueueCW.LogEntryCW logEntryCW) {
-    if (awsLogWrapper.writer().isPresent()) {
+    if (awsLogWrapper.isValid()) {
       messageQueue.offer(logEntryCW);
     }
   }
@@ -70,21 +59,24 @@ class LocalAdapterCW implements LoggingBridge {
     if (messageQueue.isEmpty()) {
       return;
     }
-    awsLogWrapper.writer().ifPresent(awsLog -> processLogEntries(awsLog, awsLogWrapper.getLogStreamName()));
+    processLogEntries();
   }
 
   /**
    * Send log entries.
    */
-  @SuppressWarnings("RightCurly")
-  private synchronized void processLogEntries(AWSLogs awsLog, String logStreamName) {
+  private synchronized void processLogEntries() {
+    final AwsLogsConfig currentLogsConfig = this.awsLogWrapper;
+    if (!currentLogsConfig.isValid()) {
+      return;
+    }
     boolean sentLimit;
     do {
-      sentLimit = processToLimit(awsLog, logStreamName);
+      sentLimit = processToLimit(currentLogsConfig);
     } while (sentLimit);
   }
 
-  private boolean processToLimit(AWSLogs awsLog, String logStreamName) {
+  private boolean processToLimit(AwsLogsConfig awsLogsConfig) {
     // process up to X messages per POST
 
     final LogQueueCW.PutLogEventList logEventResult = logQueueCW.createListFromQueue(messageQueue);
@@ -98,39 +90,38 @@ class LocalAdapterCW implements LoggingBridge {
               .collect(Collectors.toList());
 
       // send sorted group to cloud watch
-      putLogs(awsLog, logStreamName, eventListSorted);
+      putLogs(awsLogsConfig, eventListSorted);
     }
     return logEventResult.isLimitReached();
   }
 
   @VisibleForTesting
-  void putLogs(AWSLogs awsLog, String logStream, List<InputLogEvent> events) {
+  void putLogs(AwsLogsConfig awsLog, List<InputLogEvent> events) {
     try {
-      final PutLogEventsResult result = awsLog.putLogEvents(
+      final PutLogEventsResult result = awsLog.getAwsLogs().putLogEvents(
           new PutLogEventsRequest()
-              .withLogGroupName(logGroupName)
-              .withLogStreamName(logStream)
+              .withLogGroupName(awsLog.getLogGroupName())
+              .withLogStreamName(awsLog.getLogStreamName())
               .withLogEvents(events)
-              .withSequenceToken(cloudWatchNextSequenceToken));
+              .withSequenceToken(awsLog.getCloudWatchNextSequenceToken()));
 
-      cloudWatchNextSequenceToken = result.getNextSequenceToken();
+      awsLog.setCloudWatchNextSequenceToken(result.getNextSequenceToken());
 
     } catch (InvalidSequenceTokenException e) {
       System.err.println("Invalid AWS sequence token detected");
-      cloudWatchNextSequenceToken = e.getExpectedSequenceToken();
-      putLogs(awsLog, logStream, events);
+      awsLog.setCloudWatchNextSequenceToken(e.getExpectedSequenceToken());
+      putLogs(awsLog, events);
     }
   }
 
-  private AwsLogsWrapper createLocalConfigLogger(final ManagedConfigResponse config) {
+  private AwsLogsConfig createLocalConfigLogger(final ManagedConfigResponse config) {
     final Optional<AWSCredentials> awsCredentials = lookupCredentials(config);
     if (!awsCredentials.isPresent()) {
       System.err.println("AWS credentials not found, AWS logger disabled");
-      return AwsLogsWrapper.noConfig();
+      return AwsLogsConfig.noConfig();
     }
 
-    logGroupName = config.getGroupName();
-    Preconditions.checkArgument(logGroupName != null, "GroupName is required!");
+    Preconditions.checkArgument(StringUtils.isNotEmpty(config.getGroupName()), "GroupName is required!");
 
     final AWSLogs awsLogs = AWSLogsAsyncClientBuilder.standard()
         .withCredentials(new AWSStaticCredentialsProvider(awsCredentials.get()))
@@ -142,16 +133,16 @@ class LocalAdapterCW implements LoggingBridge {
     try {
       awsLogs.createLogStream(
           new CreateLogStreamRequest()
-              .withLogGroupName(logGroupName)
+              .withLogGroupName(config.getGroupName())
               .withLogStreamName(logStreamName)
       );
 
-      return new AwsLogsWrapper(awsLogs, logStreamName);
+      return new AwsLogsConfig(awsLogs, config.getGroupName(), logStreamName);
 
     } catch (ResourceNotFoundException ex) {
       System.err.println("Unable to create log stream with name "
-          + logStreamName + " for a group name " + logGroupName + ".");
-      return AwsLogsWrapper.noConfig();
+          + logStreamName + " for a group name " + config.getGroupName() + ".");
+      return AwsLogsConfig.noConfig();
     }
   }
 
@@ -172,21 +163,26 @@ class LocalAdapterCW implements LoggingBridge {
     }
   }
 
-  @RequiredArgsConstructor
-  @ToString
-  private static class AwsLogsWrapper {
+  @Data
+  static class AwsLogsConfig {
 
     private final AWSLogs awsLogs;
-
-    @Getter
+    private final String logGroupName;
     private final String logStreamName;
 
-    static AwsLogsWrapper noConfig() {
-      return new AwsLogsWrapper(null, "invalid");
+    /**
+     * The basic structure of the PutLogEvents API is you do a call to PutLogEvents and it returns to you a result that
+     * includes the sequence number. That same sequence number must be used in the subsequent put for the same (log group,
+     * log stream) pair.
+     */
+    private String cloudWatchNextSequenceToken;
+
+    static AwsLogsConfig noConfig() {
+      return new AwsLogsConfig(null, null,"invalid");
     }
 
-    Optional<AWSLogs> writer() {
-      return Optional.ofNullable(awsLogs);
+    boolean isValid() {
+      return awsLogs != null;
     }
   }
 }

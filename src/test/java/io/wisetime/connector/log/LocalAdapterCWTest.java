@@ -6,7 +6,6 @@ package io.wisetime.connector.log;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doCallRealMethod;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -18,6 +17,7 @@ import com.amazonaws.services.logs.model.InvalidSequenceTokenException;
 import com.amazonaws.services.logs.model.PutLogEventsRequest;
 import com.amazonaws.services.logs.model.PutLogEventsResult;
 import com.github.javafaker.Faker;
+import io.wisetime.connector.log.LocalAdapterCW.AwsLogsConfig;
 import java.util.Collections;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -32,13 +32,13 @@ class LocalAdapterCWTest {
 
   @Test
   void putLogs_retry() {
-    final LocalAdapterCW localAdapterCW = mock(LocalAdapterCW.class);
+    final LocalAdapterCW localAdapterCW = new LocalAdapterCW();
 
     AWSLogsAsync awsLogsAsync = mock(AWSLogsAsync.class);
-    doCallRealMethod().when(localAdapterCW).putLogs(any(), any(), any());
-    String logName = FAKER.name().name();
     String logMessage = FAKER.lorem().sentence();
     String expectedSequenceToken = FAKER.crypto().md5();
+    final AwsLogsConfig config = new AwsLogsConfig(awsLogsAsync, Faker.instance().bothify("logGroup-#?#?#?#"),
+        Faker.instance().bothify("streamName-#?#?#?#"));
 
     when(awsLogsAsync.putLogEvents(any())).thenAnswer(invocation -> {
       PutLogEventsRequest request = invocation.getArgument(0);
@@ -51,7 +51,7 @@ class LocalAdapterCWTest {
     final InputLogEvent event = new InputLogEvent().withMessage(logMessage).withTimestamp(System.currentTimeMillis());
     List<InputLogEvent> logEvents = Collections.singletonList(event);
 
-    localAdapterCW.putLogs(awsLogsAsync, logName, logEvents);
+    localAdapterCW.putLogs(config, logEvents);
 
     //retry after InvalidSequenceTokenException
     ArgumentCaptor<PutLogEventsRequest> logEventCaptor = ArgumentCaptor.forClass(PutLogEventsRequest.class);
