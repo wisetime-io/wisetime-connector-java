@@ -25,6 +25,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.stream.Collectors;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -120,7 +121,7 @@ class LocalAdapterCW implements LoggingBridge {
       return AwsLogsConfig.noConfig();
     }
 
-    Preconditions.checkArgument(config.getGroupName() != null, "GroupName is required!");
+    Preconditions.checkArgument(StringUtils.isNotEmpty(config.getGroupName()), "GroupName is required!");
 
     final AWSLogs awsLogs = AWSLogsAsyncClientBuilder.standard()
         .withCredentials(new AWSStaticCredentialsProvider(awsCredentials.get()))
