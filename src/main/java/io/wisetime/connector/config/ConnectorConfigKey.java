@@ -12,7 +12,7 @@ package io.wisetime.connector.config;
 public enum ConnectorConfigKey implements RuntimeConfigKey {
 
   /**
-   * More information about api key is here: <a href="https://wisetime.io/docs/connect/api/">WiseTime Connect API</a>.
+   * More information about api key is here: <a href="https://wisetime.com/docs/connect/api/">WiseTime Connect API</a>.
    */
   API_KEY("API_KEY"),
   /**
@@ -71,7 +71,7 @@ public enum ConnectorConfigKey implements RuntimeConfigKey {
    */
   HEALTH_MAX_MINS_SINCE_SUCCESS("HEALTH_MAX_MINS_SINCE_SUCCESS"),
   /**
-   * Default is https://wisetime.io/connect/api.
+   * Default is https://wisetime.com/connect/api.
    */
   API_BASE_URL("API_BASE_URL"),
   /**
