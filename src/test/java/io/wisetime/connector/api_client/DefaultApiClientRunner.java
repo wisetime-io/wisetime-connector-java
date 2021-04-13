@@ -51,7 +51,7 @@ class DefaultApiClientRunner {
   public static void main(String[] args) throws Exception {
     String apiKey = RuntimeConfig.getString(ConnectorConfigKey.API_KEY)
         .orElseThrow(() -> new IllegalStateException("API_KEY is mandatory"));
-    Preconditions.checkState(RuntimeConfig.getString(ConnectorConfigKey.API_BASE_URL).orElse("").contains("wisetime.io"),
+    Preconditions.checkState(RuntimeConfig.getString(ConnectorConfigKey.API_BASE_URL).orElse("").contains("wisetime.com"),
         "api base url is required");
     final DefaultApiClientRunner runner = new DefaultApiClientRunner(new DefaultApiClient(apiKey));
 

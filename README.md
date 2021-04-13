@@ -1,9 +1,9 @@
 # WiseTime Java Connector
 [![Javadocs](https://www.javadoc.io/badge/io.wisetime/wisetime-connector.svg)](https://www.javadoc.io/doc/io.wisetime/wisetime-connector)
 
-WiseTime Java Connector is an open source library that enables you to write a WiseTime connector with a few lines of Java code. It calls the [WiseTime Connect API](https://wisetime.io/docs/connect/api/) to communicate with WiseTime.
+WiseTime Java Connector is an open source library that enables you to write a WiseTime connector with a few lines of Java code. It calls the [WiseTime Connect API](https://wisetime.com/docs/connect/api/) to communicate with WiseTime.
 
-[WiseTime](https://wisetime.io) is a passive, privacy-first timekeeping system that summarises your tasks while you work. With [WiseTime Connect](https://wisetime.io/docs/connect/), you can connect your systems to WiseTime, so that you can automatically:
+[WiseTime](https://wisetime.com) is a passive, privacy-first timekeeping system that summarises your tasks while you work. With [WiseTime Connect](https://wisetime.com/docs/connect/), you can connect your systems to WiseTime, so that you can automatically:
 
 * Create tags and tag keywords in WiseTime when records are added to your system
 * Receive posted time when users post their time sheets to WiseTime
@@ -103,7 +103,7 @@ public class ConnectorLauncher {
 }
 ```
 
-The connector will launch a web server at port 8080 when calling useWebhook(). The server implements the [Posted Time Webhook](https://wisetime.io/docs/connect/posted-time-webhook/) that WiseTime will call whenever a user posts time to the team.
+The connector will launch a web server at port 8080 when calling useWebhook(). The server implements the [Posted Time Webhook](https://wisetime.com/docs/connect/posted-time-webhook/) that WiseTime will call whenever a user posts time to the team.
 
 If you use `.useFetchClient()` instead, the connector will start in long polling mode to retrieve time posted to the team from WiseTime.
 

@@ -23,7 +23,7 @@ import io.wisetime.connector.metric.MetricInfo;
  * You have to provide implementation of {@link WiseTimeConnector} when creating ConnectorController instance.
  *
  * More information regarding the API key can be found here:
- * <a href="https://wisetime.io/docs/connect/api/">WiseTime Connect API</a>.
+ * <a href="https://wisetime.com/docs/connect/api/">WiseTime Connect API</a>.
  *
  * @author yehor.lashkul
  */
@@ -67,7 +67,7 @@ public interface ConnectorController {
   /**
    * Builder for {@link ConnectorController}. You have to provide an API key or custom {@link ApiClient} that will handle
    * authentication. For more information on how to obtain an API key, refer to:
-   * <a href="https://wisetime.io/docs/connect/api/">WiseTime Connect API</a>.
+   * <a href="https://wisetime.com/docs/connect/api/">WiseTime Connect API</a>.
    * <p>
    * You have to set a connector by calling {@link #withWiseTimeConnector(WiseTimeConnector)}.
    * You can override configured values at runtime by setup system properties or environment variable. You can find list
@@ -91,7 +91,7 @@ public interface ConnectorController {
     Builder withApiClient(ApiClient apiClient);
 
     /**
-     * More information about WiseTime API key: <a href="https://wisetime.io/docs/connect/api/">WiseTime Connect API</a>.
+     * More information about WiseTime API key: <a href="https://wisetime.com/docs/connect/api/">WiseTime Connect API</a>.
      * <p>
      * You have to provide api key or custom implementation of {@link ApiClient} for successful authorization.
      *

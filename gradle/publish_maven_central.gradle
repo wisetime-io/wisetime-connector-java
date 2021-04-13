@@ -18,7 +18,7 @@ publishing {
     publications {
         mavenJava(MavenPublication) {
             artifactId = project.name
-            // We publish release to MavenCentral via CI job with reuse of previously created artifact, so folder is not 
+            // We publish release to MavenCentral via CI job with reuse of previously created artifact, so folder is not
             // a git repository. Actual version is provided as property.
             version = project.version
             from components.java
@@ -27,7 +27,7 @@ publishing {
             pom {
                 name = 'WiseTime Connector'
                 description = 'WiseTime Connector Library'
-                url = 'https://wisetime.io/docs/connect/'
+                url = 'https://wisetime.com/docs/connect/'
                 licenses {
                     license {
                         name = 'The Apache License, Version 2.0'
@@ -38,7 +38,7 @@ publishing {
                     developer {
                         id = 'wisetime'
                         name = 'WiseTime Team'
-                        email = 'contact@wisetime.io'
+                        email = 'contact@wisetime.com'
                     }
                 }
                 scm {

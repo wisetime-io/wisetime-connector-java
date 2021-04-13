@@ -28,7 +28,7 @@ import org.apache.http.NameValuePair;
 @SuppressWarnings("WeakerAccess")
 public class RestRequestExecutor {
 
-  private static final String BASE_URL = "https://wisetime.io/connect/api";
+  private static final String BASE_URL = "https://wisetime.com/connect/api";
   private final ObjectMapper mapper;
   private final String apiBaseUrl;
   private final String apiKey;
