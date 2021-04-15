@@ -26,7 +26,7 @@ plugins {
     id "io.freefair.lombok" version "5.3.0"
     id "fr.brouillard.oss.gradle.jgitver" version "0.9.1"
     id "com.github.ben-manes.versions" version "0.36.0"
-    id "io.wisetime.versionChecker" version "10.11.41"
+    id "io.wisetime.versionChecker" version "10.11.43"
     id 'de.marcphilipp.nexus-publish' version '0.3.1' apply false
     id("org.openapi.generator") version "4.2.1"
 }
@@ -135,9 +135,9 @@ dependencies {
     // lightweight json lib (no dependencies) https://github.com/ralfstx/minimal-json
     compile("com.eclipsesource.minimal-json:minimal-json:0.9.5")
 
-    compile 'com.fasterxml.jackson.core:jackson-databind:2.12.2'
-    compile 'com.fasterxml.jackson.core:jackson-core:2.12.2'
-    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.2'
+    compile 'com.fasterxml.jackson.core:jackson-databind'
+    compile 'com.fasterxml.jackson.core:jackson-core'
+    compile 'com.fasterxml.jackson.dataformat:jackson-dataformat-cbor'
 
     compile 'org.apache.commons:commons-collections4:4.4'
     compile 'com.google.guava:guava:30.1-jre'
@@ -190,8 +190,9 @@ configurations.all {
         force(
             "joda-time:joda-time:2.10.10",
             "org.apache.commons:commons-lang3:3.12.0",
-            "com.fasterxml.jackson.core:jackson-databind:2.12.2",
-            "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.2",
+            "com.fasterxml.jackson.core:jackson-databind:2.12.3",
+            "com.fasterxml.jackson.core:jackson-core:2.12.3",
+            "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.3",
             "commons-codec:commons-codec:1.12",
             "org.objenesis:objenesis:3.0.1",
             "org.slf4j:slf4j-api:1.7.30",
