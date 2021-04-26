@@ -55,8 +55,11 @@ dependencies {
     }
     compile "org.apache.commons:commons-lang3:3.11"
     compile "net.jodah:failsafe:1.1.0"
+
     compileOnly("org.projectlombok:lombok:1.18.20")
     annotationProcessor("org.projectlombok:lombok:1.18.20")
+    testCompileOnly("org.projectlombok:lombok:1.18.20")
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.20")
 
     // AWS dependencies
     compile("com.amazonaws:aws-java-sdk-logs:1.11.611") {

@@ -1,2 +1,2 @@
-# set JVM via `sdk use` in rootDir
+# set JVM using: sdk env
 java=8.0.292.j9-adpt

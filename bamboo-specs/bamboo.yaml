@@ -100,31 +100,6 @@ Maven Central:
           - |-
             echo "releasing version: $bamboo_deploy_version to Maven Central"
             ./gradlew clean build publishToSonatype closeAndReleaseRepository -x test -Pversion=$bamboo_deploy_version -Dorg.gradle.internal.http.socketTimeout=60000 --info
-  final-tasks:
-    - script:
-        interpreter: SHELL
-        scripts:
-          - |-
-            #!/bin/bash
-            set -o errexit ; set -o errtrace ; set -o pipefail
-
-            author="$bamboo_ManualBuildTriggerReason_userName"
-            threadKey=''
-            detailsUrl="$bamboo_resultsUrl"
-            buildPlan="$bamboo_shortPlanName"
-            message=''
-
-            if [ "$bamboo_jobFailed" = true ] ; then
-                threadKey='failed'
-                message="Bamboo deployment plan *$buildPlan* started by $author *failed*. Details on <$detailsUrl|Bamboo>."
-            else
-                threadKey='success'
-                message="Bamboo deploy plan *$buildPlan* started by *$author* finished successfully. Details on <$detailsUrl|Bamboo>."
-            fi
-
-            curl -XPOST 'https://chat.googleapis.com/v1/spaces/AAAAkPqy808/messages?key=AIzaSyDdI0hCZtE6vySjMm-WEfRq3CPzqKqqsHI&token=kjHX7ucCYG6RmKLzCBRuyRVf8V9H36joRxJaF_-2a70%3D&threadKey='$threadKey\
-              -d "{\"text\":\"$message\"}"\
-              -H "Content-type: application/json"
   variables: {}
   requirements: []
   notifications: []
