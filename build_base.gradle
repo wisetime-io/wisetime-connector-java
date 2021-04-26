@@ -1,5 +1,4 @@
 
-
 tasks.openApiGenerate {
     generatorName = "jaxrs-spec"
     inputSpec = "https://raw.githubusercontent.com/wisetime-io/connect-api-spec/8808e4404cfd2fcf58cfe8b89d9ccf1cefb2002a/spec/openapi.yaml".toString()

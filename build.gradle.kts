@@ -34,7 +34,7 @@ project.version = versionStr
 
 tasks.register<DefaultTask>("printVersionStr") {
     doLast {
-        println("$versionStr")
+        println(versionStr)
     }
 }
 
