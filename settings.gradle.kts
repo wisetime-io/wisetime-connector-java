@@ -3,7 +3,7 @@ pluginManagement {
         gradlePluginPortal()
         google()
         maven {
-            setUrl "https://s3.eu-central-1.amazonaws.com/artifacts.wisetime.com/mvn2/plugins"
+            setUrl("https://s3.eu-central-1.amazonaws.com/artifacts.wisetime.com/mvn2/plugins")
             content {
                 includeGroup("io.wisetime.versionChecker")
             }
@@ -11,4 +11,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'wisetime-connector'
+rootProject.name = "wisetime-connector"
