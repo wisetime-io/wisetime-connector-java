@@ -1,9 +1,9 @@
 apply plugin: "jacoco"
 
 ext {
-    jcLineMin = 0.7
+    jcLineMin = 0.60
     jcClassMin = 0.8
-    jcInstructionMin = 0.7
+    jcInstructionMin = 0.60
 
     jacocoExcludes = [
         '**/generated/**'
