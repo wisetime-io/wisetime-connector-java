@@ -53,7 +53,7 @@ tasks {
   }
 
   val openApiGenerate = named("openApiGenerate") {
-    onlyIf { File("${projectDir.absolutePath}/src/gen/java").exists() }
+    onlyIf { !File("${projectDir.absolutePath}/src/gen/java").exists() }
     doLast {
       // after creating latest auto-generated object model, delete irrelevant files
       delete("${projectDir}/.openapi-generator")
