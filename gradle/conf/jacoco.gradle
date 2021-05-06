@@ -1,4 +1,3 @@
-apply plugin: "jacoco"
 
 ext {
     jcLineMin = 0.60

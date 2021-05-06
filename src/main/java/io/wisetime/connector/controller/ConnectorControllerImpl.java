@@ -231,6 +231,11 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     return metricService.getMetrics();
   }
 
+  @Override
+  public ConnectorModule getConnectorModule() {
+    return connectorModule;
+  }
+
   private TimePoster createTimePoster(ConnectorControllerConfiguration configuration,
       ApiClient apiClient,
       SqLiteHelper sqLiteHelper,

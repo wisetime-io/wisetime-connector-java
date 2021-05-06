@@ -6,6 +6,7 @@ plugins {
   java
   maven
   application
+  jacoco
   `maven-publish`
 
   id("io.codearte.nexus-staging") version "0.30.0"
@@ -43,6 +44,10 @@ openApiGenerate {
   generateModelDocumentation.set(false)
   generateModelTests.set(false)
   verbose.set(false)
+}
+
+jacoco {
+  toolVersion = "0.8.7"
 }
 
 tasks {

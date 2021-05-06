@@ -64,6 +64,8 @@ public interface ConnectorController {
    */
   MetricInfo getMetrics();
 
+  ConnectorModule getConnectorModule();
+
   /**
    * Builder for {@link ConnectorController}. You have to provide an API key or custom {@link ApiClient} that will handle
    * authentication. For more information on how to obtain an API key, refer to:
