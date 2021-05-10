@@ -37,7 +37,7 @@ project.version = versionStr
 
 openApiGenerate {
   generatorName.set("jaxrs-spec")
-  inputSpec.set("https://raw.githubusercontent.com/wisetime-io/connect-api-spec/8808e4404cfd2fcf58cfe8b89d9ccf1cefb2002a/spec/openapi.yaml")
+  inputSpec.set("https://raw.githubusercontent.com/wisetime-io/connect-api-spec/160911f5793ff39c591284247dfea35d60d48ee5/spec/openapi.yaml")
   outputDir.set("$projectDir")
   modelPackage.set("io.wisetime.generated.connect")
   generateApiTests.set(false)
