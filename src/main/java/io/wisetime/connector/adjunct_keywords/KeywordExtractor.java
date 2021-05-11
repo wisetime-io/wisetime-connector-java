@@ -19,4 +19,12 @@ public interface KeywordExtractor {
   default void close() {
 
   }
+
+  /**
+   * @return whether the environment state is expected/valid.
+   */
+  default boolean validateExpectedState() {
+    return true;
+  }
+
 }
