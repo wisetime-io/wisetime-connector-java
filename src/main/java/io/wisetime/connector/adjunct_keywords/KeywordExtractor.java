@@ -17,4 +17,10 @@ public interface KeywordExtractor {
 
   void fetchKeywords(SyncScope syncScope, ConnectorStore connectorStore, Consumer<KeywordUpdate> keywordUpdate);
 
+  /**
+   * Default no-op close method, called if connector is re-created.
+   */
+  default void close() {
+
+  }
 }
