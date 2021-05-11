@@ -1,11 +1,12 @@
 
 ext {
-    jcLineMin = 0.60
+    jcLineMin = 0.72
     jcClassMin = 0.80
-    jcInstructionMin = 0.60
+    jcInstructionMin = 0.74
 
     jacocoExcludes = [
-        '**/generated/**'
+        '**/generated/**',
+        'io/wisetime/connector/adjunct_keywords/*'
     ]
 }
 
