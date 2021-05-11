@@ -12,7 +12,7 @@ import lombok.experimental.Accessors;
  */
 @Data
 @Accessors(chain = true)
-class TagId {
+public class TagId {
 
   private String externalId;
   private String name;

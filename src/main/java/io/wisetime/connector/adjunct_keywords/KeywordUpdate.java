@@ -14,7 +14,7 @@ import lombok.experimental.Accessors;
  */
 @Data
 @Accessors(chain = true)
-class KeywordUpdate {
+public class KeywordUpdate {
 
   private TagId tagId = new TagId();
   private List<String> additionalKeywords = new ArrayList<>();
