@@ -4,14 +4,16 @@
 
 package io.wisetime.connector.adjunct_keywords;
 
+import java.io.IOException;
+
 /**
  * @author thomas.haines
  */
 public interface KeywordConsumer {
 
-  boolean persistKeyword(KeywordUpdate keywordUpdate);
+  boolean persistKeyword(KeywordUpdate keywordUpdate) throws IOException;
 
-  default void flushUploadQueue() {
+  default void flushUploadQueue() throws IOException {
   }
 
 }
