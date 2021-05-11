@@ -4,6 +4,7 @@
 
 package io.wisetime.connector.adjunct_keywords;
 
+import io.wisetime.connector.api_client.SyncScope;
 import io.wisetime.connector.datastore.ConnectorStore;
 import java.util.function.Consumer;
 
@@ -14,6 +15,6 @@ import java.util.function.Consumer;
  */
 public interface KeywordExtractor {
 
-  void fetchKeywords(ConnectorStore connectorStore, Consumer<KeywordUpdate> keywordUpdate);
+  void fetchKeywords(SyncScope syncScope, ConnectorStore connectorStore, Consumer<KeywordUpdate> keywordUpdate);
 
 }
