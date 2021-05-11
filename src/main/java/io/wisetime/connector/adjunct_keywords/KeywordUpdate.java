@@ -4,8 +4,8 @@
 
 package io.wisetime.connector.adjunct_keywords;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.Data;
 import lombok.experimental.Accessors;
 
@@ -17,6 +17,6 @@ import lombok.experimental.Accessors;
 public class KeywordUpdate {
 
   private TagId tagId = new TagId();
-  private List<String> additionalKeywords = new ArrayList<>();
+  private Set<String> additionalKeywords = new HashSet<>();
 
 }
