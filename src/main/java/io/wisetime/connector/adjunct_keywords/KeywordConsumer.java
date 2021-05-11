@@ -16,4 +16,11 @@ public interface KeywordConsumer {
   default void flushUploadQueue() throws IOException {
   }
 
+  /**
+   * @return whether the environment state is expected/valid.
+   */
+  default boolean validateExpectedState() {
+    return true;
+  }
+
 }
