@@ -11,9 +11,14 @@ import java.io.IOException;
  */
 public interface KeywordConsumer {
 
-  boolean persistKeyword(KeywordUpdate keywordUpdate) throws IOException;
+  /**
+   * Note, This method does not guarantee that all keywords sent to it have been persisted.
+   */
+  void persistKeywordAsync(KeywordUpdate keywordUpdate) throws IOException;
 
-  default void flushUploadQueue() throws IOException {
-  }
+  /**
+   * This method guarantees that all keywords sent to the consumer have been persisted.
+   */
+  void flushUploadQueue() throws IOException;
 
 }
