@@ -11,7 +11,7 @@ plugins {
 
   id("io.codearte.nexus-staging") version "0.30.0"
   id("com.github.ben-manes.versions") version "0.38.0"
-  id("io.wisetime.versionChecker") version "10.11.46"
+  id("io.wisetime.versionChecker") version "10.11.62"
   id("de.marcphilipp.nexus-publish").version("0.3.1").apply(false)
   id("org.openapi.generator") version "4.2.1"
 }
