@@ -3,6 +3,8 @@ set -o errexit ; set -o errtrace ; set -o pipefail
 
 git config --global user.email "devops@wisetime.com"
 git config --global user.name "WiseTime Bot"
+git reset --hard
+git clean -fd
 git fetch --tags
 # Create Orphan branch
 git checkout --orphan temp_branch
