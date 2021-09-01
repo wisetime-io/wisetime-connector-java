@@ -15,7 +15,6 @@ steps:
       mount:
         - .gcache/wrapper
         - .gcache/caches/modules-2
-      ttl: 21
       cache_key: [ DRONE_REPO_OWNER, DRONE_REPO_NAME ]
     volumes:
       - name: host-cache
