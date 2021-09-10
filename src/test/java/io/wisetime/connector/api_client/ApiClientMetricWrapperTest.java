@@ -93,9 +93,7 @@ class ApiClientMetricWrapperTest {
   @Test
   void otherMethods_delegateOnly() throws IOException {
     apiClientMetricWrapper.fetchTimeGroups(1);
-    apiClientMetricWrapper.postedTimeSubscribe(new SubscribeRequest());
     apiClientMetricWrapper.tagAddKeywords(new AddKeywordsRequest());
-    apiClientMetricWrapper.postedTimeUnsubscribe();
     apiClientMetricWrapper.tagAddKeywordsBatch(singletonList(new AddKeywordsRequest()));
     apiClientMetricWrapper.tagDelete(new DeleteTagRequest());
     apiClientMetricWrapper.tagDeleteKeyword(new DeleteKeywordRequest());

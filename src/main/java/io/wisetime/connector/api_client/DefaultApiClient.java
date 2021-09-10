@@ -153,16 +153,6 @@ public class DefaultApiClient implements ApiClient {
   }
 
   @Override
-  public void postedTimeSubscribe(SubscribeRequest subscribeRequest) throws IOException {
-    restRequestExecutor.executeTypedBodyRequest(Object.class, EndpointPath.PostedTimeSubscribe, subscribeRequest);
-  }
-
-  @Override
-  public void postedTimeUnsubscribe() throws IOException {
-    restRequestExecutor.executeTypedRequest(Object.class, EndpointPath.PostedTimeUnsubscribe);
-  }
-
-  @Override
   public List<TimeGroup> fetchTimeGroups(int limit) throws IOException {
     return restRequestExecutor.executeTypedRequest(new TypeReference<List<TimeGroup>>(){},
         EndpointPath.PostedTimeFetch,

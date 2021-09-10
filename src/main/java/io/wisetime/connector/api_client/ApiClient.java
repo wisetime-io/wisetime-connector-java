@@ -146,22 +146,6 @@ public interface ApiClient {
   TeamInfoResult teamInfo() throws IOException;
 
   /**
-   * Subscribes a new webhook for receiving posted time. WiseTime will call your webhook whenever a user posts time to
-   * your team.
-   *
-   * @param subscribeRequest information about the webhook to be created
-   * @throws IOException The {@link IOException}
-   */
-  void postedTimeSubscribe(SubscribeRequest subscribeRequest) throws IOException;
-
-  /**
-   * Deletes a posted time webhook.
-   *
-   * @throws IOException if request is unsuccessful
-   */
-  void postedTimeUnsubscribe() throws IOException;
-
-  /**
    * Fetches a posted time group.
    *
    * @param limit the maximum amount of time groups received by call. Valid values: 1-25

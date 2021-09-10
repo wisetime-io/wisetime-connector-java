@@ -66,8 +66,6 @@ class DefaultApiClientRunner {
     runner.tagDeleteKeyword_hasSlash();
     runner.activityTypesSyncSession();
     runner.syncActivityTypes_noSession();
-    runner.postedTimeSubscribe();
-    runner.postedTimeUnsubscribe();
     runner.managedTimeConfig();
   }
 
@@ -162,17 +160,6 @@ class DefaultApiClientRunner {
 
     assertThat(response.getErrors())
         .isEmpty();
-  }
-
-  void postedTimeSubscribe() throws IOException {
-    SubscribeRequest subscribeRequest = new SubscribeRequest();
-    subscribeRequest.callbackUrl("http://testurl");
-    subscribeRequest.setCallerKey("sample-caller-key");
-    defaultApiClient.postedTimeSubscribe(subscribeRequest);
-  }
-
-  void postedTimeUnsubscribe() throws IOException {
-    defaultApiClient.postedTimeUnsubscribe();
   }
 
   void managedTimeConfig() throws IOException {
