@@ -10,8 +10,8 @@ plugins {
   `maven-publish`
 
   id("io.codearte.nexus-staging") version "0.30.0"
-  id("com.github.ben-manes.versions") version "0.38.0"
-  id("io.wisetime.versionChecker") version "10.11.62"
+  id("com.github.ben-manes.versions") version "0.39.0"
+  id("io.wisetime.versionChecker") version "10.11.72"
   id("de.marcphilipp.nexus-publish").version("0.3.1").apply(false)
   id("org.openapi.generator") version "4.2.1"
 }
@@ -21,8 +21,8 @@ repositories {
 }
 
 java {
-  sourceCompatibility = JavaVersion.VERSION_1_8
-  targetCompatibility = JavaVersion.VERSION_1_8
+  sourceCompatibility = JavaVersion.VERSION_11
+  targetCompatibility = JavaVersion.VERSION_11
   withSourcesJar()
 }
 

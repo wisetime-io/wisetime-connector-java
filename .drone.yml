@@ -21,7 +21,7 @@ steps:
         path: /cache
 
   - name: check-versions
-    image: openjdk:8-jdk
+    image: openjdk:11-jdk
     environment:
       GRADLE_USER_HOME: .gcache
       GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false
@@ -36,7 +36,7 @@ steps:
         - push
 
   - name: unit-test
-    image: openjdk:8-jdk
+    image: openjdk:11-jdk
     environment:
       GRADLE_USER_HOME: .gcache
       GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false
@@ -57,7 +57,7 @@ steps:
         path: /cache
 
   - name: publish-to-s3
-    image: openjdk:8-jdk
+    image: openjdk:11-jdk
     environment:
       GRADLE_USER_HOME: .gcache
       GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false
