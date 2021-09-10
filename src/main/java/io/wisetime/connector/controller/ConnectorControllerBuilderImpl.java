@@ -12,6 +12,7 @@ import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.api_client.DefaultApiClient;
 import io.wisetime.connector.config.ConnectorConfigKey;
 import io.wisetime.connector.config.RuntimeConfig;
+import io.wisetime.connector.config.RuntimeConfigKey;
 import java.util.Optional;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +32,6 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
   @Getter
   private ApiClient apiClient;
   private String apiKey;
-  private int webhookPort = 8080;
   private TagScanMode tagScanMode = TagScanMode.ENABLED;
   private ActivityTypeScanMode activityTypeScanMode = ActivityTypeScanMode.ENABLED;
   private PostedTimeLoadMode postedTimeLoadMode = PostedTimeLoadMode.LONG_POLL;
@@ -89,19 +89,6 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
   }
 
   @Override
-  public ConnectorController.Builder useWebhook() {
-    postedTimeLoadMode = PostedTimeLoadMode.WEBHOOK;
-    return this;
-  }
-
-  @Override
-  public ConnectorController.Builder withWebhookPort(int port) {
-    useWebhook();
-    this.webhookPort = port;
-    return this;
-  }
-
-  @Override
   public ConnectorController.Builder useTagsOnly() {
     this.postedTimeLoadMode = PostedTimeLoadMode.DISABLED;
     this.activityTypeScanMode = ActivityTypeScanMode.DISABLED;
@@ -127,9 +114,9 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
         "an implementation of '%s' interface must be supplied",
         WiseTimeConnector.class.getSimpleName());
 
-    checkDeprecatedKey(ConnectorConfigKey.AWS_ACCESS_KEY_ID);
-    checkDeprecatedKey(ConnectorConfigKey.AWS_SECRET_ACCESS_KEY);
-    checkDeprecatedKey(ConnectorConfigKey.AWS_REGION);
+    checkDeprecatedKey(() -> "AWS_ACCESS_KEY_ID");
+    checkDeprecatedKey(() -> "AWS_SECRET_ACCESS_KEY");
+    checkDeprecatedKey(() -> "AWS_REGION");
 
     if (apiClient == null) {
       String apiKey = RuntimeConfig.getString(ConnectorConfigKey.API_KEY)
@@ -147,30 +134,7 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
   public PostedTimeLoadMode getPostedTimeLoadMode() {
     final Optional<PostedTimeLoadMode> postedTimeMode = RuntimeConfig.getString(ConnectorConfigKey.RECEIVE_POSTED_TIME)
         .map(PostedTimeLoadMode::valueOf);
-    if (postedTimeMode.isPresent()) {
-      return postedTimeMode.get();
-    }
-    final Optional<LaunchMode> connectorMode = RuntimeConfig.getString(ConnectorConfigKey.CONNECTOR_MODE)
-        .map(LaunchMode::valueOf);
-    if (connectorMode.isPresent()) {
-      log.warn("You are using deprecated config param CONNECTOR_MODE, please migrate to new configuration format as"
-          + " this key will be removed soon.");
-      return fromLaunchMode(connectorMode.get());
-    }
-    return postedTimeLoadMode;
-  }
-
-  private PostedTimeLoadMode fromLaunchMode(LaunchMode launchMode) {
-    switch (launchMode) {
-      case LONG_POLL:
-        return PostedTimeLoadMode.LONG_POLL;
-      case WEBHOOK:
-        return PostedTimeLoadMode.WEBHOOK;
-      case TAGS_ONLY:
-        return PostedTimeLoadMode.DISABLED;
-      default:
-        throw new UnsupportedOperationException("Unexpected launch mode");
-    }
+    return postedTimeMode.orElseGet(() -> postedTimeLoadMode);
   }
 
   @Override
@@ -188,16 +152,11 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
   }
 
   @Override
-  public int getWebhookPort() {
-    return RuntimeConfig.getInt(ConnectorConfigKey.WEBHOOK_PORT).orElse(webhookPort);
-  }
-
-  @Override
   public int getFetchClientLimit() {
     return RuntimeConfig.getInt(ConnectorConfigKey.LONG_POLL_BATCH_SIZE).orElse(fetchClientFetchLimit);
   }
 
-  private void checkDeprecatedKey(ConnectorConfigKey configKey) {
+  private void checkDeprecatedKey(RuntimeConfigKey configKey) {
     if (RuntimeConfig.getString(configKey).isPresent()) {
       log.warn("{} configuration setting has been deprecated and no longer have any effect. "
           + "Please remove these from the connector configuration. "
@@ -205,13 +164,8 @@ public class ConnectorControllerBuilderImpl implements ConnectorController.Build
     }
   }
 
-  @Deprecated
-  public enum LaunchMode {
-    LONG_POLL, WEBHOOK, TAGS_ONLY
-  }
-
   public enum PostedTimeLoadMode {
-    LONG_POLL, WEBHOOK, DISABLED
+    LONG_POLL, DISABLED
   }
 
   public enum TagScanMode {

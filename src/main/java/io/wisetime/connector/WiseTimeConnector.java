@@ -6,7 +6,6 @@ package io.wisetime.connector;
 
 import io.wisetime.connector.api_client.PostResult;
 import io.wisetime.generated.connect.TimeGroup;
-import spark.Request;
 
 /**
  * Main extension point of application. User will have to implement this interface and provide it during building
@@ -60,12 +59,11 @@ public interface WiseTimeConnector {
    * If a RunTimeException is thrown, this will be treated as a transient error, the operation will be retried after a
    * delay.
    *
-   * @param request        The full request that the server received or null if the fetch client is used.
    * @param userPostedTime For convenience, the json body of the request is provided as a Java object model representation.
    * @return The result of the post operation.
    *
    */
-  PostResult postTime(Request request, TimeGroup userPostedTime);
+  PostResult postTime(TimeGroup userPostedTime);
 
   /**
    * Identifies the type of the connector.  A non-empty string value would be assigned by the implementation.

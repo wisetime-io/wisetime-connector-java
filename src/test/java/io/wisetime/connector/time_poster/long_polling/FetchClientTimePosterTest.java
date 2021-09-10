@@ -7,7 +7,6 @@ package io.wisetime.connector.time_poster.long_polling;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.times;
@@ -39,6 +38,7 @@ import org.mockito.ArgumentCaptor;
  * @author pascal.filippi
  * @author thomas.haines
  */
+@SuppressWarnings("ResultOfMethodCallIgnored")
 @Slf4j
 class FetchClientTimePosterTest {
 
@@ -72,7 +72,7 @@ class FetchClientTimePosterTest {
     when(timeGroupIdStoreMock.alreadySeenFetchClient(timeGroup.getGroupId())).thenReturn(Optional.empty());
     when(timeGroupIdStoreMock.getPostStatusForFetchClient(timeGroup.getGroupId()))
         .thenReturn(Optional.of("IN_PROGRESS"));
-    when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.SUCCESS());
+    when(wiseTimeConnectorMock.postTime(eq(timeGroup))).thenReturn(PostResult.SUCCESS());
 
     fetchClient.processTimeGroups(Collections.singletonList(timeGroup));
 
@@ -91,7 +91,7 @@ class FetchClientTimePosterTest {
 
     fetchClient.processTimeGroups(Collections.singletonList(timeGroup));
 
-    verify(wiseTimeConnectorMock, times(0)).postTime(any(), any());
+    verify(wiseTimeConnectorMock, times(0)).postTime(any());
   }
 
   @Test
@@ -100,7 +100,7 @@ class FetchClientTimePosterTest {
     when(timeGroupIdStoreMock.alreadySeenFetchClient(timeGroup.getGroupId())).thenReturn(Optional.empty());
     when(timeGroupIdStoreMock.getPostStatusForFetchClient(timeGroup.getGroupId()))
         .thenReturn(Optional.of("IN_PROGRESS"));
-    when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.PERMANENT_FAILURE());
+    when(wiseTimeConnectorMock.postTime(eq(timeGroup))).thenReturn(PostResult.PERMANENT_FAILURE());
 
     fetchClient.processTimeGroups(Collections.singletonList(timeGroup));
 
@@ -116,7 +116,7 @@ class FetchClientTimePosterTest {
     when(timeGroupIdStoreMock.alreadySeenFetchClient(timeGroup.getGroupId())).thenReturn(Optional.empty());
     when(timeGroupIdStoreMock.getPostStatusForFetchClient(timeGroup.getGroupId()))
         .thenReturn(Optional.of("IN_PROGRESS"));
-    when(wiseTimeConnectorMock.postTime(isNull(), eq(timeGroup))).thenReturn(PostResult.TRANSIENT_FAILURE());
+    when(wiseTimeConnectorMock.postTime(eq(timeGroup))).thenReturn(PostResult.TRANSIENT_FAILURE());
 
     fetchClient.processTimeGroups(Collections.singletonList(timeGroup));
 
@@ -134,7 +134,7 @@ class FetchClientTimePosterTest {
 
     fetchClient.processTimeGroups(Collections.singletonList(timeGroup));
 
-    verify(wiseTimeConnectorMock, never()).postTime(isNull(), any());
+    verify(wiseTimeConnectorMock, never()).postTime(any());
     ArgumentCaptor<TimeGroupStatus> statusCaptor = ArgumentCaptor.forClass(TimeGroupStatus.class);
     verify(apiClientMock, times(1)).updatePostedTimeStatus(statusCaptor.capture());
 
@@ -148,7 +148,7 @@ class FetchClientTimePosterTest {
 
     fetchClient.processTimeGroups(Collections.singletonList(timeGroup));
 
-    verify(wiseTimeConnectorMock, never()).postTime(isNull(), any());
+    verify(wiseTimeConnectorMock, never()).postTime(any());
     verify(apiClientMock, never()).updatePostedTimeStatus(any());
   }
 

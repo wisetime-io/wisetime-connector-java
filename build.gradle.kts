@@ -91,15 +91,8 @@ tasks {
 
 dependencies {
 
-  implementation("com.sparkjava:spark-core:2.9.1")
-    implementation("com.sparkjava:spark-template-thymeleaf:2.7.1") {
-      exclude(group = "com.sparkjava", module = "spark-core")
-      exclude(group = "org.thymeleaf", module = "thymeleaf")
-      exclude(group = "org.slf4j", module = "slf4j-api")
-    }
-
-  implementation("org.thymeleaf:thymeleaf:3.0.12.RELEASE")
   api("joda-time:joda-time:2.10.10")
+  api("org.thymeleaf:thymeleaf:3.0.12.RELEASE")
 
   implementation("org.apache.commons:commons-configuration2:2.4") {
     exclude(group = "commons-logging", module = "commons-logging")

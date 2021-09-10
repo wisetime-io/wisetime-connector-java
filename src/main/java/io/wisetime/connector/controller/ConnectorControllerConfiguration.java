@@ -26,7 +26,5 @@ public interface ConnectorControllerConfiguration {
 
   ConnectorControllerBuilderImpl.ActivityTypeScanMode getActivityTypeScanMode();
 
-  int getWebhookPort();
-
   int getFetchClientLimit();
 }

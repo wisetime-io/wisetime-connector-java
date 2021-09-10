@@ -29,8 +29,9 @@ import org.joda.time.DateTime;
 /**
  * Implements a fetch based approach to retrieve time groups.
  *
- * @author pascal.filippi@staff.wisetime.com
+ * @author pascal.filippi
  */
+@SuppressWarnings("OptionalUsedAsFieldOrParameterType")
 @Slf4j
 public class FetchClientTimePoster implements Runnable, TimePoster {
 
@@ -127,12 +128,12 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
     }
     PostResult result;
     try {
-      result = wiseTimeConnector.postTime(null, timeGroup);
+      result = wiseTimeConnector.postTime(timeGroup);
     } catch (Exception e) {
       // We can't rule out postTime throws runtime exceptions, in this case permanently fail the time group:
       // most likely a bug
       result = PostResult.PERMANENT_FAILURE().withError(e).withMessage(e.getMessage());
-      log.error("Unexpected exception while trying to post time", e);
+      log.error("Unexpected exception while trying to post time {}", e.getMessage(), e);
     }
     timeGroupIdStore.putTimeGroupId(timeGroup.getGroupId(), result.name(), result.getMessage().orElse(""));
     timeGroupStatusUpdater.processSingle(timeGroup.getGroupId(), result);

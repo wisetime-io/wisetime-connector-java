@@ -119,7 +119,6 @@ public interface ConnectorController {
      * Instructs ConnectorController do not start long polling connection to WiseTime server nor web server for webhook.
      * Posted time will be ignored if connector is running in this mode.
      *
-     * @see #useWebhook()
      * @see #useFetchClient()
      */
     Builder disablePostedTimeFetching();
@@ -128,7 +127,6 @@ public interface ConnectorController {
      * Instructs ConnectorController to start in long polling mode (this is default value).
      * Other options are: webhook or tag only mode when posted time groups are not collected by connector.
      *
-     * @see #useWebhook()
      * @see #useTagsOnly()
      */
     Builder useFetchClient();
@@ -142,28 +140,11 @@ public interface ConnectorController {
     Builder withFetchClientLimit(int limit);
 
     /**
-     * Instructs ConnectorController to start a webserver to accept posted time groups. By default server is started
-     * on port 8080. You can set custom port by {@link #withWebhookPort(int)}.
-     *
-     * @see #useFetchClient()
-     * @see #useTagsOnly()
-     */
-    Builder useWebhook();
-
-    /**
-     * Set connector to launch in webhook mode. Server will be launch on the provided port.
-     *
-     * @see #useWebhook()
-     */
-    Builder withWebhookPort(int port);
-
-    /**
      * Instructs ConnectorController not to processed time groups (neither by long polling mechanism nor webhook)
      * and not to sync activity types.
      * Connector will create tags in Wisetime only.
      *
      * @see #useFetchClient()
-     * @see #useWebhook() ()
      */
     Builder useTagsOnly();
 
