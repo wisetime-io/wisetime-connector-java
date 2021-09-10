@@ -8,11 +8,9 @@ plugins {
   jacoco
   `maven-publish`
 
-  id("com.github.ben-manes.versions") version "0.39.0"
-  id("io.wisetime.versionChecker") version "10.11.72"
-  id("io.codearte.nexus-staging") version "0.30.0"
-  id("io.freefair.lombok").version("6.1.0")
-  id("de.marcphilipp.nexus-publish").version("0.3.1").apply(false)
+  id("com.github.ben-manes.versions")
+  id("io.wisetime.versionChecker")
+  id("io.freefair.lombok")
   id("org.openapi.generator") version "4.2.1"
 }
 
@@ -26,7 +24,7 @@ java {
 }
 
 apply(from = "$rootDir/gradle/conf/checkstyle.gradle")
-apply(from = "$rootDir/gradle/conf/jacoco.gradle")
+apply(from = "$projectDir/gradle/conf/jacoco.gradle")
 group = "io.wisetime"
 
 val versionInfo: WiFiGitVersionInfo = GitVersionCalc.getVersionInfoForLibrary(project.rootDir)
