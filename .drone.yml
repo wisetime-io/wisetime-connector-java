@@ -1,6 +1,7 @@
 ---
 kind: pipeline
 name: test-and-publish
+type: docker
 
 steps:
   - name: fetch-tags
@@ -15,13 +16,13 @@ steps:
       mount:
         - .gcache/wrapper
         - .gcache/caches/modules-2
-      cache_key: [ DRONE_REPO_OWNER, DRONE_REPO_NAME ]
+      cache_key: [ DRONE_REPO_OWNER, DRONE_REPO_NAME, DRONE_BRANCH ]
     volumes:
       - name: host-cache
         path: /cache
 
   - name: check-versions
-    image: openjdk:8-jdk
+    image: openjdk:11-jdk
     environment:
       GRADLE_USER_HOME: .gcache
       GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false
@@ -36,7 +37,7 @@ steps:
         - push
 
   - name: unit-test
-    image: openjdk:8-jdk
+    image: openjdk:11-jdk
     environment:
       GRADLE_USER_HOME: .gcache
       GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false
@@ -51,13 +52,13 @@ steps:
       mount:
         - .gcache/wrapper
         - .gcache/caches/modules-2
-      cache_key: [ DRONE_REPO_OWNER, DRONE_REPO_NAME ]
+      cache_key: [ DRONE_REPO_OWNER, DRONE_REPO_NAME, DRONE_BRANCH ]
     volumes:
       - name: host-cache
         path: /cache
 
   - name: publish-to-s3
-    image: openjdk:8-jdk
+    image: openjdk:11-jdk
     environment:
       GRADLE_USER_HOME: .gcache
       GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false
@@ -113,6 +114,8 @@ trigger:
 ---
 kind: pipeline
 name: mirror-to-github
+type: docker
+
 depends_on:
   - test-and-publish
 

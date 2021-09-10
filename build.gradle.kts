@@ -4,14 +4,13 @@ import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
   java
-  maven
-  application
+  `java-library`
   jacoco
   `maven-publish`
 
+  id("com.github.ben-manes.versions") version "0.39.0"
+  id("io.wisetime.versionChecker") version "10.11.72"
   id("io.codearte.nexus-staging") version "0.30.0"
-  id("com.github.ben-manes.versions") version "0.38.0"
-  id("io.wisetime.versionChecker") version "10.11.62"
   id("de.marcphilipp.nexus-publish").version("0.3.1").apply(false)
   id("org.openapi.generator") version "4.2.1"
 }
@@ -21,8 +20,8 @@ repositories {
 }
 
 java {
-  sourceCompatibility = JavaVersion.VERSION_1_8
-  targetCompatibility = JavaVersion.VERSION_1_8
+  sourceCompatibility = JavaVersion.VERSION_11
+  targetCompatibility = JavaVersion.VERSION_11
   withSourcesJar()
 }
 
@@ -44,10 +43,6 @@ openApiGenerate {
   generateModelDocumentation.set(false)
   generateModelTests.set(false)
   verbose.set(false)
-}
-
-jacoco {
-  toolVersion = "0.8.7"
 }
 
 tasks {
@@ -96,21 +91,21 @@ tasks {
 
 dependencies {
 
-  compile("com.sparkjava:spark-core:2.9.1")
-  compile("com.sparkjava:spark-template-thymeleaf:2.7.1") {
-    exclude(group = "com.sparkjava", module = "spark-core")
-    exclude(group = "org.thymeleaf", module = "thymeleaf")
-    exclude(group = "org.slf4j", module = "slf4j-api")
-  }
-  compile("org.thymeleaf:thymeleaf:3.0.11.RELEASE")
+  implementation("com.sparkjava:spark-core:2.9.1")
+    implementation("com.sparkjava:spark-template-thymeleaf:2.7.1") {
+      exclude(group = "com.sparkjava", module = "spark-core")
+      exclude(group = "org.thymeleaf", module = "thymeleaf")
+      exclude(group = "org.slf4j", module = "slf4j-api")
+    }
 
-  compile("joda-time:joda-time:2.10.10")
+  implementation("org.thymeleaf:thymeleaf:3.0.12.RELEASE")
+  api("joda-time:joda-time:2.10.10")
 
-  compile("org.apache.commons:commons-configuration2:2.4") {
+  implementation("org.apache.commons:commons-configuration2:2.4") {
     exclude(group = "commons-logging", module = "commons-logging")
   }
-  compile("org.apache.commons:commons-lang3:3.11")
-  compile("net.jodah:failsafe:1.1.0")
+  implementation("org.apache.commons:commons-lang3:3.12.0")
+  implementation("net.jodah:failsafe:1.1.0")
 
   compileOnly("org.projectlombok:lombok:1.18.20")
   annotationProcessor("org.projectlombok:lombok:1.18.20")
@@ -118,67 +113,67 @@ dependencies {
   testAnnotationProcessor("org.projectlombok:lombok:1.18.20")
 
   // AWS dependencies
-  compile("com.amazonaws:aws-java-sdk-logs:1.11.611") {
+  implementation("com.amazonaws:aws-java-sdk-logs:1.12.62") {
     exclude(group = "commons-logging", module = "commons-logging")
     exclude(group = "commons-codec", module = "commons-codec")
     exclude(group = "joda-time", module = "joda-time")
     exclude(group = "org.apache.httpcomponents", module = "httpclient")
   }
 
-  compile("com.amazonaws:aws-java-sdk-cloudwatch:1.11.611") {
+  implementation("com.amazonaws:aws-java-sdk-cloudwatch:1.12.62") {
     exclude(group = "commons-logging", module = "commons-logging")
   }
 
   //  required by AWS SDK to log to logback via slf4j
-  compile("org.slf4j:jcl-over-slf4j:1.7.30")
-  compile("org.slf4j:jul-to-slf4j:1.7.30")
+  implementation("org.slf4j:jcl-over-slf4j:1.7.32")
+  implementation("org.slf4j:jul-to-slf4j:1.7.32")
+  implementation("org.slf4j:slf4j-api:1.7.32")
 
   // lightweight json lib (no dependencies) https://github.com/ralfstx/minimal-json
-  compile("com.eclipsesource.minimal-json:minimal-json:0.9.5")
+  implementation("com.eclipsesource.minimal-json:minimal-json:0.9.5")
 
-  compile("com.fasterxml.jackson.core:jackson-databind")
-  compile("com.fasterxml.jackson.core:jackson-core")
-  compile("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor")
+  implementation("com.fasterxml.jackson.core:jackson-databind")
+  implementation("com.fasterxml.jackson.core:jackson-core")
+  implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor")
 
-  compile("org.apache.commons:commons-collections4:4.4")
-  compile("com.google.guava:guava:30.1-jre")
-  compile("commons-io:commons-io:2.8.0")
+  implementation("org.apache.commons:commons-collections4:4.4")
+  implementation("com.google.guava:guava:30.1-jre")
+  implementation("commons-io:commons-io:2.8.0")
 
-  compile("org.xerial:sqlite-jdbc:3.28.0")
-  compile("org.codejargon:fluentjdbc:1.8.6")
+  implementation("org.xerial:sqlite-jdbc:3.36.0.2")
+  implementation("org.codejargon:fluentjdbc:1.8.6")
 
-  compile("org.apache.httpcomponents:httpclient:4.5.9") {
+  implementation("org.apache.httpcomponents:httpclient:4.5.9") {
     exclude(group = "commons-logging", module = "commons-logging")
     exclude(group = "commons-codec", module = "commons-codec")
     exclude(group = "org.apache.httpcomponents", module = "httpcore")
   }
 
-  compile("org.apache.httpcomponents:httpcore:4.4.11")
-  compile("org.apache.httpcomponents:fluent-hc:4.5.9") {
+  implementation("org.apache.httpcomponents:httpcore:4.4.11")
+  implementation("org.apache.httpcomponents:fluent-hc:4.5.9") {
     exclude(group = "commons-logging", module = "commons-logging")
     exclude(group = "commons-codec", module = "commons-codec")
   }
-  compile("commons-codec:commons-codec:1.12")
+  implementation("commons-codec:commons-codec:1.12")
 
-  compile("ch.qos.logback:logback-core:1.2.3")
-  compile("ch.qos.logback:logback-classic:1.2.3")
-  compile("org.slf4j:slf4j-api:1.7.30")
+  implementation("ch.qos.logback:logback-core:1.2.5")
+  implementation("ch.qos.logback:logback-classic:1.2.5")
 
   // required by activity text template engine
-  compile("org.freemarker:freemarker:2.3.28")
+  implementation("org.freemarker:freemarker:2.3.31")
 
   // swagger-annotations and validation-api used in openApiGenerate
-  compile("io.swagger:swagger-annotations:1.5.3")
-  compile("javax.validation:validation-api:2.0.1.Final")
+  implementation("io.swagger:swagger-annotations:1.6.2")
+  implementation("javax.validation:validation-api:2.0.1.Final")
 
-  testCompile("com.github.javafaker:javafaker:0.17.2") {
+  testImplementation("com.github.javafaker:javafaker:1.0.2") {
     exclude(group = "org.apache.commons", module = "commons-lang3")
   }
-  testCompile("org.skyscreamer:jsonassert:1.5.0")
-  testCompile("org.junit.jupiter:junit-jupiter:5.7.1")
-  testCompile("org.mockito:mockito-core:3.6.0")
-  testCompile("org.assertj:assertj-core:3.18.0")
-  testCompile("io.github.benas:random-beans:3.9.0")
+  testImplementation("org.skyscreamer:jsonassert:1.5.0")
+  testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
+  testImplementation("org.mockito:mockito-core:3.6.0")
+  testImplementation("org.assertj:assertj-core:3.18.0")
+  testImplementation("io.github.benas:random-beans:3.9.0")
 }
 
 sourceSets {
@@ -215,7 +210,7 @@ configurations.all {
       "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.3",
       "commons-codec:commons-codec:1.12",
       "org.objenesis:objenesis:3.0.1",
-      "org.slf4j:slf4j-api:1.7.30",
+      "org.slf4j:slf4j-api:1.7.32",
       "org.apache.httpcomponents:httpclient:4.5.9"
     )
   }

@@ -1,2 +1,2 @@
 # set JVM using: sdk env
-java=8.0.292.j9-adpt
+java=11.0.11.j9-adpt
