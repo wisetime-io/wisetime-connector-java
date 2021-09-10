@@ -1,6 +1,7 @@
 ---
 kind: pipeline
 name: test-and-publish
+type: docker
 
 steps:
   - name: fetch-tags
@@ -15,7 +16,7 @@ steps:
       mount:
         - .gcache/wrapper
         - .gcache/caches/modules-2
-      cache_key: [ DRONE_REPO_OWNER, DRONE_REPO_NAME ]
+      cache_key: [ DRONE_REPO_OWNER, DRONE_REPO_NAME, DRONE_BRANCH ]
     volumes:
       - name: host-cache
         path: /cache
@@ -51,7 +52,7 @@ steps:
       mount:
         - .gcache/wrapper
         - .gcache/caches/modules-2
-      cache_key: [ DRONE_REPO_OWNER, DRONE_REPO_NAME ]
+      cache_key: [ DRONE_REPO_OWNER, DRONE_REPO_NAME, DRONE_BRANCH ]
     volumes:
       - name: host-cache
         path: /cache
@@ -113,6 +114,8 @@ trigger:
 ---
 kind: pipeline
 name: mirror-to-github
+type: docker
+
 depends_on:
   - test-and-publish
 
