@@ -11,6 +11,7 @@ plugins {
   id("com.github.ben-manes.versions") version "0.39.0"
   id("io.wisetime.versionChecker") version "10.11.72"
   id("io.codearte.nexus-staging") version "0.30.0"
+  id("io.freefair.lombok").version("6.1.0")
   id("de.marcphilipp.nexus-publish").version("0.3.1").apply(false)
   id("org.openapi.generator") version "4.2.1"
 }
@@ -92,17 +93,12 @@ dependencies {
 
   api("joda-time:joda-time:2.10.10")
   api("org.thymeleaf:thymeleaf:3.0.12.RELEASE")
+  api("org.slf4j:slf4j-api:1.7.32")
 
   implementation("org.apache.commons:commons-configuration2:2.4") {
     exclude(group = "commons-logging", module = "commons-logging")
   }
   implementation("org.apache.commons:commons-lang3:3.12.0")
-  implementation("net.jodah:failsafe:1.1.0")
-
-  compileOnly("org.projectlombok:lombok:1.18.20")
-  annotationProcessor("org.projectlombok:lombok:1.18.20")
-  testCompileOnly("org.projectlombok:lombok:1.18.20")
-  testAnnotationProcessor("org.projectlombok:lombok:1.18.20")
 
   // AWS dependencies
   implementation("com.amazonaws:aws-java-sdk-logs:1.12.62") {
@@ -119,7 +115,6 @@ dependencies {
   //  required by AWS SDK to log to logback via slf4j
   implementation("org.slf4j:jcl-over-slf4j:1.7.32")
   implementation("org.slf4j:jul-to-slf4j:1.7.32")
-  implementation("org.slf4j:slf4j-api:1.7.32")
 
   // lightweight json lib (no dependencies) https://github.com/ralfstx/minimal-json
   implementation("com.eclipsesource.minimal-json:minimal-json:0.9.5")
@@ -127,9 +122,9 @@ dependencies {
   implementation("com.fasterxml.jackson.core:jackson-databind")
   implementation("com.fasterxml.jackson.core:jackson-core")
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor")
-
-  implementation("org.apache.commons:commons-collections4:4.4")
   implementation("com.google.guava:guava:30.1-jre")
+
+  api("org.apache.commons:commons-collections4:4.4")
   implementation("commons-io:commons-io:2.8.0")
 
   implementation("org.xerial:sqlite-jdbc:3.36.0.2")
@@ -162,9 +157,9 @@ dependencies {
     exclude(group = "org.apache.commons", module = "commons-lang3")
   }
   testImplementation("org.skyscreamer:jsonassert:1.5.0")
-  testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
-  testImplementation("org.mockito:mockito-core:3.6.0")
-  testImplementation("org.assertj:assertj-core:3.18.0")
+  testImplementation("org.junit.jupiter:junit-jupiter:5.7.2")
+  testImplementation("org.mockito:mockito-core:3.12.4")
+  testImplementation("org.assertj:assertj-core:3.20.2")
   testImplementation("io.github.benas:random-beans:3.9.0")
 }
 
