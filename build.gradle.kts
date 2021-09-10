@@ -92,17 +92,16 @@ tasks {
 dependencies {
 
   implementation("com.sparkjava:spark-core:2.9.1")
-  implementation("com.sparkjava:spark-template-thymeleaf:2.7.1") {
-    exclude(group = "com.sparkjava", module = "spark-core")
-    exclude(group = "org.thymeleaf", module = "thymeleaf")
-    exclude(group = "org.slf4j", module = "slf4j-api")
-  }
-  implementation("org.thymeleaf:thymeleaf:3.0.11.RELEASE")
+    implementation("com.sparkjava:spark-template-thymeleaf:2.7.1") {
+      exclude(group = "com.sparkjava", module = "spark-core")
+      exclude(group = "org.thymeleaf", module = "thymeleaf")
+      exclude(group = "org.slf4j", module = "slf4j-api")
+    }
 
-  // TODO(WT-13385) use api under gradle 7.x
-  implementation("joda-time:joda-time:2.10.10")
+  implementation("org.thymeleaf:thymeleaf:3.0.12.RELEASE")
+  api("joda-time:joda-time:2.10.10")
 
-  implementation("org.apache.commons:commons-configuration2:2.7") {
+  implementation("org.apache.commons:commons-configuration2:2.4") {
     exclude(group = "commons-logging", module = "commons-logging")
   }
   implementation("org.apache.commons:commons-lang3:3.12.0")
@@ -114,14 +113,14 @@ dependencies {
   testAnnotationProcessor("org.projectlombok:lombok:1.18.20")
 
   // AWS dependencies
-  implementation("com.amazonaws:aws-java-sdk-logs:1.11.611") {
+  implementation("com.amazonaws:aws-java-sdk-logs:1.12.62") {
     exclude(group = "commons-logging", module = "commons-logging")
     exclude(group = "commons-codec", module = "commons-codec")
     exclude(group = "joda-time", module = "joda-time")
     exclude(group = "org.apache.httpcomponents", module = "httpclient")
   }
 
-  implementation("com.amazonaws:aws-java-sdk-cloudwatch:1.11.611") {
+  implementation("com.amazonaws:aws-java-sdk-cloudwatch:1.12.62") {
     exclude(group = "commons-logging", module = "commons-logging")
   }
 
