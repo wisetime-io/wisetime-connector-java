@@ -11,6 +11,7 @@ plugins {
   id("com.github.ben-manes.versions") version "0.39.0"
   id("io.wisetime.versionChecker") version "10.11.72"
   id("io.codearte.nexus-staging") version "0.30.0"
+  id("io.freefair.lombok").version("6.1.0")
   id("de.marcphilipp.nexus-publish").version("0.3.1").apply(false)
   id("org.openapi.generator") version "4.2.1"
 }
@@ -98,12 +99,6 @@ dependencies {
     exclude(group = "commons-logging", module = "commons-logging")
   }
   implementation("org.apache.commons:commons-lang3:3.12.0")
-  implementation("net.jodah:failsafe:1.1.0")
-
-  compileOnly("org.projectlombok:lombok:1.18.20")
-  annotationProcessor("org.projectlombok:lombok:1.18.20")
-  testCompileOnly("org.projectlombok:lombok:1.18.20")
-  testAnnotationProcessor("org.projectlombok:lombok:1.18.20")
 
   // AWS dependencies
   implementation("com.amazonaws:aws-java-sdk-logs:1.12.62") {
