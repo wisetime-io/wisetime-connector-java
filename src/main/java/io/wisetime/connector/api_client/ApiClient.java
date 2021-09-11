@@ -10,7 +10,6 @@ import io.wisetime.generated.connect.DeleteTagRequest;
 import io.wisetime.generated.connect.HealthCheckFailureNotify;
 import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
-import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SyncActivityTypesRequest;
 import io.wisetime.generated.connect.SyncActivityTypesResponse;
 import io.wisetime.generated.connect.SyncSession;
@@ -144,22 +143,6 @@ public interface ApiClient {
    * @throws IOException The {@link IOException}
    */
   TeamInfoResult teamInfo() throws IOException;
-
-  /**
-   * Subscribes a new webhook for receiving posted time. WiseTime will call your webhook whenever a user posts time to
-   * your team.
-   *
-   * @param subscribeRequest information about the webhook to be created
-   * @throws IOException The {@link IOException}
-   */
-  void postedTimeSubscribe(SubscribeRequest subscribeRequest) throws IOException;
-
-  /**
-   * Deletes a posted time webhook.
-   *
-   * @throws IOException if request is unsuccessful
-   */
-  void postedTimeUnsubscribe() throws IOException;
 
   /**
    * Fetches a posted time group.

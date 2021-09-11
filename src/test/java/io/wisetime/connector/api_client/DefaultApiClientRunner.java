@@ -20,7 +20,6 @@ import io.wisetime.generated.connect.DeleteKeywordRequest;
 import io.wisetime.generated.connect.DeleteTagRequest;
 import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
-import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SyncActivityTypesRequest;
 import io.wisetime.generated.connect.SyncActivityTypesResponse;
 import io.wisetime.generated.connect.SyncSession;
@@ -66,8 +65,6 @@ class DefaultApiClientRunner {
     runner.tagDeleteKeyword_hasSlash();
     runner.activityTypesSyncSession();
     runner.syncActivityTypes_noSession();
-    runner.postedTimeSubscribe();
-    runner.postedTimeUnsubscribe();
     runner.managedTimeConfig();
   }
 
@@ -162,17 +159,6 @@ class DefaultApiClientRunner {
 
     assertThat(response.getErrors())
         .isEmpty();
-  }
-
-  void postedTimeSubscribe() throws IOException {
-    SubscribeRequest subscribeRequest = new SubscribeRequest();
-    subscribeRequest.callbackUrl("http://testurl");
-    subscribeRequest.setCallerKey("sample-caller-key");
-    defaultApiClient.postedTimeSubscribe(subscribeRequest);
-  }
-
-  void postedTimeUnsubscribe() throws IOException {
-    defaultApiClient.postedTimeUnsubscribe();
   }
 
   void managedTimeConfig() throws IOException {

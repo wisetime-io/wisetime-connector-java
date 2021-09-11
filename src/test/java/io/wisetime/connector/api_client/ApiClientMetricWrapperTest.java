@@ -21,7 +21,6 @@ import io.wisetime.connector.metric.MetricService;
 import io.wisetime.generated.connect.AddKeywordsRequest;
 import io.wisetime.generated.connect.DeleteKeywordRequest;
 import io.wisetime.generated.connect.DeleteTagRequest;
-import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SyncActivityTypesRequest;
 import io.wisetime.generated.connect.SyncSession;
 import io.wisetime.generated.connect.TagMetadataDeleteRequest;
@@ -93,9 +92,7 @@ class ApiClientMetricWrapperTest {
   @Test
   void otherMethods_delegateOnly() throws IOException {
     apiClientMetricWrapper.fetchTimeGroups(1);
-    apiClientMetricWrapper.postedTimeSubscribe(new SubscribeRequest());
     apiClientMetricWrapper.tagAddKeywords(new AddKeywordsRequest());
-    apiClientMetricWrapper.postedTimeUnsubscribe();
     apiClientMetricWrapper.tagAddKeywordsBatch(singletonList(new AddKeywordsRequest()));
     apiClientMetricWrapper.tagDelete(new DeleteTagRequest());
     apiClientMetricWrapper.tagDeleteKeyword(new DeleteKeywordRequest());

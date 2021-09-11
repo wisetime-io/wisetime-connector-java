@@ -18,7 +18,6 @@ import io.wisetime.generated.connect.DeleteTagRequest;
 import io.wisetime.generated.connect.HealthCheckFailureNotify;
 import io.wisetime.generated.connect.ManagedConfigRequest;
 import io.wisetime.generated.connect.ManagedConfigResponse;
-import io.wisetime.generated.connect.SubscribeRequest;
 import io.wisetime.generated.connect.SyncActivityTypesRequest;
 import io.wisetime.generated.connect.SyncActivityTypesResponse;
 import io.wisetime.generated.connect.SyncSession;
@@ -150,16 +149,6 @@ public class DefaultApiClient implements ApiClient {
 
   public TeamInfoResult teamInfo() throws IOException {
     return restRequestExecutor.executeTypedRequest(TeamInfoResult.class, EndpointPath.TeamInfo);
-  }
-
-  @Override
-  public void postedTimeSubscribe(SubscribeRequest subscribeRequest) throws IOException {
-    restRequestExecutor.executeTypedBodyRequest(Object.class, EndpointPath.PostedTimeSubscribe, subscribeRequest);
-  }
-
-  @Override
-  public void postedTimeUnsubscribe() throws IOException {
-    restRequestExecutor.executeTypedRequest(Object.class, EndpointPath.PostedTimeUnsubscribe);
   }
 
   @Override
