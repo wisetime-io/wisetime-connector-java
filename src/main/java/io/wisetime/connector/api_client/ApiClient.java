@@ -26,10 +26,7 @@ import java.util.List;
  * list of API methods available for use.
  * <p>
  * For default implementation see {@link DefaultApiClient}.
- *
- * @author thomas.haines
  */
-@SuppressWarnings("JavaDoc")
 public interface ApiClient {
 
   /**
@@ -180,7 +177,7 @@ public interface ApiClient {
   void healthCheckFailureNotify(HealthCheckFailureNotify request) throws IOException;
 
   /**
-   * Rescind (clear) a previously reported health check failure.
+   * Rescind/clear a previously reported health check failure.
    *
    * @throws IOException if the request was unsuccessful
    */
