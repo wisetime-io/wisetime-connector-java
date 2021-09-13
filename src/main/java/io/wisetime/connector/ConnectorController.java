@@ -78,7 +78,7 @@ public interface ConnectorController {
   interface Builder {
 
     /**
-     * Implementation of {@link WiseTimeConnector} is required to start runner.
+     * An implementation of {@link WiseTimeConnector} is required to start runner.
      *
      * @param wiseTimeConnector see {@link WiseTimeConnector}
      */
