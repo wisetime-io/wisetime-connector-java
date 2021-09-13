@@ -2,6 +2,3 @@
 
 [*.{kt,kts}]
 indent_size=2
-
-[*.java]
-indent_size=2

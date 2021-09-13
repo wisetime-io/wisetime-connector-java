@@ -7,6 +7,7 @@ plugins {
   `java-library`
   jacoco
   `maven-publish`
+  checkstyle
 
   id("com.github.ben-manes.versions")
   id("io.wisetime.versionChecker")
@@ -23,7 +24,6 @@ java {
   targetCompatibility = JavaVersion.VERSION_11
 }
 
-apply(from = "$rootDir/gradle/conf/checkstyle.gradle")
 apply(from = "$projectDir/gradle/conf/jacoco.gradle")
 group = "io.wisetime"
 
@@ -80,11 +80,22 @@ tasks {
     }
   }
 
+  checkstyleMain {
+    exclude("com/google/**", "**/generated/**")
+  }
+
   jar {
     manifest {
       attributes("Implementation-Version" to project.version)
     }
   }
+}
+
+checkstyle {
+  configFile = File("${projectDir}/gradle/conf/checkstyle.xml")
+  configProperties["checkstyleConfigDir"] = File("${projectDir}/gradle/conf")
+  configProperties["suppressionFile"] = File("${projectDir}/gradle/conf/checkstyle_suppressions.xml")
+  toolVersion = "8.45.1"
 }
 
 dependencies {

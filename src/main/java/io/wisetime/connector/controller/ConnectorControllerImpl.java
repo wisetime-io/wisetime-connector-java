@@ -54,18 +54,6 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class ConnectorControllerImpl implements ConnectorController, HealthIndicator {
 
-  TimerTaskSchedule healthTaskSchedule = new TimerTaskSchedule(
-    TimeUnit.SECONDS.toMillis(5), TimeUnit.MINUTES.toMillis(1));
-  TimerTaskSchedule tagTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
-    TimeUnit.MINUTES.toMillis(1));
-  TimerTaskSchedule tagSlowLoopTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
-    TimeUnit.MINUTES.toMillis(5));
-  TimerTaskSchedule activityTypeTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
-    TimeUnit.MINUTES.toMillis(5));
-  TimerTaskSchedule activityTypeSlowLoopTaskSchedule = new TimerTaskSchedule(TimeUnit.MINUTES.toMillis(1),
-    TimeUnit.MINUTES.toMillis(15));
-  TimerTaskSchedule managedConfigTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
-    TimeUnit.MINUTES.toMillis(5));
 
   private final AtomicReference<ExecutorService> connectorExecutor = new AtomicReference<>();
   private final TimePoster timePoster;
@@ -87,11 +75,19 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
   private final Timer activityTypeTimer;
   private final Timer activityTypeSlowLoopTimer;
   private final Timer managedConfigTimer;
+  private final TimerTaskSchedule tagSlowLoopTaskSchedule;
+  private final TimerTaskSchedule activityTypeSlowLoopTaskSchedule;
 
   ConnectorControllerImpl(ConnectorControllerConfiguration configuration) {
     healthRunner = new HealthCheck();
     metricService = new MetricService();
     wiseTimeConnector = configuration.getWiseTimeConnector();
+    tagSlowLoopTaskSchedule = new TimerTaskSchedule(
+      TimeUnit.SECONDS.toMillis(15),
+      TimeUnit.MINUTES.toMillis(5));
+    activityTypeSlowLoopTaskSchedule = new TimerTaskSchedule(
+      TimeUnit.MINUTES.toMillis(1),
+      TimeUnit.MINUTES.toMillis(15));
 
     tagRunner = createTagRunner(configuration, wiseTimeConnector);
     tagSlowLoopRunner = createTagSlowLoopRunner(configuration, wiseTimeConnector);
@@ -157,18 +153,29 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
 
     healthRunner.setShutdownFunction(this::stop);
 
+    TimerTaskSchedule healthTaskSchedule = new TimerTaskSchedule(
+      TimeUnit.SECONDS.toMillis(5),
+      TimeUnit.MINUTES.toMillis(1)
+    );
+
     healthCheckTimer.scheduleAtFixedRate(healthRunner,
       healthTaskSchedule.getInitialDelayMs(), healthTaskSchedule.getPeriodMs());
 
+    TimerTaskSchedule tagTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
+      TimeUnit.MINUTES.toMillis(1));
     tagTimer.scheduleAtFixedRate(tagRunner,
       tagTaskSchedule.getInitialDelayMs(), tagTaskSchedule.getPeriodMs());
 
     tagSlowLoopTimer.scheduleAtFixedRate(tagSlowLoopRunner,
       tagSlowLoopTaskSchedule.getInitialDelayMs(), tagSlowLoopTaskSchedule.getPeriodMs());
 
+    TimerTaskSchedule activityTypeTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
+      TimeUnit.MINUTES.toMillis(5));
     activityTypeTimer.scheduleAtFixedRate(activityTypeRunner,
       activityTypeTaskSchedule.getInitialDelayMs(), activityTypeTaskSchedule.getPeriodMs());
 
+    TimerTaskSchedule managedConfigTaskSchedule = new TimerTaskSchedule(TimeUnit.SECONDS.toMillis(15),
+      TimeUnit.MINUTES.toMillis(5));
     activityTypeSlowLoopTimer.scheduleAtFixedRate(activityTypeSlowLoopRunner,
       activityTypeSlowLoopTaskSchedule.getInitialDelayMs(), activityTypeSlowLoopTaskSchedule.getPeriodMs());
 
