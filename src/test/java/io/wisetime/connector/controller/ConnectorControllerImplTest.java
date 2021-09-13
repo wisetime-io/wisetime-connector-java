@@ -30,22 +30,22 @@ class ConnectorControllerImplTest {
         .disablePostedTimeFetching()
         .build();
 
-    assertThat(connectorController.tagTaskSchedule.getPeriodMs())
+    assertThat(connectorController.getTagTaskScheduleMins())
         .as("Tag sync interval minutes shouldn't be changed without due consideration as it affects all "
         + "downstream connectors")
-        .isEqualTo(TimeUnit.MINUTES.toMillis(1));
+        .isEqualTo(1);
 
-    assertThat(connectorController.tagSlowLoopTaskSchedule.getPeriodMs())
+    assertThat(connectorController.getTagSlowLoopTaskSchedule().getPeriodMs())
         .as("Tag slow loop sync interval minutes shouldn't be changed without due consideration as it affects all "
         + "downstream connectors")
         .isEqualTo(TimeUnit.MINUTES.toMillis(5));
 
-    assertThat(connectorController.activityTypeTaskSchedule.getPeriodMs())
+    assertThat(connectorController.getActivityTypeTaskScheduleMins())
         .as("Activity type sync interval minutes shouldn't be changed without due consideration as it affects all "
         + "downstream connectors")
-        .isEqualTo(TimeUnit.MINUTES.toMillis(5));
+        .isEqualTo(5);
 
-    assertThat(connectorController.activityTypeSlowLoopTaskSchedule.getPeriodMs())
+    assertThat(connectorController.getActivityTypeSlowLoopTaskSchedule().getPeriodMs())
         .as("Activity type slow loop sync interval minutes shouldn't be changed without due consideration as it affects all "
             + "downstream connectors")
         .isEqualTo(TimeUnit.MINUTES.toMillis(15));
@@ -60,8 +60,8 @@ class ConnectorControllerImplTest {
           .withWiseTimeConnector(wiseTimeConnector)
           .useTagsOnly()
           .build());
-      controller.healthTaskSchedule.setInitialDelayMs(0);
-      controller.healthTaskSchedule.setPeriodMs(3000);
+      controller.getHealthTaskSchedule().setInitialDelayMs(0);
+      controller.getHealthTaskSchedule().setPeriodMs(3000);
       controller.start();
 
       verify(controller, times(1)).start();

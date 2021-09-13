@@ -7,6 +7,7 @@ plugins {
   `java-library`
   jacoco
   `maven-publish`
+  checkstyle
 
   id("com.github.ben-manes.versions")
   id("io.wisetime.versionChecker")
@@ -23,7 +24,6 @@ java {
   targetCompatibility = JavaVersion.VERSION_11
 }
 
-apply(from = "$rootDir/gradle/conf/checkstyle.gradle")
 apply(from = "$projectDir/gradle/conf/jacoco.gradle")
 group = "io.wisetime"
 
@@ -80,11 +80,22 @@ tasks {
     }
   }
 
+  checkstyleMain {
+    exclude("com/google/**", "**/generated/**")
+  }
+
   jar {
     manifest {
       attributes("Implementation-Version" to project.version)
     }
   }
+}
+
+checkstyle {
+  configFile = File("${projectDir}/gradle/conf/checkstyle.xml")
+  configProperties["checkstyleConfigDir"] = File("${projectDir}/gradle/conf")
+  configProperties["suppressionFile"] = File("${projectDir}/gradle/conf/checkstyle_suppressions.xml")
+  toolVersion = "8.45.1"
 }
 
 dependencies {
@@ -120,9 +131,12 @@ dependencies {
   implementation("com.fasterxml.jackson.core:jackson-databind")
   implementation("com.fasterxml.jackson.core:jackson-core")
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor")
+
+  @Suppress("GradlePackageUpdate")
   implementation("com.google.guava:guava:30.1-jre")
 
   api("org.apache.commons:commons-collections4:4.4")
+  @Suppress("GradlePackageUpdate")
   implementation("commons-io:commons-io:2.8.0")
 
   implementation("org.xerial:sqlite-jdbc:3.36.0.2")
@@ -139,6 +153,7 @@ dependencies {
     exclude(group = "commons-logging", module = "commons-logging")
     exclude(group = "commons-codec", module = "commons-codec")
   }
+  @Suppress("GradlePackageUpdate")
   implementation("commons-codec:commons-codec:1.12")
 
   implementation("ch.qos.logback:logback-core:1.2.5")
