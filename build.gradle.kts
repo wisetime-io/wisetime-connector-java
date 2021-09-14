@@ -103,6 +103,11 @@ dependencies {
   api("joda-time:joda-time:2.10.10")
   api("org.thymeleaf:thymeleaf:3.0.12.RELEASE")
   api("org.slf4j:slf4j-api:1.7.32")
+  api("org.apache.httpcomponents:httpclient:4.5.9") {
+    exclude(group = "commons-logging", module = "commons-logging")
+    exclude(group = "commons-codec", module = "commons-codec")
+    exclude(group = "org.apache.httpcomponents", module = "httpcore")
+  }
 
   implementation("org.apache.commons:commons-configuration2:2.4") {
     exclude(group = "commons-logging", module = "commons-logging")
@@ -141,12 +146,6 @@ dependencies {
 
   implementation("org.xerial:sqlite-jdbc:3.36.0.2")
   implementation("org.codejargon:fluentjdbc:1.8.6")
-
-  implementation("org.apache.httpcomponents:httpclient:4.5.9") {
-    exclude(group = "commons-logging", module = "commons-logging")
-    exclude(group = "commons-codec", module = "commons-codec")
-    exclude(group = "org.apache.httpcomponents", module = "httpcore")
-  }
 
   implementation("org.apache.httpcomponents:httpcore:4.4.11")
   implementation("org.apache.httpcomponents:fluent-hc:4.5.9") {
