@@ -49,7 +49,7 @@ public class DefaultApiClient implements ApiClient {
     this(new RestRequestExecutor(apiKey));
   }
 
-  DefaultApiClient(RestRequestExecutor requestExecutor) {
+  public DefaultApiClient(RestRequestExecutor requestExecutor) {
     this.restRequestExecutor = requestExecutor;
     forkJoinPool = new ForkJoinPool(6);
   }
