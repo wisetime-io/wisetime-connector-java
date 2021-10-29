@@ -100,7 +100,7 @@ checkstyle {
 
 dependencies {
 
-  api("joda-time:joda-time:2.10.10")
+  api("joda-time:joda-time:2.10.12")
   api("org.thymeleaf:thymeleaf:3.0.12.RELEASE")
   api("org.slf4j:slf4j-api:1.7.32")
   api("org.apache.httpcomponents:httpclient:4.5.9") {
@@ -202,7 +202,7 @@ configurations.all {
     failOnVersionConflict()
 
     force(
-      "joda-time:joda-time:2.10.10",
+      "joda-time:joda-time:2.10.12",
       "org.apache.commons:commons-lang3:3.12.0",
       "com.fasterxml.jackson.core:jackson-databind:2.12.3",
       "com.fasterxml.jackson.core:jackson-core:2.12.3",
