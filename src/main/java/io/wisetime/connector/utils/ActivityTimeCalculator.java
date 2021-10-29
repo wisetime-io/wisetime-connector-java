@@ -20,9 +20,10 @@ import java.util.Optional;
 public class ActivityTimeCalculator {
 
   /**
-   * The start time of a {@link TimeGroup} is the first observed time of the earliest {@link TimeRow} in the group.
    * <p>
-   * Use this method in place of Optional<LocalDateTime> startTime(TimeGroup).
+   * The start time of a {@link TimeGroup} is the first observed time of the earliest {@link TimeRow} in the group.
+   * Use this method in place of startTime(TimeGroup).
+   * <p>
    *
    * @param timeGroup the {@link TimeGroup} whose start time instant to calculate
    * @return start time instant of the time group
