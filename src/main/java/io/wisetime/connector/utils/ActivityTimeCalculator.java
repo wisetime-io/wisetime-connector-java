@@ -38,10 +38,8 @@ public class ActivityTimeCalculator {
   }
 
   private static Instant getFirstObservedTime(final TimeRow timeRow) {
-    return LocalDateTime.parse(
-        // e.g. 2018110209 & 3 -> 201811020903
-        String.format("%s%02d", timeRow.getActivityHour(), timeRow.getFirstObservedInHour()),
-        DateTimeFormatter.ofPattern("yyyyMMddHHmm")
-    ).toInstant(ZoneOffset.UTC);
+    return LocalDateTime.parse(timeRow.getActivityHour().toString(),DateTimeFormatter.ofPattern("yyyyMMddHH"))
+        .plusMinutes(timeRow.getFirstObservedInHour())
+        .toInstant(ZoneOffset.UTC);
   }
 }
