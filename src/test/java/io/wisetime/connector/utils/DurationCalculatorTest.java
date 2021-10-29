@@ -43,18 +43,18 @@ class DurationCalculatorTest {
   void config_useDurationFrom_timeGroup() {
     final TimeGroup timeGroup = fakeEntities
         .randomTimeGroup()
-        .totalDurationSecs(120);
+        .totalDurationSecs(185);
 
     final long result = DurationCalculator
         .of(timeGroup)
         .disregardExperienceWeighting()
-        .roundToNearestSeconds(1)
+        .roundToNearestSeconds(60)
         .useDurationFrom(DurationSource.TIME_GROUP)
         .calculate();
 
     assertThat(result)
         .as("Duration should be taken from the time group")
-        .isEqualTo(120);
+        .isEqualTo(240);
   }
 
   @Test
