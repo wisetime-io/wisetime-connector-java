@@ -71,7 +71,6 @@ steps:
     when:
       ref:
         - refs/heads/master
-        - refs/tags/*
 
   - name: notify
     image: drillster/drone-email
@@ -98,7 +97,6 @@ steps:
     when:
       ref:
         - refs/heads/master
-        - refs/tags/*
 
 volumes:
   - name: host-cache
@@ -109,7 +107,6 @@ volumes:
 trigger:
   event:
     - push
-    - tag
 
 ---
 kind: pipeline
@@ -130,12 +127,10 @@ steps:
     when:
       ref:
         - refs/heads/master
-        - refs/tags/*
 
 trigger:
   event:
     - push
-    - tag
 
 ---
 kind: secret
