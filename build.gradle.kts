@@ -100,7 +100,7 @@ checkstyle {
 
 dependencies {
 
-  api("joda-time:joda-time:2.10.10")
+  api("joda-time:joda-time:2.10.12")
   api("org.thymeleaf:thymeleaf:3.0.12.RELEASE")
   api("org.slf4j:slf4j-api:1.7.32")
   api("org.apache.httpcomponents:httpclient:4.5.9") {
@@ -162,16 +162,16 @@ dependencies {
   implementation("org.freemarker:freemarker:2.3.31")
 
   // swagger-annotations and validation-api used in openApiGenerate
-  implementation("io.swagger:swagger-annotations:1.6.2")
+  implementation("io.swagger:swagger-annotations:1.6.3")
   implementation("javax.validation:validation-api:2.0.1.Final")
 
   testImplementation("com.github.javafaker:javafaker:1.0.2") {
     exclude(group = "org.apache.commons", module = "commons-lang3")
   }
   testImplementation("org.skyscreamer:jsonassert:1.5.0")
-  testImplementation("org.junit.jupiter:junit-jupiter:5.7.2")
+  testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
   testImplementation("org.mockito:mockito-core:3.12.4")
-  testImplementation("org.assertj:assertj-core:3.20.2")
+  testImplementation("org.assertj:assertj-core:3.21.0")
   testImplementation("io.github.benas:random-beans:3.9.0")
 }
 
@@ -202,7 +202,7 @@ configurations.all {
     failOnVersionConflict()
 
     force(
-      "joda-time:joda-time:2.10.10",
+      "joda-time:joda-time:2.10.12",
       "org.apache.commons:commons-lang3:3.12.0",
       "com.fasterxml.jackson.core:jackson-databind:2.12.3",
       "com.fasterxml.jackson.core:jackson-core:2.12.3",
