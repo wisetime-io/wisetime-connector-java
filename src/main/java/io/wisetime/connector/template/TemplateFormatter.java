@@ -109,8 +109,10 @@ public class TemplateFormatter {
 
   private TimeGroup convertToUserLocal(TimeGroup timeGroupUtc) {
     try {
+      // deep copy to/from json
       final String timeGroupUtcJson = OBJECT_MAPPER.writeValueAsString(timeGroupUtc);
       final TimeGroup timeGroupCopy = OBJECT_MAPPER.readValue(timeGroupUtcJson, TimeGroup.class);
+
       timeGroupCopy.getTimeRows().forEach(this::convertToUserLocal);
       return timeGroupCopy;
     } catch (IOException ex) {

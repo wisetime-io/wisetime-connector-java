@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 class TemplateFormatterTest {
 
   @Test
-  public void format() throws Exception {
+  public void format() {
     TemplateFormatterConfig config = TemplateFormatterConfig.builder()
         .withTemplatePath("classpath:freemarker-template/test-template.ftl")
         .build();
@@ -40,7 +40,7 @@ class TemplateFormatterTest {
   }
 
   @Test
-  public void format_winclr() throws Exception {
+  public void format_winclr() {
     TemplateFormatterConfig config = TemplateFormatterConfig.builder()
         .withTemplatePath("classpath:freemarker-template/test-template.ftl")
         .withWindowsClr(true)
@@ -73,7 +73,7 @@ class TemplateFormatterTest {
   }
 
   @Test
-  public void format_tooLong() throws Exception {
+  public void format_tooLong() {
     TemplateFormatterConfig config = TemplateFormatterConfig.builder()
         .withTemplatePath("classpath:freemarker-template/test-template.ftl")
         .withMaxLength(10)
@@ -113,7 +113,7 @@ class TemplateFormatterTest {
     String result = template.format(prepareTimeGroupWithTimeRow());
 
     assertThat(result)
-        .as("check template formatter result")
+        .as("check time is 480mins +8 hours after 15:00 UTC time")
         .contains("23:00 - Application - Window Title");
   }
 }
