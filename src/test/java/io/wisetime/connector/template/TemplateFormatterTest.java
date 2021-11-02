@@ -6,6 +6,7 @@ package io.wisetime.connector.template;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.wisetime.connector.template.TemplateFormatterConfig.DisplayZone;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeRow;
 import java.util.Collections;
@@ -17,7 +18,7 @@ import org.junit.jupiter.api.Test;
 class TemplateFormatterTest {
 
   @Test
-  public void format() throws Exception {
+  public void format() {
     TemplateFormatterConfig config = TemplateFormatterConfig.builder()
         .withTemplatePath("classpath:freemarker-template/test-template.ftl")
         .build();
@@ -39,7 +40,7 @@ class TemplateFormatterTest {
   }
 
   @Test
-  public void format_winclr() throws Exception {
+  public void format_winclr() {
     TemplateFormatterConfig config = TemplateFormatterConfig.builder()
         .withTemplatePath("classpath:freemarker-template/test-template.ftl")
         .withWindowsClr(true)
@@ -64,12 +65,15 @@ class TemplateFormatterTest {
     timeRow.setActivity("Application");
     timeRow.setDescription("Window Title");
     timeRow.setDurationSecs(200);
+    timeRow.setActivityHour(2021110210);
+    timeRow.setFirstObservedInHour(5);
+    timeRow.setTimezoneOffsetMin(480); // +8
     timeRow.setSubmittedDate(20181110150000000L);
     return timeRow;
   }
 
   @Test
-  public void format_tooLong() throws Exception {
+  public void format_tooLong() {
     TemplateFormatterConfig config = TemplateFormatterConfig.builder()
         .withTemplatePath("classpath:freemarker-template/test-template.ftl")
         .withMaxLength(10)
@@ -84,4 +88,32 @@ class TemplateFormatterTest {
         .isEqualTo("groupNa...");
   }
 
+  @Test
+  void displayZone_utc() {
+    TemplateFormatterConfig config = TemplateFormatterConfig.builder()
+        .withTemplatePath("classpath:freemarker-template/test-template.ftl")
+        .build();
+    TemplateFormatter template = new TemplateFormatter(config);
+
+    String result = template.format(prepareTimeGroupWithTimeRow());
+
+    assertThat(result)
+        .as("check template formatter result")
+        .contains("15:00 - Application - Window Title");
+  }
+
+  @Test
+  void displayZone_userLocal() {
+    TemplateFormatterConfig config = TemplateFormatterConfig.builder()
+        .withTemplatePath("classpath:freemarker-template/test-template.ftl")
+        .withDisplayZone(DisplayZone.USER_LOCAL)
+        .build();
+    TemplateFormatter template = new TemplateFormatter(config);
+
+    String result = template.format(prepareTimeGroupWithTimeRow());
+
+    assertThat(result)
+        .as("check time is 480mins +8 hours after 15:00 UTC time")
+        .contains("23:00 - Application - Window Title");
+  }
 }
