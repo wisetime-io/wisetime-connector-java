@@ -6,6 +6,7 @@ package io.wisetime.connector.template;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.wisetime.connector.template.TemplateFormatterConfig.DisplayZone;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeRow;
 import java.util.Collections;
@@ -64,6 +65,9 @@ class TemplateFormatterTest {
     timeRow.setActivity("Application");
     timeRow.setDescription("Window Title");
     timeRow.setDurationSecs(200);
+    timeRow.setActivityHour(2021110210);
+    timeRow.setFirstObservedInHour(5);
+    timeRow.setTimezoneOffsetMin(480); // +8
     timeRow.setSubmittedDate(20181110150000000L);
     return timeRow;
   }
@@ -84,4 +88,32 @@ class TemplateFormatterTest {
         .isEqualTo("groupNa...");
   }
 
+  @Test
+  void displayZone_utc() {
+    TemplateFormatterConfig config = TemplateFormatterConfig.builder()
+        .withTemplatePath("classpath:freemarker-template/test-template.ftl")
+        .build();
+    TemplateFormatter template = new TemplateFormatter(config);
+
+    String result = template.format(prepareTimeGroupWithTimeRow());
+
+    assertThat(result)
+        .as("check template formatter result")
+        .contains("15:00 - Application - Window Title");
+  }
+
+  @Test
+  void displayZone_userLocal() {
+    TemplateFormatterConfig config = TemplateFormatterConfig.builder()
+        .withTemplatePath("classpath:freemarker-template/test-template.ftl")
+        .withDisplayZone(DisplayZone.USER_LOCAL)
+        .build();
+    TemplateFormatter template = new TemplateFormatter(config);
+
+    String result = template.format(prepareTimeGroupWithTimeRow());
+
+    assertThat(result)
+        .as("check template formatter result")
+        .contains("23:00 - Application - Window Title");
+  }
 }

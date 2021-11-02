@@ -39,11 +39,13 @@ public class TemplateFormatterConfig {
   private final boolean useWinclr;
   private final int maxLength;
   private final String templatePath;
+  private final DisplayZone displayZone;
 
   private TemplateFormatterConfig(Builder builder) {
     this.useWinclr = builder.winclr;
     this.maxLength = builder.maxLength;
     this.templatePath = builder.templatePath;
+    this.displayZone = builder.displayZone;
   }
 
   public static Builder builder() {
@@ -78,6 +80,13 @@ public class TemplateFormatterConfig {
   }
 
   /**
+   * Time zone to use to render time rows activity and time group start time.
+   */
+  public DisplayZone getDisplayZone() {
+    return displayZone;
+  }
+
+  /**
    * Builder for {@link TemplateFormatterConfig}. Recommended to use:
    * {@link TemplateFormatterConfig#builder()} to obtain instance.
    */
@@ -86,6 +95,7 @@ public class TemplateFormatterConfig {
     private boolean winclr = DEFAULT_USE_WINCLR;
     private int maxLength = DEFAULT_MAX_LENGTH;
     private String templatePath = DEFAULT_TEMPLATE_PATH;
+    private DisplayZone displayZone = DisplayZone.UTC;
 
     public Builder withWindowsClr(boolean useWinclr) {
       this.winclr = useWinclr;
@@ -102,9 +112,18 @@ public class TemplateFormatterConfig {
       return this;
     }
 
+    public Builder withDisplayZone(DisplayZone displayZone) {
+      this.displayZone = displayZone;
+      return this;
+    }
+
     public TemplateFormatterConfig build() {
       Preconditions.checkNotNull(templatePath, "template path is required");
       return new TemplateFormatterConfig(this);
     }
+  }
+
+  public enum DisplayZone {
+    UTC, USER_LOCAL
   }
 }
