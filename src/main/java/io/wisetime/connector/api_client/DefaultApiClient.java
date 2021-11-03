@@ -4,10 +4,10 @@
 
 package io.wisetime.connector.api_client;
 
-import static java.util.Optional.empty;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.google.common.collect.ImmutableList;
+import io.wisetime.connector.api_client.AddKeywordsResult.AddKeywordsStatus;
+import io.wisetime.connector.api_client.support.HttpClientResponseException;
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.connector.utils.EmptyResponse;
 import io.wisetime.generated.connect.AddKeywordsRequest;
@@ -27,11 +27,16 @@ import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeGroupStatus;
 import io.wisetime.generated.connect.UpsertTagRequest;
 import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.ThreadFactory;
+import java.util.stream.Collectors;
 import org.apache.http.message.BasicNameValuePair;
 
 /**
@@ -43,7 +48,7 @@ import org.apache.http.message.BasicNameValuePair;
 public class DefaultApiClient implements ApiClient {
 
   private final RestRequestExecutor restRequestExecutor;
-  private final ForkJoinPool forkJoinPool;
+  private final ExecutorService executorService;
 
   public DefaultApiClient(String apiKey) {
     this(new RestRequestExecutor(apiKey));
@@ -51,7 +56,17 @@ public class DefaultApiClient implements ApiClient {
 
   public DefaultApiClient(RestRequestExecutor requestExecutor) {
     this.restRequestExecutor = requestExecutor;
-    forkJoinPool = new ForkJoinPool(6);
+    executorService = Executors.newFixedThreadPool(6, new ThreadFactory() {
+      final ThreadFactory threadFactory = Executors.defaultThreadFactory();
+
+      @Override
+      public Thread newThread(Runnable r) {
+        Thread thread = threadFactory.newThread(r);
+        thread.setName("tagAddKeywords-" + thread.getName());
+        return thread;
+      }
+    });
+    Runtime.getRuntime().addShutdownHook(new Thread(executorService::shutdown));
   }
 
   @Override
@@ -77,39 +92,36 @@ public class DefaultApiClient implements ApiClient {
   }
 
   @Override
-  public void tagAddKeywords(AddKeywordsRequest addKeywordsRequest) throws IOException {
-    restRequestExecutor.executeTypedBodyRequest(Object.class, EndpointPath.TagAddKeyword, addKeywordsRequest);
+  public AddKeywordsResult tagAddKeywords(AddKeywordsRequest addKeywordsRequest) throws IOException {
+    try {
+      restRequestExecutor.executeTypedBodyRequest(Object.class, EndpointPath.TagAddKeyword, addKeywordsRequest);
+      return new AddKeywordsResult(addKeywordsRequest.getTagName(), AddKeywordsStatus.SUCCESS);
+    } catch (HttpClientResponseException e) {
+      if (e.getStatusCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+        return new AddKeywordsResult(addKeywordsRequest.getTagName(), AddKeywordsStatus.TAG_NOT_FOUND);
+      }
+      throw e;
+    }
   }
 
   @Override
-  public void tagAddKeywordsBatch(List<AddKeywordsRequest> addKeywordsRequests) throws IOException {
-
-    final Callable<Optional<Exception>> parallelUntilError = () -> addKeywordsRequests
-        .parallelStream()
-        // Wrap any exception with an Optional so we can short circuit the stream on error
-        .map(tagKeywords -> {
-          try {
-            tagAddKeywords(tagKeywords);
-            return Optional.<Exception>empty();
-          } catch (Exception e) {
-            return Optional.of(e);
-          }
-        })
-        .filter(Optional::isPresent)
-        .findAny()
-        .orElse(empty());
-
-    Optional<Exception> error;
-
+  public List<AddKeywordsResult> tagAddKeywordsBatch(List<AddKeywordsRequest> addKeywordsRequests) throws IOException {
     try {
-      // We use our own ForkJoinPool to have more control on the level of parallelism and
-      // because we are IO bound. We don't want to affect other tasks on the default pool.
-      error = forkJoinPool.submit(parallelUntilError).get();
+      List<Future<AddKeywordsResult>> futures = executorService.invokeAll(addKeywordsRequests.stream()
+          .map(request -> (Callable<AddKeywordsResult>) () -> {
+            try {
+              return tagAddKeywords(request);
+            } catch (IOException e) {
+              throw new RuntimeException(e);
+            }
+          }).collect(Collectors.toList()));
+      List<AddKeywordsResult> result = new ArrayList<>(addKeywordsRequests.size());
+      for (Future<AddKeywordsResult> future : futures) {
+        result.add(future.get());
+      }
+      return result;
     } catch (InterruptedException | ExecutionException e) {
-      throw new IOException(e);
-    }
-    if (error.isPresent()) {
-      throw new IOException("Failed to complete tag keywords upsert batch. Stopped at error.", error.get());
+      throw new IOException("Failed to execute tagAddKeywordsBatch", e.getCause());
     }
   }
 

@@ -62,7 +62,7 @@ public interface ApiClient {
    * @param addKeywordsRequest contains info about the keywords to be added to a tag
    * @throws IOException The {@link IOException}
    */
-  void tagAddKeywords(AddKeywordsRequest addKeywordsRequest) throws IOException;
+  AddKeywordsResult tagAddKeywords(AddKeywordsRequest addKeywordsRequest) throws IOException;
 
   /**
    * Add keywords to a batch of tags. Existing keywords will not be overwritten.
@@ -70,7 +70,7 @@ public interface ApiClient {
    * @param addKeywordsRequests request list keywords to be added to tag(s)
    * @throws IOException The {@link IOException}
    */
-  void tagAddKeywordsBatch(List<AddKeywordsRequest> addKeywordsRequests) throws IOException;
+  List<AddKeywordsResult> tagAddKeywordsBatch(List<AddKeywordsRequest> addKeywordsRequests) throws IOException;
 
   /**
    * Delete keyword from a tag.

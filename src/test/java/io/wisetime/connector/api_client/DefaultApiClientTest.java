@@ -9,7 +9,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -31,6 +30,7 @@ import io.wisetime.generated.connect.UpsertTagRequest;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 import org.apache.http.NameValuePair;
 import org.apache.http.message.BasicNameValuePair;
@@ -79,21 +79,22 @@ class DefaultApiClientTest {
 
   @Test
   void tagAddKeywordsBatch_stops_on_error() throws IOException {
-    //mockito answer is not synchronised. it is not guaranteed that only 1 return will be UpsertTagResponse on thread race
-    IOException expectedException = new IOException();
+    AtomicInteger counter = new AtomicInteger();
     when(requestExecutor.executeTypedBodyRequest(any(), any(), any()))
-        .thenReturn(null)
-        .thenThrow(expectedException);
+        .thenAnswer(invocation -> {
+          Thread.sleep(10);
+          if (counter.incrementAndGet() == 1) {
+            return null;
+          }
+          throw new IOException();
+        });
 
     assertThatThrownBy(() -> apiClient.tagAddKeywordsBatch(fakeAddKeywordsRequests(1000)))
         .as("we expecting first requests pass and than expected exception to be thrown")
-        .hasMessage("Failed to complete tag keywords upsert batch. Stopped at error.")
-        .hasCause(expectedException);
+        .hasMessage("Failed to execute tagAddKeywordsBatch");
 
-    // We should notice that a request has failed way before we reach the end of the list
-    // Allowance is made for requests sent in parallel before we notice an error
-    // number of requests should always be less than 2*pool_size
-    verify(requestExecutor, atMost(20)).executeTypedBodyRequest(
+    // check that even if some requests failed, execution continues till the end
+    verify(requestExecutor, times(1000)).executeTypedBodyRequest(
         any(),
         any(EndpointPath.TagAddKeyword.getClass()),
         any(AddKeywordsRequest.class)
