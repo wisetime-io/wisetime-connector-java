@@ -30,6 +30,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -105,22 +106,21 @@ public class DefaultApiClient implements ApiClient {
 
   @Override
   public List<AddKeywordsResult> tagAddKeywordsBatch(List<AddKeywordsRequest> addKeywordsRequests) throws IOException {
-    List<Future<AddKeywordsResult>> futures = addKeywordsRequests.stream()
-        .map(request -> executorService.submit(() -> {
-          try {
-            return tagAddKeywords(request);
-          } catch (IOException e) {
-            throw new RuntimeException(e);
-          }
-        })).collect(Collectors.toList());
     try {
+      List<Future<AddKeywordsResult>> futures = executorService.invokeAll(addKeywordsRequests.stream()
+          .map(request -> (Callable<AddKeywordsResult>) () -> {
+            try {
+              return tagAddKeywords(request);
+            } catch (IOException e) {
+              throw new RuntimeException(e);
+            }
+          }).collect(Collectors.toList()));
       List<AddKeywordsResult> result = new ArrayList<>(addKeywordsRequests.size());
       for (Future<AddKeywordsResult> future : futures) {
         result.add(future.get());
       }
       return result;
     } catch (InterruptedException | ExecutionException e) {
-      futures.forEach(future -> future.cancel(false));
       throw new IOException("Failed to execute tagAddKeywordsBatch", e.getCause());
     }
   }

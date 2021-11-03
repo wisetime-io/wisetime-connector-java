@@ -9,7 +9,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.atMost;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -94,10 +93,8 @@ class DefaultApiClientTest {
         .as("we expecting first requests pass and than expected exception to be thrown")
         .hasMessage("Failed to execute tagAddKeywordsBatch");
 
-    // We should notice that a request has failed way before we reach the end of the list
-    // Allowance is made for requests sent in parallel before we notice an error
-    // number of requests should always be less than 2*pool_size
-    verify(requestExecutor, atMost(20)).executeTypedBodyRequest(
+    // check that even if some requests failed, execution continues till the end
+    verify(requestExecutor, times(1000)).executeTypedBodyRequest(
         any(),
         any(EndpointPath.TagAddKeyword.getClass()),
         any(AddKeywordsRequest.class)
