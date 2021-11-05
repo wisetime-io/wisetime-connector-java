@@ -4,6 +4,7 @@
 
 package io.wisetime.connector.template;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
 import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
@@ -24,7 +25,6 @@ import lombok.Data;
 import lombok.experimental.Accessors;
 import lombok.experimental.Delegate;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.beanutils.BeanUtils;
 
 /**
  * Template to format user activity text based on Freemarker engine.
@@ -40,6 +40,7 @@ import org.apache.commons.beanutils.BeanUtils;
 @Slf4j
 public class TemplateFormatter {
 
+  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
   private final TemplateLoaderHelper templateLoaderHelper;
   private final TemplateFormatterConfig activityTextTemplateConfig;
   private final Configuration configuration;
@@ -94,9 +95,12 @@ public class TemplateFormatter {
    */
   public String format(TimeGroup timeGroup, Object extra) {
     try {
+      // deep copy to/from json
+      final String timeGroupUtcJson = OBJECT_MAPPER.writeValueAsString(timeGroup);
+      final TimeGroup timeGroupCopy = OBJECT_MAPPER.readValue(timeGroupUtcJson, TimeGroup.class);
       TemplateDataModel model = new TemplateDataModel()
           .setExtra(extra)
-          .setTimeGroup((TimeGroup) BeanUtils.cloneBean(timeGroup));
+          .setTimeGroup(timeGroupCopy);
       convertToDisplayZone(model, activityTextTemplateConfig.getDisplayZone());
       Template template = configuration.getTemplate(templateLoaderHelper.getTemplateName());
       StringWriter stringWriter = new StringWriter();

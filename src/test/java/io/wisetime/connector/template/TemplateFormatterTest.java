@@ -112,11 +112,16 @@ class TemplateFormatterTest {
         .build();
     TemplateFormatter template = new TemplateFormatter(config);
 
-    String result = template.format(prepareTimeGroupWithTimeRow());
+    TimeGroup timeGroup = prepareTimeGroupWithTimeRow();
+    String result = template.format(timeGroup);
 
     assertThat(result)
         .as("check time is 480mins +8 hours after 15:00 UTC time")
         .contains("23:00 - Application - Window Title");
+
+    assertThat(timeGroup)
+        .as("input should not be modified by templateFormatter")
+        .isEqualTo(prepareTimeGroupWithTimeRow());
   }
 
   @Test
