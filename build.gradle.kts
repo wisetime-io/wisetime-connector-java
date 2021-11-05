@@ -113,6 +113,7 @@ dependencies {
     exclude(group = "commons-logging", module = "commons-logging")
   }
   implementation("org.apache.commons:commons-lang3:3.12.0")
+  implementation("commons-beanutils:commons-beanutils:1.9.4")
 
   // AWS dependencies
   implementation("com.amazonaws:aws-java-sdk-logs:1.12.62") {

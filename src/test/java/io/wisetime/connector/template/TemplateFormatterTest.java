@@ -10,6 +10,8 @@ import io.wisetime.connector.template.TemplateFormatterConfig.DisplayZone;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeRow;
 import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -115,5 +117,18 @@ class TemplateFormatterTest {
     assertThat(result)
         .as("check time is 480mins +8 hours after 15:00 UTC time")
         .contains("23:00 - Application - Window Title");
+  }
+
+  @Test
+  void withExtra() {
+    TemplateFormatterConfig config = TemplateFormatterConfig.builder()
+        .withTemplatePath("classpath:freemarker-template/withExtra.ftl")
+        .build();
+    TemplateFormatter template = new TemplateFormatter(config);
+    String result = template.format(prepareTimeGroup(),
+        Map.of("title", "WiseTime", "rows", List.of("1", "2", "3")));
+    assertThat(result)
+        .as("check extra properties")
+        .isEqualTo("WiseTime\n    1\n    2\n    3");
   }
 }

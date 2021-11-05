@@ -4,13 +4,10 @@
 
 package io.wisetime.connector.template;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableMap;
 import freemarker.cache.TemplateLoader;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
-import freemarker.template.TemplateException;
 import freemarker.template.TemplateExceptionHandler;
 import io.wisetime.connector.template.TemplateFormatterConfig.DisplayZone;
 import io.wisetime.connector.template.format.DurationNumberFormatFactory;
@@ -19,11 +16,15 @@ import io.wisetime.connector.template.loader.TemplateLoaderHelper;
 import io.wisetime.connector.template.loader.TemplateLoaderHelperFactory;
 import io.wisetime.generated.connect.TimeGroup;
 import io.wisetime.generated.connect.TimeRow;
-import java.io.IOException;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.format.DateTimeFormatter;
+import lombok.Data;
+import lombok.experimental.Accessors;
+import lombok.experimental.Delegate;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.beanutils.BeanUtils;
 
 /**
  * Template to format user activity text based on Freemarker engine.
@@ -36,9 +37,8 @@ import java.time.format.DateTimeFormatter;
  *
  * @author vadym
  */
+@Slf4j
 public class TemplateFormatter {
-
-  private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
   private final TemplateLoaderHelper templateLoaderHelper;
   private final TemplateFormatterConfig activityTextTemplateConfig;
@@ -78,10 +78,29 @@ public class TemplateFormatter {
    * @return formatted text for the TimeGroup
    */
   public String format(TimeGroup timeGroup) {
+    return format(timeGroup, null);
+  }
+
+  /**
+   * Format a TimeGroup into text that is suitable for output to integrated systems.
+   * <p>
+   * For example, we may want to generate text for inclusion into invoices that we'll send to clients.
+   * <p>
+   * This method throws a {@link TemplateProcessingException} if an error occurs when processing the template.
+   *
+   * @param timeGroup the TimeGroup to format
+   * @param extra additional properties to put unto dataModel, available via getExtra()
+   * @return formatted text for the TimeGroup
+   */
+  public String format(TimeGroup timeGroup, Object extra) {
     try {
+      TemplateDataModel model = new TemplateDataModel()
+          .setExtra(extra)
+          .setTimeGroup((TimeGroup) BeanUtils.cloneBean(timeGroup));
+      convertToDisplayZone(model, activityTextTemplateConfig.getDisplayZone());
       Template template = configuration.getTemplate(templateLoaderHelper.getTemplateName());
       StringWriter stringWriter = new StringWriter();
-      template.process(convertToDisplayZone(timeGroup, activityTextTemplateConfig.getDisplayZone()), stringWriter);
+      template.process(model, stringWriter);
       String result = stringWriter.toString().trim();
       if (activityTextTemplateConfig.isUseWinclr()) {
         result = result.replaceAll("\n", "\r\n");
@@ -90,34 +109,26 @@ public class TemplateFormatter {
         result = result.substring(0, activityTextTemplateConfig.getMaxLength() - 3) + "...";
       }
       return result;
-    } catch (IOException | TemplateException e) {
+    } catch (Exception e) {
       throw new TemplateProcessingException("Failed to process template", e);
     }
   }
 
-  @VisibleForTesting
-  TimeGroup convertToDisplayZone(TimeGroup timeGroup, DisplayZone displayZone) {
+  private void convertToDisplayZone(TemplateDataModel model, DisplayZone displayZone) {
     switch (displayZone) {
       case UTC:
-        return timeGroup;
+        // nothing to do - time group by default in UTC
+        break;
       case USER_LOCAL:
-        return convertToUserLocal(timeGroup);
+        convertToUserLocal(model.getTimeGroup());
+        break;
       default:
         throw new UnsupportedOperationException("Unsupported DisplayZone " + displayZone);
     }
   }
 
-  private TimeGroup convertToUserLocal(TimeGroup timeGroupUtc) {
-    try {
-      // deep copy to/from json
-      final String timeGroupUtcJson = OBJECT_MAPPER.writeValueAsString(timeGroupUtc);
-      final TimeGroup timeGroupCopy = OBJECT_MAPPER.readValue(timeGroupUtcJson, TimeGroup.class);
-
-      timeGroupCopy.getTimeRows().forEach(this::convertToUserLocal);
-      return timeGroupCopy;
-    } catch (IOException ex) {
-      throw new RuntimeException("Failed to convert TimeGroup " + timeGroupUtc.getGroupId(), ex);
-    }
+  private void convertToUserLocal(TimeGroup timeGroupUtc) {
+    timeGroupUtc.getTimeRows().forEach(this::convertToUserLocal);
   }
 
   private void convertToUserLocal(TimeRow timeRowUtc) {
@@ -146,5 +157,14 @@ public class TemplateFormatter {
   private boolean needToCutString(String result) {
     return activityTextTemplateConfig.getMaxLength() > 0 && result.length() > activityTextTemplateConfig.getMaxLength()
         && result.length() > 3;
+  }
+
+  @Data
+  @Accessors(chain = true)
+  public static class TemplateDataModel {
+
+    private Object extra;
+    @Delegate
+    private TimeGroup timeGroup;
   }
 }
