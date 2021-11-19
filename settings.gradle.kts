@@ -16,4 +16,5 @@ pluginManagement {
   }
 }
 
-rootProject.name = "wisetime-connector"
+rootProject.name = "wisetime-connector-java"
+include(":wisetime-connector")

@@ -24,7 +24,7 @@ java {
   targetCompatibility = JavaVersion.VERSION_11
 }
 
-apply(from = "$projectDir/gradle/conf/jacoco.gradle")
+apply(from = "${project.rootDir}/gradle/conf/jacoco.gradle")
 group = "io.wisetime"
 
 val versionInfo: WiFiGitVersionInfo = GitVersionCalc.getVersionInfoForLibrary(project.rootDir)
@@ -92,9 +92,9 @@ tasks {
 }
 
 checkstyle {
-  configFile = File("${projectDir}/gradle/conf/checkstyle.xml")
-  configProperties["checkstyleConfigDir"] = File("${projectDir}/gradle/conf")
-  configProperties["suppressionFile"] = File("${projectDir}/gradle/conf/checkstyle_suppressions.xml")
+  configFile = File("${project.rootDir}/gradle/conf/checkstyle.xml")
+  configProperties["checkstyleConfigDir"] = File("${project.rootDir}/gradle/conf")
+  configProperties["suppressionFile"] = File("${project.rootDir}/gradle/conf/checkstyle_suppressions.xml")
   toolVersion = "8.45.1"
 }
 
