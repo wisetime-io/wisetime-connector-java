@@ -24,7 +24,7 @@ java {
   targetCompatibility = JavaVersion.VERSION_11
 }
 
-apply(from = "$projectDir/gradle/conf/jacoco.gradle")
+apply(from = "${project.rootDir}/gradle/conf/jacoco.gradle")
 group = "io.wisetime"
 
 val versionInfo: WiFiGitVersionInfo = GitVersionCalc.getVersionInfoForLibrary(project.rootDir)

@@ -26,5 +26,4 @@ tasks.dependencyUpdates {
     revision = "release"
     outputFormatter = "json"
     reportfileName = "report"
-    outputDir = "$projectDir/build/dependencyUpdates"
 }
