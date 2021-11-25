@@ -9,7 +9,6 @@ import com.google.common.collect.ImmutableList;
 import io.wisetime.connector.api_client.AddKeywordsResult.AddKeywordsStatus;
 import io.wisetime.connector.api_client.support.HttpClientResponseException;
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
-import io.wisetime.connector.utils.EmptyResponse;
 import io.wisetime.generated.connect.AddKeywordsRequest;
 import io.wisetime.generated.connect.BatchUpsertTagRequest;
 import io.wisetime.generated.connect.BatchUpsertTagResponse;
@@ -40,7 +39,8 @@ import java.util.stream.Collectors;
 import org.apache.http.message.BasicNameValuePair;
 
 /**
- * Multi-thread implementation of {@link ApiClient}. {@link RestRequestExecutor} is responsible for handling authentication.
+ * Multi-thread implementation of {@link ApiClient}. {@link RestRequestExecutor} is responsible for handling
+ * authentication.
  *
  * @author thomas.haines
  * @author shane.xie@practiceinsight.io
@@ -142,7 +142,8 @@ public class DefaultApiClient implements ApiClient {
 
   @Override
   public void activityTypesCompleteSyncSession(SyncSession syncSession) throws IOException {
-    restRequestExecutor.executeTypedBodyRequest(Object.class, EndpointPath.ActivityTypesCompleteSyncSession, syncSession);
+    restRequestExecutor.executeTypedBodyRequest(Object.class, EndpointPath.ActivityTypesCompleteSyncSession,
+        syncSession);
   }
 
   @Override
@@ -151,7 +152,8 @@ public class DefaultApiClient implements ApiClient {
   }
 
   @Override
-  public SyncActivityTypesResponse syncActivityTypes(SyncActivityTypesRequest syncActivityTypesRequest) throws IOException {
+  public SyncActivityTypesResponse syncActivityTypes(SyncActivityTypesRequest syncActivityTypesRequest)
+      throws IOException {
     return restRequestExecutor.executeTypedBodyRequest(
         SyncActivityTypesResponse.class,
         EndpointPath.BatchActivityTypesUpsert,
@@ -165,7 +167,9 @@ public class DefaultApiClient implements ApiClient {
 
   @Override
   public List<TimeGroup> fetchTimeGroups(int limit) throws IOException {
-    return restRequestExecutor.executeTypedRequest(new TypeReference<List<TimeGroup>>(){},
+    return restRequestExecutor.executeTypedRequest(
+        new TypeReference<>() {
+        },
         EndpointPath.PostedTimeFetch,
         ImmutableList.of(new BasicNameValuePair("limit", String.valueOf(limit))));
   }

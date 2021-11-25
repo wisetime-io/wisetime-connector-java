@@ -2,7 +2,7 @@
  * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector.api_client;
+package io.wisetime.connector.metric;
 
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -15,9 +15,7 @@ import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 
 import com.google.common.collect.Lists;
-import io.wisetime.connector.metric.ApiClientMetricWrapper;
-import io.wisetime.connector.metric.Metric;
-import io.wisetime.connector.metric.MetricService;
+import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.generated.connect.AddKeywordsRequest;
 import io.wisetime.generated.connect.DeleteKeywordRequest;
 import io.wisetime.generated.connect.DeleteTagRequest;
