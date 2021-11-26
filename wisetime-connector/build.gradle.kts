@@ -69,7 +69,9 @@ checkstyle {
 }
 
 dependencies {
+  implementation(project(":autogen"))
   implementation(project(":wisetime-connector-api-client"))
+  implementation(project(":wisetime-connector-template-formatter"))
 
   api("joda-time:joda-time:2.10.12")
   api("org.thymeleaf:thymeleaf:3.0.12.RELEASE")
@@ -114,9 +116,6 @@ dependencies {
 
   implementation("ch.qos.logback:logback-core:1.2.5")
   implementation("ch.qos.logback:logback-classic:1.2.5")
-
-  // required by activity text template engine
-  implementation("org.freemarker:freemarker:2.3.31")
 
   testImplementation("com.github.javafaker:javafaker:1.0.2") {
     exclude(group = "org.apache.commons", module = "commons-lang3")

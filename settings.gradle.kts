@@ -1,7 +1,7 @@
 pluginManagement {
   plugins {
-    id("com.github.ben-manes.versions").version("0.39.0")
-    id("io.wisetime.versionChecker").version("10.11.83")
+    id("com.github.ben-manes.versions") version "0.39.0"
+    id("io.wisetime.versionChecker") version "10.11.83"
     id("io.freefair.lombok") version "6.3.0"
   }
   repositories {
@@ -17,5 +17,7 @@ pluginManagement {
 }
 
 rootProject.name = "wisetime-connector-java"
+include(":autogen")
 include(":wisetime-connector")
 include(":wisetime-connector-api-client")
+include("wisetime-connector-template-formatter")
