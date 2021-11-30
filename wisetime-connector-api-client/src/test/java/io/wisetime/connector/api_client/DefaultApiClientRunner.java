@@ -5,15 +5,10 @@
 package io.wisetime.connector.api_client;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.when;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import io.wisetime.connector.config.ConnectorConfigKey;
-import io.wisetime.connector.config.RuntimeConfig;
-import io.wisetime.connector.config.info.ConnectorInfo;
-import io.wisetime.connector.utils.RuntimeEnvironmentUtil;
 import io.wisetime.generated.connect.ActivityType;
 import io.wisetime.generated.connect.AddKeywordsRequest;
 import io.wisetime.generated.connect.DeleteKeywordRequest;
@@ -28,8 +23,10 @@ import io.wisetime.generated.connect.UpsertTagRequest;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneOffset;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,6 +34,7 @@ import org.slf4j.LoggerFactory;
  * <pre>
  * To run, requires environment variable set:
  *   API_KEY="an-api-key-here"
+ *   API_BASE_URL="api-base-url-here"
  * </pre>
  *
  * @author thomas.haines
@@ -48,9 +46,9 @@ class DefaultApiClientRunner {
   private final DefaultApiClient defaultApiClient;
 
   public static void main(String[] args) throws Exception {
-    String apiKey = RuntimeConfig.getString(ConnectorConfigKey.API_KEY)
+    String apiKey = Optional.ofNullable(System.getenv("API_KEY"))
         .orElseThrow(() -> new IllegalStateException("API_KEY is mandatory"));
-    Preconditions.checkState(RuntimeConfig.getString(ConnectorConfigKey.API_BASE_URL).orElse("").contains("wisetime.com"),
+    Preconditions.checkState(Optional.of(System.getenv("API_BASE_URL")).orElse("").contains("wisetime.com"),
         "api base url is required");
     final DefaultApiClientRunner runner = new DefaultApiClientRunner(new DefaultApiClient(apiKey));
 
@@ -118,7 +116,8 @@ class DefaultApiClientRunner {
 
   void tagDeleteKeyword() throws IOException {
     defaultApiClient.tagDeleteKeyword(new DeleteKeywordRequest().tagName("CreatedViaApi").keyword("keyword_from_API"));
-    defaultApiClient.tagDeleteKeyword(new DeleteKeywordRequest().tagName("CreatedViaApi").keyword("keyword with space"));
+    defaultApiClient.tagDeleteKeyword(
+        new DeleteKeywordRequest().tagName("CreatedViaApi").keyword("keyword with space"));
   }
 
   void tagAddKeywords_hasSlash() throws IOException {
@@ -162,14 +161,17 @@ class DefaultApiClientRunner {
   }
 
   void managedTimeConfig() throws IOException {
-    ConnectorInfo connectorInfo = Mockito.mock(ConnectorInfo.class);
-    when(connectorInfo.getClientTimeZoneOffset()).thenReturn(ZoneOffset.ofHours(3).getId());
+    final Map<String, String> envProps = new HashMap<>();
+    envProps.put("java_vm_specific_version", System.getProperty("java.vm.specification.version"));
+    envProps.put("java_vm_version", System.getProperty("java.vm.version"));
+    envProps.put("java_vm_name", System.getProperty("java.vm.name"));
+    envProps.put("client_os", System.getProperty("os.name"));
 
     ManagedConfigRequest managedConfigRequest = new ManagedConfigRequest();
-    managedConfigRequest.clientTimeZoneOffset(connectorInfo.getClientTimeZoneOffset());
-    managedConfigRequest.setEnvironment(RuntimeEnvironmentUtil.getEnvProperties());
+    managedConfigRequest.clientTimeZoneOffset(ZoneOffset.ofHours(3).getId());
+    managedConfigRequest.setEnvironment(envProps);
     managedConfigRequest.connectorType("test_connector_type");
-    managedConfigRequest.setConnectorLibraryVersion(RuntimeEnvironmentUtil.getLibraryImplVersion());
+    managedConfigRequest.setConnectorLibraryVersion("1.0.0");
     managedConfigRequest.clientTimestamp(Instant.now().getEpochSecond());
     ManagedConfigResponse configResponse = defaultApiClient.getTeamManagedConfig(managedConfigRequest);
     log.info(configResponse.toString());

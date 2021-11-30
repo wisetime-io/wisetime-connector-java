@@ -12,11 +12,9 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Lists;
 import com.google.common.net.UrlEscapers;
 import io.wisetime.connector.api_client.EndpointPath;
-import io.wisetime.connector.config.ConnectorConfigKey;
-import io.wisetime.connector.config.RuntimeConfig;
-import io.wisetime.connector.config.TolerantObjectMapper;
 import java.io.IOException;
 import java.util.List;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
@@ -34,7 +32,7 @@ public class RestRequestExecutor {
   private final String apiKey;
 
   public RestRequestExecutor(String apiKey) {
-    this(apiKey, RuntimeConfig.getString(ConnectorConfigKey.API_BASE_URL).orElse(BASE_URL));
+    this(apiKey, Optional.ofNullable(System.getenv("API_BASE_URL")).orElse(BASE_URL));
   }
 
   public RestRequestExecutor(String apiKey, String apiBaseUrl) {

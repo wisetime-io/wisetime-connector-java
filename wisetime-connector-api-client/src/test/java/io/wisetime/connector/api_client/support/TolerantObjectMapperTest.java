@@ -2,7 +2,7 @@
  * Copyright (c) 2018 Practice Insight Pty Ltd. All Rights Reserved.
  */
 
-package io.wisetime.connector.config;
+package io.wisetime.connector.api_client.support;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

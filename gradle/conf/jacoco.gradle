@@ -7,7 +7,9 @@ ext {
     jacocoExcludes = [
         '**/generated/**',
         'io/wisetime/connector/adjunct_keywords/*',
-        'io/wisetime/connector/api_client/SyncScope*'
+        'io/wisetime/connector/api_client/SyncScope*',
+        'io/wisetime/connector/api_client/support/*',
+        'io/wisetime/connector/template/*'
     ]
 }
 
