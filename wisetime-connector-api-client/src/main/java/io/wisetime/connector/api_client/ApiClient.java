@@ -95,7 +95,7 @@ public interface ApiClient {
    *
    * @param externalId the external ID that matches the tag category resource in the connected system.
    * @return the tag category resource, if found in WiseTime.
-   * @throws IOException
+   * @throws IOException The {@link IOException}
    */
   Optional<TagCategory> tagCategoryFindByExternalId(String externalId) throws IOException;
 
@@ -103,7 +103,7 @@ public interface ApiClient {
    * Create a tag category.
    *
    * @param tagCategory the tag category resource to create. Do not provide an ID. It will be generated for you.
-   * @throws IOException
+   * @throws IOException The {@link IOException}
    */
   TagCategory tagCategoryCreate(TagCategory tagCategory) throws IOException;
 
@@ -111,7 +111,7 @@ public interface ApiClient {
    * Update a tag category.
    *
    * @param tagCategory the tag category resource to update.
-   * @throws IOException
+   * @throws IOException The {@link IOException}
    */
   TagCategory tagCategoryUpdate(TagCategory tagCategory) throws IOException;
 
