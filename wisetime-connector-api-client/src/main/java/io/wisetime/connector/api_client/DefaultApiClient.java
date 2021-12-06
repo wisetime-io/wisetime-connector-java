@@ -20,6 +20,7 @@ import io.wisetime.generated.connect.ManagedConfigResponse;
 import io.wisetime.generated.connect.SyncActivityTypesRequest;
 import io.wisetime.generated.connect.SyncActivityTypesResponse;
 import io.wisetime.generated.connect.SyncSession;
+import io.wisetime.generated.connect.TagCategory;
 import io.wisetime.generated.connect.TagMetadataDeleteRequest;
 import io.wisetime.generated.connect.TeamInfoResult;
 import io.wisetime.generated.connect.TimeGroup;
@@ -29,6 +30,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -133,6 +135,34 @@ public class DefaultApiClient implements ApiClient {
   @Override
   public void tagMetadataDelete(TagMetadataDeleteRequest tagMetadataDeleteRequest) throws IOException {
     restRequestExecutor.executeTypedBodyRequest(Object.class, EndpointPath.TagMetadataDelete, tagMetadataDeleteRequest);
+  }
+
+  @Override
+  public Optional<TagCategory> tagCategoryFindByExternalId(String externalId) throws IOException {
+    try {
+      return Optional.of(
+          restRequestExecutor.executeTypedRequest(
+              new TypeReference<>() { },
+              EndpointPath.TagCategoryFind,
+              List.of(new BasicNameValuePair("externalId", externalId))
+          )
+      );
+    } catch (HttpClientResponseException e) {
+      if (e.getStatusCode() == HttpURLConnection.HTTP_NOT_FOUND) {
+        return Optional.empty();
+      }
+      throw e;
+    }
+  }
+
+  @Override
+  public TagCategory tagCategoryCreate(TagCategory tagCategory) throws IOException {
+    return restRequestExecutor.executeTypedBodyRequest(TagCategory.class, EndpointPath.TagCategoryCreate, tagCategory);
+  }
+
+  @Override
+  public TagCategory tagCategoryUpdate(TagCategory tagCategory) throws IOException {
+    return restRequestExecutor.executeTypedBodyRequest(TagCategory.class, EndpointPath.TagCategoryUpdate, tagCategory);
   }
 
   @Override

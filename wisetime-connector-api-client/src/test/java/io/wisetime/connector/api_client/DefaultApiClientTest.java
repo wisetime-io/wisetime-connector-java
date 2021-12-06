@@ -16,6 +16,7 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 import com.github.javafaker.Faker;
 import com.google.common.collect.ImmutableList;
+import io.wisetime.connector.api_client.support.HttpClientResponseException;
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.generated.connect.ActivityType;
 import io.wisetime.generated.connect.AddKeywordsRequest;
@@ -25,9 +26,11 @@ import io.wisetime.generated.connect.DeleteTagRequest;
 import io.wisetime.generated.connect.HealthCheckFailureNotify;
 import io.wisetime.generated.connect.SyncActivityTypesRequest;
 import io.wisetime.generated.connect.SyncActivityTypesResponse;
+import io.wisetime.generated.connect.TagCategory;
 import io.wisetime.generated.connect.TimeGroupStatus;
 import io.wisetime.generated.connect.UpsertTagRequest;
 import java.io.IOException;
+import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -119,6 +122,53 @@ class DefaultApiClientTest {
         any(),
         any(EndpointPath.TagDelete.getClass()),
         any(DeleteTagRequest.class)
+    );
+  }
+
+  @Test
+  void tagCategoryFindByExternalId() throws IOException {
+    when(requestExecutor.executeTypedRequest(any(), any(), any())).thenReturn(new TagCategory());
+    final String externalId = "test_external_id";
+    apiClient.tagCategoryFindByExternalId(externalId);
+
+    verify(requestExecutor).executeTypedRequest(
+        any(),
+        any(EndpointPath.TagCategoryFind.getClass()),
+        eq(List.of(new BasicNameValuePair("externalId", externalId)))
+    );
+  }
+
+  @Test
+  void tagCategoryNotFound_does_not_throw() throws IOException {
+    when(requestExecutor.executeTypedRequest(any(), any(), any()))
+        .thenThrow(new HttpClientResponseException(HttpURLConnection.HTTP_NOT_FOUND, "Resource Not found", ""));
+
+    assertThat(apiClient.tagCategoryFindByExternalId(""))
+        .as("The tag category resource is not found")
+        .isEmpty();
+  }
+
+  @Test
+  void tagCategoryCreate() throws IOException {
+    TagCategory tagCategory = new TagCategory();
+    apiClient.tagCategoryCreate(tagCategory);
+
+    verify(requestExecutor).executeTypedBodyRequest(
+        any(),
+        any(EndpointPath.TagCategoryCreate.getClass()),
+        eq(tagCategory)
+    );
+  }
+
+  @Test
+  void tagCategoryUpdate() throws IOException {
+    TagCategory tagCategory = new TagCategory();
+    apiClient.tagCategoryUpdate(tagCategory);
+
+    verify(requestExecutor).executeTypedBodyRequest(
+        any(),
+        any(EndpointPath.TagCategoryUpdate.getClass()),
+        eq(tagCategory)
     );
   }
 
