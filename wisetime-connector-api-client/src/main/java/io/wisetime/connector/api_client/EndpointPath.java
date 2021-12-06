@@ -4,46 +4,50 @@
 
 package io.wisetime.connector.api_client;
 
-import io.wisetime.connector.api_client.support.ConnectApiRequest;
+import io.wisetime.connector.api_client.support.ConnectApiRequest.HttpMethod;
 
 /**
  * Set of WiseTime API endpoints.
  */
 public enum EndpointPath {
 
-  TagDelete("/tag/delete", ConnectApiRequest.HttpMethod.POST),
-  TagUpsert("/tag", ConnectApiRequest.HttpMethod.POST),
+  TagDelete("/tag/delete", HttpMethod.POST),
+  TagUpsert("/tag", HttpMethod.POST),
 
   /**
    * TagUpdateBatch
    */
-  BulkTagUpsert("/tag/batch", ConnectApiRequest.HttpMethod.POST),
+  BulkTagUpsert("/tag/batch", HttpMethod.POST),
 
-  TagAddKeyword("/tag/keyword", ConnectApiRequest.HttpMethod.POST),
-  TagDeleteKeyword("/tag/keyword/delete", ConnectApiRequest.HttpMethod.POST),
-  TagMetadataDelete("/tag/metadata/delete", ConnectApiRequest.HttpMethod.POST),
+  TagAddKeyword("/tag/keyword", HttpMethod.POST),
+  TagDeleteKeyword("/tag/keyword/delete", HttpMethod.POST),
+  TagMetadataDelete("/tag/metadata/delete", HttpMethod.POST),
 
-  ActivityTypesStartSyncSession("/activitytype/sync/start", ConnectApiRequest.HttpMethod.POST),
-  ActivityTypesCompleteSyncSession("/activitytype/sync/complete", ConnectApiRequest.HttpMethod.POST),
-  ActivityTypesCancelSyncSession("/activitytype/sync/cancel", ConnectApiRequest.HttpMethod.POST),
-  BatchActivityTypesUpsert("/activitytype/batch", ConnectApiRequest.HttpMethod.POST),
+  TagCategoryFind("/tagcategory/find", HttpMethod.GET),
+  TagCategoryCreate("/tagcategory/create", HttpMethod.POST),
+  TagCategoryUpdate("/tagcategory/update", HttpMethod.POST),
 
-  TeamInfo("/team/info", ConnectApiRequest.HttpMethod.GET),
+  ActivityTypesStartSyncSession("/activitytype/sync/start", HttpMethod.POST),
+  ActivityTypesCompleteSyncSession("/activitytype/sync/complete", HttpMethod.POST),
+  ActivityTypesCancelSyncSession("/activitytype/sync/cancel", HttpMethod.POST),
+  BatchActivityTypesUpsert("/activitytype/batch", HttpMethod.POST),
 
-  PostedTimeSubscribe("/postedtime/subscribe", ConnectApiRequest.HttpMethod.POST),
-  PostedTimeUnsubscribe("/postedtime/unsubscribe", ConnectApiRequest.HttpMethod.POST),
-  PostedTimeFetch("/postedtime?limit=:limit", ConnectApiRequest.HttpMethod.GET),
-  PostedTimeUpdateStatus("/postedtime/status", ConnectApiRequest.HttpMethod.POST),
+  TeamInfo("/team/info", HttpMethod.GET),
 
-  TeamManagedConfig("/team/managed/config", ConnectApiRequest.HttpMethod.POST),
+  PostedTimeSubscribe("/postedtime/subscribe", HttpMethod.POST),
+  PostedTimeUnsubscribe("/postedtime/unsubscribe", HttpMethod.POST),
+  PostedTimeFetch("/postedtime?limit=:limit", HttpMethod.GET),
+  PostedTimeUpdateStatus("/postedtime/status", HttpMethod.POST),
 
-  HealthCheckFailureNotify("/healthcheck/failure/notify", ConnectApiRequest.HttpMethod.POST),
-  HealthCheckFailureRescind("/healthcheck/failure/rescind", ConnectApiRequest.HttpMethod.POST);
+  TeamManagedConfig("/team/managed/config", HttpMethod.POST),
+
+  HealthCheckFailureNotify("/healthcheck/failure/notify", HttpMethod.POST),
+  HealthCheckFailureRescind("/healthcheck/failure/rescind", HttpMethod.POST);
 
   private final String actionPath;
-  private ConnectApiRequest.HttpMethod httpMethod;
+  private final HttpMethod httpMethod;
 
-  EndpointPath(String actionPath, ConnectApiRequest.HttpMethod httpMethod) {
+  EndpointPath(String actionPath, HttpMethod httpMethod) {
     this.actionPath = actionPath;
     this.httpMethod = httpMethod;
   }
@@ -52,7 +56,7 @@ public enum EndpointPath {
     return actionPath;
   }
 
-  public ConnectApiRequest.HttpMethod getHttpMethod() {
+  public HttpMethod getHttpMethod() {
     return httpMethod;
   }
 }
