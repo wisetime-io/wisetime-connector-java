@@ -93,8 +93,8 @@ public interface ApiClient {
   /**
    * Find a tag category by its external ID.
    *
-   * @param externalId the external ID that matches the tag category resource in the connected system.
-   * @return the tag category resource, if found in WiseTime.
+   * @param externalId the external ID that matches the tag category resource in the connected system
+   * @return the tag category resource, if found in WiseTime
    * @throws IOException The {@link IOException}
    */
   Optional<TagCategory> tagCategoryFindByExternalId(String externalId) throws IOException;
@@ -110,7 +110,7 @@ public interface ApiClient {
   /**
    * Update a tag category.
    *
-   * @param tagCategory the tag category resource to update.
+   * @param tagCategory the tag category resource to update
    * @throws IOException The {@link IOException}
    */
   TagCategory tagCategoryUpdate(TagCategory tagCategory) throws IOException;
