@@ -1,15 +1,22 @@
 plugins {
   java
   `java-library`
+  `maven-publish`
 
+  id("com.github.ben-manes.versions")
   id("io.wisetime.versionChecker")
   id("org.openapi.generator") version "4.3.1"
 }
 
 group = "io.wisetime"
+val versionInfo: io.wisetime.version.GitVersionCalc.WiFiGitVersionInfo =
+  io.wisetime.version.GitVersionCalc.getVersionInfoForLibrary(project.rootDir)
+val branchName: String = versionInfo.branchName
+val versionStr: String = versionInfo.gitVersionStr
+project.version = versionStr
 
 repositories {
-    mavenCentral()
+  mavenCentral()
 }
 
 java {
@@ -18,6 +25,12 @@ java {
 }
 
 tasks {
+  register<DefaultTask>("printVersionStr") {
+    doLast {
+      println(versionStr)
+    }
+  }
+
   val openApiGenerate = named("openApiGenerate") {
     onlyIf { !File("${projectDir.absolutePath}/src/gen/java").exists() }
     doLast {
@@ -64,6 +77,11 @@ dependencies {
   // swagger-annotations and validation-api used in openApiGenerate
   implementation("io.swagger:swagger-annotations:1.6.3")
   implementation("javax.validation:validation-api:2.0.1.Final")
+}
+
+val taskRequestString = gradle.startParameter.taskRequests.toString()
+if (taskRequestString.contains("publish")) {
+  apply(from = "$rootDir/gradle/publish_s3_repo.gradle")
 }
 
 sourceSets {

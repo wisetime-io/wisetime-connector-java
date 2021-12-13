@@ -69,7 +69,7 @@ checkstyle {
 }
 
 dependencies {
-  implementation(project(":autogen"))
+  implementation(project(":wisetime-connector-openapi-gen"))
   implementation(project(":wisetime-connector-api-client"))
   implementation(project(":wisetime-connector-template-formatter"))
 

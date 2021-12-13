@@ -69,7 +69,7 @@ checkstyle {
 }
 
 dependencies {
-  implementation(project(":autogen"))
+  implementation(project(":wisetime-connector-openapi-gen"))
 
   api("org.slf4j:slf4j-api:1.7.32")
   api("org.apache.httpcomponents:httpclient:4.5.9") {
