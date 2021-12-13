@@ -67,7 +67,7 @@ steps:
       AWS_SECRET_ACCESS_KEY:
         from_secret: aws-publish-secret
     commands:
-      - ./gradlew --info :wisetime-connector:publish
+      - ./gradlew --info publish
     when:
       ref:
         - refs/heads/master
