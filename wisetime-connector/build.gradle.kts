@@ -69,9 +69,9 @@ checkstyle {
 }
 
 dependencies {
-  implementation(project(":wisetime-connector-openapi-gen"))
-  implementation(project(":wisetime-connector-api-client"))
-  implementation(project(":wisetime-connector-template-formatter"))
+  api(project(":wisetime-connector-openapi-gen"))
+  api(project(":wisetime-connector-api-client"))
+  api(project(":wisetime-connector-template-formatter"))
 
   api("joda-time:joda-time:2.10.12")
   api("org.thymeleaf:thymeleaf:3.0.12.RELEASE")
