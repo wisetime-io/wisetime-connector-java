@@ -17,7 +17,7 @@ pluginManagement {
 }
 
 rootProject.name = "wisetime-connector-java"
-include(":autogen")
+include(":wisetime-connector-openapi-gen")
 include(":wisetime-connector")
 include(":wisetime-connector-api-client")
-include("wisetime-connector-template-formatter")
+include(":wisetime-connector-template-formatter")
