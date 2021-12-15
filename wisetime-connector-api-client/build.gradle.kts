@@ -118,10 +118,6 @@ if (taskRequestString.contains("dependencyUpdates")) {
 
 configurations.all {
   resolutionStrategy {
-    // fail eagerly on version conflict (includes transitive dependencies)
-    // e.g. multiple different versions of the same dependency (group and name are equal)
-    // used to check and determine conflicts
-    failOnVersionConflict()
 
     force(
       "org.apache.commons:commons-lang3:3.12.0",

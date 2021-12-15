@@ -107,10 +107,6 @@ if (taskRequestString.contains("dependencyUpdates")) {
 
 configurations.all {
   resolutionStrategy {
-    // fail eagerly on version conflict (includes transitive dependencies)
-    // e.g. multiple different versions of the same dependency (group and name are equal)
-    // used to check and determine conflicts
-    failOnVersionConflict()
 
     force(
       "com.fasterxml.jackson.core:jackson-databind:2.12.3",
