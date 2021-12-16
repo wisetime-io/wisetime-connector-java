@@ -17,6 +17,7 @@ import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.time_poster.TimePoster;
 import io.wisetime.connector.time_poster.deduplication.TimeGroupIdStore;
 import io.wisetime.generated.connect.TimeGroup;
+import java.net.SocketTimeoutException;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutorService;
@@ -75,6 +76,14 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
       try {
         final List<TimeGroup> fetchedTimeGroups = apiClient.fetchTimeGroups(timeGroupsFetchLimit);
         processTimeGroups(fetchedTimeGroups);
+      } catch (SocketTimeoutException e) {
+        log.debug("Long polling timeout, reconnecting", e);
+        try {
+          Thread.sleep((long) (TimeUnit.SECONDS.toMillis(500) + Math.random() * 500));
+        } catch (InterruptedException ex) {
+          log.warn("Interrupted during backoff sleep", e);
+          return;
+        }
       } catch (Exception e) {
         log.error("Error while fetching new time groups", e);
         try {

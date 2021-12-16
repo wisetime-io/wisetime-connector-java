@@ -4,8 +4,10 @@
 
 package io.wisetime.connector.api_client.support;
 
+import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLContext;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.config.Registry;
 import org.apache.http.config.RegistryBuilder;
 import org.apache.http.conn.socket.ConnectionSocketFactory;
@@ -74,6 +76,10 @@ class HttpClientProvider {
     CONNMGR.setValidateAfterInactivity(1000);
     CLIENT = HttpClientBuilder.create()
         .setConnectionManager(CONNMGR)
+        .setDefaultRequestConfig(RequestConfig.custom()
+            .setConnectTimeout((int) TimeUnit.SECONDS.toMillis(15))
+            .setSocketTimeout((int) TimeUnit.MINUTES.toMillis(2))
+            .build())
         // try 2 times on idempotent methods
         .setRetryHandler(new StandardHttpRequestRetryHandler(2, false))
         .setConnectionReuseStrategy(new NoConnectionReuseStrategy())

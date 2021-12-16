@@ -125,9 +125,7 @@ configurations.all {
       "com.fasterxml.jackson.core:jackson-core:2.12.3",
       "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.3",
       "commons-codec:commons-codec:1.12",
-      "org.objenesis:objenesis:3.0.1",
       "org.slf4j:slf4j-api:1.7.32",
-      "org.apache.httpcomponents:httpclient:4.5.9"
     )
   }
 }
