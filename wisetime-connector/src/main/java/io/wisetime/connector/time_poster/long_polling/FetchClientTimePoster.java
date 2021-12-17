@@ -79,7 +79,8 @@ public class FetchClientTimePoster implements Runnable, TimePoster {
       } catch (SocketTimeoutException e) {
         log.debug("Long polling timeout, reconnecting", e);
         try {
-          Thread.sleep((long) (TimeUnit.SECONDS.toMillis(500) + Math.random() * 500));
+          // random delay 500 to 1000 ms
+          Thread.sleep((long) (Math.random() * 500 + 500));
         } catch (InterruptedException ex) {
           log.warn("Interrupted during backoff sleep", e);
           return;
