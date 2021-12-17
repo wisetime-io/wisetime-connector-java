@@ -18,7 +18,7 @@ import org.apache.http.entity.ContentType;
 import org.apache.http.util.EntityUtils;
 
 /**
- * Encapsulate a conventional http request and add authentication authentication headers
+ * Encapsulate a conventional http request and add authentication headers
  *
  * @author pascal
  */

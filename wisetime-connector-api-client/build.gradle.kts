@@ -68,6 +68,7 @@ checkstyle {
   toolVersion = "8.45.1"
 }
 
+val slf4jVersion = "1.7.32"
 dependencies {
   api(project(":wisetime-connector-openapi-gen"))
 
@@ -95,6 +96,9 @@ dependencies {
   @Suppress("GradlePackageUpdate")
   implementation("commons-codec:commons-codec:1.12")
 
+  implementation("org.slf4j:jcl-over-slf4j:$slf4jVersion")
+  implementation("org.slf4j:jul-to-slf4j:$slf4jVersion")
+
   implementation("ch.qos.logback:logback-core:1.2.5")
   implementation("ch.qos.logback:logback-classic:1.2.5")
 
@@ -118,7 +122,6 @@ if (taskRequestString.contains("dependencyUpdates")) {
 
 configurations.all {
   resolutionStrategy {
-
     force(
       "org.apache.commons:commons-lang3:3.12.0",
       "com.fasterxml.jackson.core:jackson-databind:2.12.3",
