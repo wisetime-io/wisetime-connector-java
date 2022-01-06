@@ -109,8 +109,8 @@ configurations.all {
   resolutionStrategy {
 
     force(
-      "com.fasterxml.jackson.core:jackson-databind:2.12.3",
-      "joda-time:joda-time:2.10.12",
+      "com.fasterxml.jackson.core:jackson-databind:${io.wisetime.version.model.LegebuildConst.JACKSON_FASTER}",
+      "joda-time:joda-time:${io.wisetime.version.model.LegebuildConst.JODA_TIME}",
       "org.slf4j:slf4j-api:1.7.32",
     )
   }

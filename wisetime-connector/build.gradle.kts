@@ -73,7 +73,7 @@ dependencies {
   api(project(":wisetime-connector-api-client"))
   api(project(":wisetime-connector-template-formatter"))
 
-  api("joda-time:joda-time:2.10.12")
+  api("joda-time:joda-time")
   api("org.thymeleaf:thymeleaf:3.0.12.RELEASE")
   api("org.slf4j:slf4j-api:1.7.32")
 
@@ -148,13 +148,12 @@ configurations.all {
   resolutionStrategy {
 
     force(
-      "joda-time:joda-time:2.10.12",
+      "joda-time:joda-time:${io.wisetime.version.model.LegebuildConst.JODA_TIME}",
       "org.apache.commons:commons-lang3:3.12.0",
-      "com.fasterxml.jackson.core:jackson-databind:2.12.3",
-      "com.fasterxml.jackson.core:jackson-core:2.12.3",
-      "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.3",
+      "com.fasterxml.jackson.core:jackson-databind:${io.wisetime.version.model.LegebuildConst.JACKSON_FASTER}",
+      "com.fasterxml.jackson.core:jackson-core:${io.wisetime.version.model.LegebuildConst.JACKSON_FASTER}",
+      "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:${io.wisetime.version.model.LegebuildConst.JACKSON_FASTER}",
       "commons-codec:commons-codec:1.12",
-      "org.objenesis:objenesis:3.0.1",
       "org.slf4j:slf4j-api:1.7.32",
       "org.apache.httpcomponents:httpclient:4.5.9"
     )
