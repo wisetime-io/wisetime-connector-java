@@ -33,13 +33,11 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
-import org.apache.http.NameValuePair;
-import org.apache.http.message.BasicNameValuePair;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 
 /**
  * @author shane.xie@practiceinsight.io
@@ -134,7 +132,7 @@ class DefaultApiClientTest {
     verify(requestExecutor).executeTypedRequest(
         any(),
         any(EndpointPath.TagCategoryFind.getClass()),
-        eq(List.of(new BasicNameValuePair("externalId", externalId)))
+        eq(Map.of("externalId", externalId))
     );
   }
 
@@ -195,14 +193,10 @@ class DefaultApiClientTest {
 
     apiClient.fetchTimeGroups(limit);
 
-    ArgumentCaptor<List<NameValuePair>> paramCaptor = ArgumentCaptor.forClass(List.class);
     verify(requestExecutor).executeTypedRequest(
         any(),
         any(EndpointPath.PostedTimeFetch.getClass()),
-        paramCaptor.capture()
-    );
-    assertThat(paramCaptor.getValue()).usingFieldByFieldElementComparator().containsExactlyInAnyOrder(
-        new BasicNameValuePair("limit", String.valueOf(limit))
+        eq(Map.of("limit", limit + ""))
     );
   }
 
