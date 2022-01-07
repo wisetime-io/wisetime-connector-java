@@ -5,58 +5,55 @@
 package io.wisetime.connector.api_client;
 
 import io.wisetime.connector.api_client.support.ConnectApiRequest.HttpMethod;
+import java.util.Set;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Set of WiseTime API endpoints.
  */
+@Getter
+@RequiredArgsConstructor
 public enum EndpointPath {
 
-  TagDelete("/tag/delete", HttpMethod.POST),
-  TagUpsert("/tag", HttpMethod.POST),
+  TagDelete("tag/delete", HttpMethod.POST),
+  TagUpsert("tag", HttpMethod.POST),
 
   /**
    * TagUpdateBatch
    */
-  BulkTagUpsert("/tag/batch", HttpMethod.POST),
+  BulkTagUpsert("tag/batch", HttpMethod.POST),
 
-  TagAddKeyword("/tag/keyword", HttpMethod.POST),
-  TagDeleteKeyword("/tag/keyword/delete", HttpMethod.POST),
-  TagMetadataDelete("/tag/metadata/delete", HttpMethod.POST),
+  TagAddKeyword("tag/keyword", HttpMethod.POST),
+  TagDeleteKeyword("tag/keyword/delete", HttpMethod.POST),
+  TagMetadataDelete("tag/metadata/delete", HttpMethod.POST),
 
-  TagCategoryFind("/tagcategory/find", HttpMethod.GET),
-  TagCategoryCreate("/tagcategory/create", HttpMethod.POST),
-  TagCategoryUpdate("/tagcategory/update", HttpMethod.POST),
+  TagCategoryFind("tagcategory/find", HttpMethod.GET, Set.of("externalId")),
+  TagCategoryCreate("tagcategory/create", HttpMethod.POST),
+  TagCategoryUpdate("tagcategory/update", HttpMethod.POST),
 
-  ActivityTypesStartSyncSession("/activitytype/sync/start", HttpMethod.POST),
-  ActivityTypesCompleteSyncSession("/activitytype/sync/complete", HttpMethod.POST),
-  ActivityTypesCancelSyncSession("/activitytype/sync/cancel", HttpMethod.POST),
-  BatchActivityTypesUpsert("/activitytype/batch", HttpMethod.POST),
+  ActivityTypesStartSyncSession("activitytype/sync/start", HttpMethod.POST),
+  ActivityTypesCompleteSyncSession("activitytype/sync/complete", HttpMethod.POST),
+  ActivityTypesCancelSyncSession("activitytype/sync/cancel", HttpMethod.POST),
+  BatchActivityTypesUpsert("activitytype/batch", HttpMethod.POST),
 
-  TeamInfo("/team/info", HttpMethod.GET),
+  TeamInfo("team/info", HttpMethod.GET),
 
-  PostedTimeSubscribe("/postedtime/subscribe", HttpMethod.POST),
-  PostedTimeUnsubscribe("/postedtime/unsubscribe", HttpMethod.POST),
-  PostedTimeFetch("/postedtime?limit=:limit", HttpMethod.GET),
-  PostedTimeUpdateStatus("/postedtime/status", HttpMethod.POST),
+  PostedTimeSubscribe("postedtime/subscribe", HttpMethod.POST),
+  PostedTimeUnsubscribe("postedtime/unsubscribe", HttpMethod.POST),
+  PostedTimeFetch("postedtime", HttpMethod.GET, Set.of("limit")),
+  PostedTimeUpdateStatus("postedtime/status", HttpMethod.POST),
 
-  TeamManagedConfig("/team/managed/config", HttpMethod.POST),
+  TeamManagedConfig("team/managed/config", HttpMethod.POST),
 
-  HealthCheckFailureNotify("/healthcheck/failure/notify", HttpMethod.POST),
-  HealthCheckFailureRescind("/healthcheck/failure/rescind", HttpMethod.POST);
+  HealthCheckFailureNotify("healthcheck/failure/notify", HttpMethod.POST),
+  HealthCheckFailureRescind("healthcheck/failure/rescind", HttpMethod.POST);
 
   private final String actionPath;
   private final HttpMethod httpMethod;
+  private final Set<String> requiredQueryParams;
 
   EndpointPath(String actionPath, HttpMethod httpMethod) {
-    this.actionPath = actionPath;
-    this.httpMethod = httpMethod;
-  }
-
-  public String getActionPath() {
-    return actionPath;
-  }
-
-  public HttpMethod getHttpMethod() {
-    return httpMethod;
+    this(actionPath, httpMethod, Set.of());
   }
 }

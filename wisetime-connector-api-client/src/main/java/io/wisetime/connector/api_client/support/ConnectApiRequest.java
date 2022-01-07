@@ -5,6 +5,7 @@
 package io.wisetime.connector.api_client.support;
 
 import java.io.IOException;
+import java.net.URI;
 import javax.annotation.Nullable;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpEntity;
@@ -26,7 +27,7 @@ import org.apache.http.util.EntityUtils;
 public class ConnectApiRequest {
 
   private final HttpMethod method;
-  private final String uri;
+  private final URI uri;
   private final Authorizer authorizer;
   private final String jsonBody;
 
@@ -34,7 +35,7 @@ public class ConnectApiRequest {
    * @param jsonBody If json body is to be set for endpoint request, include the json String in constructor.
    */
   ConnectApiRequest(final HttpMethod method,
-                    final String uri,
+                    final URI uri,
                     Authorizer authorizer,
                     @Nullable String jsonBody) {
     // request is created in execute

@@ -7,8 +7,8 @@ package io.wisetime.connector.api_client.support;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.github.javafaker.Faker;
-import com.google.common.collect.Lists;
-import org.apache.http.message.BasicHeader;
+import io.wisetime.connector.api_client.EndpointPath;
+import java.util.Map;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -22,47 +22,25 @@ class RestRequestExecutorTest {
   @BeforeEach
   void setup() {
     apiKey = new Faker().numerify("apiKey######");
-    restExec = new RestRequestExecutor(apiKey);
+    restExec = new RestRequestExecutor(apiKey, "https://wisetime.test/connect/api");
   }
 
   @Test
-  void mergeNamedParams() {
-    assertThat(restExec.mergeNamedParams("foo", Lists.newArrayList()))
-        .isEqualTo("foo");
-
-    assertThat(
-        restExec.mergeNamedParams(
-            "/:foo/goo",
-            Lists.newArrayList(new BasicHeader("foo", "bar"))))
-        .isEqualTo("/bar/goo");
+  void addQueryParam() {
+    assertThat(restExec.buildEndpointUri(EndpointPath.TagAddKeyword, Map.of("foo", "bar")).toString())
+        .isEqualTo("https://wisetime.test/connect/api/tag/keyword?foo=bar");
   }
 
   @Test
   void mergeNamedParams_withSpace() {
-    assertThat(
-        restExec.mergeNamedParams(
-            "/:foo/goo",
-            Lists.newArrayList(new BasicHeader("foo", "bar baz"))))
-        .isEqualTo("/bar%20baz/goo");
-  }
-
-  @Test
-  void mergeNamedParams_withSlash() {
-    assertThat(
-        restExec.mergeNamedParams(
-            "/:foo/goo",
-            Lists.newArrayList(new BasicHeader("foo", "bar/baz"))))
-        .isEqualTo("/bar%2Fbaz/goo");
+    assertThat(restExec.buildEndpointUri(EndpointPath.TagAddKeyword, Map.of("foo", "bar baz")).toString())
+        .isEqualTo("https://wisetime.test/connect/api/tag/keyword?foo=bar+baz");
   }
 
   @Test
   void mergeMulti() {
-    assertThat(
-        restExec.mergeNamedParams(
-            "/:foot/:foo",
-            Lists.newArrayList(
-                new BasicHeader("foo", "bar"),
-                new BasicHeader("foot", "hand"))))
-        .isEqualTo("/hand/bar");
+    assertThat(restExec.buildEndpointUri(EndpointPath.TagAddKeyword, Map.of("foo", "bar", "foot", "hand")).toString())
+        .isIn("https://wisetime.test/connect/api/tag/keyword?foot=hand&foo=bar",
+            "https://wisetime.test/connect/api/tag/keyword?foo=bar&foot=hand");
   }
 }

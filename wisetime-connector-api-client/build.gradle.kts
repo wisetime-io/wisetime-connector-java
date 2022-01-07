@@ -124,9 +124,9 @@ configurations.all {
   resolutionStrategy {
     force(
       "org.apache.commons:commons-lang3:3.12.0",
-      "com.fasterxml.jackson.core:jackson-databind:2.12.3",
-      "com.fasterxml.jackson.core:jackson-core:2.12.3",
-      "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:2.12.3",
+      "com.fasterxml.jackson.core:jackson-databind:${io.wisetime.version.model.LegebuildConst.JACKSON_FASTER}",
+      "com.fasterxml.jackson.core:jackson-core:${io.wisetime.version.model.LegebuildConst.JACKSON_FASTER}",
+      "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:${io.wisetime.version.model.LegebuildConst.JACKSON_FASTER}",
       "commons-codec:commons-codec:1.12",
       "org.slf4j:slf4j-api:1.7.32",
     )

@@ -5,7 +5,6 @@
 package io.wisetime.connector.api_client;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.collect.ImmutableList;
 import io.wisetime.connector.api_client.AddKeywordsResult.AddKeywordsStatus;
 import io.wisetime.connector.api_client.support.HttpClientResponseException;
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
@@ -30,6 +29,7 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -38,7 +38,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
 import java.util.stream.Collectors;
-import org.apache.http.message.BasicNameValuePair;
 
 /**
  * Multi-thread implementation of {@link ApiClient}. {@link RestRequestExecutor} is responsible for handling
@@ -144,7 +143,7 @@ public class DefaultApiClient implements ApiClient {
           restRequestExecutor.executeTypedRequest(
               new TypeReference<>() { },
               EndpointPath.TagCategoryFind,
-              List.of(new BasicNameValuePair("externalId", externalId))
+              Map.of("externalId", externalId)
           )
       );
     } catch (HttpClientResponseException e) {
@@ -201,7 +200,7 @@ public class DefaultApiClient implements ApiClient {
         new TypeReference<>() {
         },
         EndpointPath.PostedTimeFetch,
-        ImmutableList.of(new BasicNameValuePair("limit", String.valueOf(limit))));
+        Map.of("limit", String.valueOf(limit)));
   }
 
   @Override
@@ -225,6 +224,6 @@ public class DefaultApiClient implements ApiClient {
 
   @Override
   public void healthCheckFailureRescind() throws IOException {
-    restRequestExecutor.executeRequest(EndpointPath.HealthCheckFailureRescind, ImmutableList.of());
+    restRequestExecutor.executeRequest(EndpointPath.HealthCheckFailureRescind, Map.of());
   }
 }
