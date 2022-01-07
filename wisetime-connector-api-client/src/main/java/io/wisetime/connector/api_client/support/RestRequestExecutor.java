@@ -66,7 +66,7 @@ public class RestRequestExecutor {
   public <T> T executeTypedBodyRequest(Class<T> valueType,
                                        EndpointPath endpointPath,
                                        Object requestBody) throws IOException {
-    return executeTypedBodyRequest(valueType, endpointPath, null, requestBody);
+    return executeTypedBodyRequest(valueType, endpointPath, Map.of(), requestBody);
   }
 
   public <T> T executeTypedBodyRequest(Class<T> valueType, EndpointPath endpointPath,
