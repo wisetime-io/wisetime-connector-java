@@ -21,7 +21,6 @@ import io.wisetime.generated.connect.TimeGroupStatus;
 import io.wisetime.generated.connect.UpsertTagRequest;
 import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Client that is responsible to perform authentication and send requests to the WiseTime Connect web API. Contains a
@@ -91,29 +90,11 @@ public interface ApiClient {
   void tagMetadataDelete(TagMetadataDeleteRequest tagMetadataDeleteRequest) throws IOException;
 
   /**
-   * Find a tag category by its external ID.
-   *
-   * @param externalId the external ID that matches the tag category resource in the connected system
-   * @return the tag category resource, if found in WiseTime
-   * @throws IOException The {@link IOException}
+   * Upsert a batch of tag categories. Use this method if you have a large number of entities to upsert.
+   * <p>
+   * In case of error its safe to retry on error since upsert is idempotent.
    */
-  Optional<TagCategory> tagCategoryFindByExternalId(String externalId) throws IOException;
-
-  /**
-   * Create a tag category.
-   *
-   * @param tagCategory the tag category resource to create. Do not provide an ID. It will be generated for you.
-   * @throws IOException The {@link IOException}
-   */
-  TagCategory tagCategoryCreate(TagCategory tagCategory) throws IOException;
-
-  /**
-   * Update a tag category.
-   *
-   * @param tagCategory the tag category resource to update
-   * @throws IOException The {@link IOException}
-   */
-  TagCategory tagCategoryUpdate(TagCategory tagCategory) throws IOException;
+  List<TagCategory> tagCategoryUpsertBatch(List<TagCategory> categories) throws IOException;
 
   /**
    * Start activity types sync session.

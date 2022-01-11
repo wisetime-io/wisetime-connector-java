@@ -28,9 +28,7 @@ public enum EndpointPath {
   TagDeleteKeyword("tag/keyword/delete", HttpMethod.POST),
   TagMetadataDelete("tag/metadata/delete", HttpMethod.POST),
 
-  TagCategoryFind("tagcategory/find", HttpMethod.GET, Set.of("externalId")),
-  TagCategoryCreate("tagcategory/create", HttpMethod.POST),
-  TagCategoryUpdate("tagcategory/update", HttpMethod.POST),
+  BatchTagCategoryUpsert("tagcategory/batch", HttpMethod.POST),
 
   ActivityTypesStartSyncSession("activitytype/sync/start", HttpMethod.POST),
   ActivityTypesCompleteSyncSession("activitytype/sync/complete", HttpMethod.POST),
