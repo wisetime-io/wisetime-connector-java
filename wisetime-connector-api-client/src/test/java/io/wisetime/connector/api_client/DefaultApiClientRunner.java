@@ -18,14 +18,12 @@ import io.wisetime.generated.connect.ManagedConfigResponse;
 import io.wisetime.generated.connect.SyncActivityTypesRequest;
 import io.wisetime.generated.connect.SyncActivityTypesResponse;
 import io.wisetime.generated.connect.SyncSession;
-import io.wisetime.generated.connect.TagCategory;
 import io.wisetime.generated.connect.TeamInfoResult;
 import io.wisetime.generated.connect.UpsertTagRequest;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.ZoneOffset;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
@@ -63,9 +61,6 @@ class DefaultApiClientRunner {
     runner.tagDeleteKeyword();
     runner.tagAddKeywords_hasSlash();
     runner.tagDeleteKeyword_hasSlash();
-    runner.tagCategoryFindByExternalId_notFound();
-    runner.tagCategory_create_and_find();
-    runner.tagCategory_create_and_update();
     runner.activityTypesSyncSession();
     runner.syncActivityTypes_noSession();
     runner.managedTimeConfig();
@@ -131,50 +126,6 @@ class DefaultApiClientRunner {
             .tagName("tag/name")
             .additionalKeywords(ImmutableList.of("key/word 1", "key/word 2"))
     );
-  }
-
-  void tagCategoryFindByExternalId_notFound() throws IOException {
-    assertThat(defaultApiClient.tagCategoryFindByExternalId("this_external_id_does_not_exist"))
-        .as("The tag category resouce is not found")
-        .isEmpty();
-  }
-
-  void tagCategory_create_and_find() throws IOException {
-    TagCategory createdResource = defaultApiClient.tagCategoryCreate(
-        new TagCategory()
-            .externalId("external_id-api-test")
-            .label("label-api-test")
-            .description("description-api-test")
-            .keywords(List.of("keyword-api-test"))
-    );
-
-    Optional<TagCategory> foundResource = defaultApiClient.tagCategoryFindByExternalId(createdResource.getExternalId());
-    assertThat(foundResource)
-        .as("We were able to find the tag category that we have just created")
-        .contains(createdResource);
-  }
-
-  void tagCategory_create_and_update() throws IOException {
-    TagCategory tagCategory = new TagCategory()
-        .externalId("external_id-api-test")
-        .label("label-api-test")
-        .description("description-api-test")
-        .keywords(List.of("keyword-api-test"));
-
-    TagCategory createdResource = defaultApiClient.tagCategoryCreate(tagCategory);
-    tagCategory.setId(createdResource.getId());
-    assertThat(tagCategory)
-        .as("We were able to create the tag category resource")
-        .isEqualTo(createdResource);
-
-    tagCategory.setLabel("updated_label-api-test");
-    tagCategory.setDescription("updated_description-api-test");
-    tagCategory.setKeywords(List.of("updated_keyword-api-test"));
-
-    TagCategory updatedResource = defaultApiClient.tagCategoryUpdate(tagCategory);
-    assertThat(tagCategory)
-        .as("We were able to update the tag category resource")
-        .isEqualTo(updatedResource);
   }
 
   void tagDeleteKeyword_hasSlash() throws IOException {

@@ -16,10 +16,11 @@ import static org.mockito.internal.verification.VerificationModeFactory.times;
 
 import com.github.javafaker.Faker;
 import com.google.common.collect.ImmutableList;
-import io.wisetime.connector.api_client.support.HttpClientResponseException;
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.generated.connect.ActivityType;
 import io.wisetime.generated.connect.AddKeywordsRequest;
+import io.wisetime.generated.connect.BatchUpsertTagCategoryRequest;
+import io.wisetime.generated.connect.BatchUpsertTagCategoryResponse;
 import io.wisetime.generated.connect.BatchUpsertTagRequest;
 import io.wisetime.generated.connect.BatchUpsertTagResponse;
 import io.wisetime.generated.connect.DeleteTagRequest;
@@ -30,7 +31,6 @@ import io.wisetime.generated.connect.TagCategory;
 import io.wisetime.generated.connect.TimeGroupStatus;
 import io.wisetime.generated.connect.UpsertTagRequest;
 import java.io.IOException;
-import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -124,50 +124,18 @@ class DefaultApiClientTest {
   }
 
   @Test
-  void tagCategoryFindByExternalId() throws IOException {
-    when(requestExecutor.executeTypedRequest(any(), any(), any())).thenReturn(new TagCategory());
-    final String externalId = "test_external_id";
-    apiClient.tagCategoryFindByExternalId(externalId);
+  void tagCategoriesUpsert() throws IOException {
+    TagCategory expected = new TagCategory()
+        .id(Faker.instance().bothify("id-#?#?#?#"));
+    when(requestExecutor.executeTypedBodyRequest(
+        any(), eq(EndpointPath.BatchTagCategoryUpsert), any(BatchUpsertTagCategoryRequest.class)))
+        .thenReturn(new BatchUpsertTagCategoryResponse().tagCategories(List.of(expected)));
 
-    verify(requestExecutor).executeTypedRequest(
-        any(),
-        any(EndpointPath.TagCategoryFind.getClass()),
-        eq(Map.of("externalId", externalId))
-    );
-  }
-
-  @Test
-  void tagCategoryNotFound_does_not_throw() throws IOException {
-    when(requestExecutor.executeTypedRequest(any(), any(), any()))
-        .thenThrow(new HttpClientResponseException(HttpURLConnection.HTTP_NOT_FOUND, "Resource Not found", ""));
-
-    assertThat(apiClient.tagCategoryFindByExternalId(""))
-        .as("The tag category resource is not found")
-        .isEmpty();
-  }
-
-  @Test
-  void tagCategoryCreate() throws IOException {
-    TagCategory tagCategory = new TagCategory();
-    apiClient.tagCategoryCreate(tagCategory);
-
-    verify(requestExecutor).executeTypedBodyRequest(
-        any(),
-        any(EndpointPath.TagCategoryCreate.getClass()),
-        eq(tagCategory)
-    );
-  }
-
-  @Test
-  void tagCategoryUpdate() throws IOException {
-    TagCategory tagCategory = new TagCategory();
-    apiClient.tagCategoryUpdate(tagCategory);
-
-    verify(requestExecutor).executeTypedBodyRequest(
-        any(),
-        any(EndpointPath.TagCategoryUpdate.getClass()),
-        eq(tagCategory)
-    );
+    TagCategory tagCategory = new TagCategory()
+        .externalId(Faker.instance().bothify("externalId-#?#?#?#"));
+    assertThat(apiClient.tagCategoryUpsertBatch(List.of(tagCategory)))
+        .as("check response from server returned")
+        .containsExactly(expected);
   }
 
   @Test

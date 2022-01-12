@@ -9,6 +9,8 @@ import io.wisetime.connector.api_client.AddKeywordsResult.AddKeywordsStatus;
 import io.wisetime.connector.api_client.support.HttpClientResponseException;
 import io.wisetime.connector.api_client.support.RestRequestExecutor;
 import io.wisetime.generated.connect.AddKeywordsRequest;
+import io.wisetime.generated.connect.BatchUpsertTagCategoryRequest;
+import io.wisetime.generated.connect.BatchUpsertTagCategoryResponse;
 import io.wisetime.generated.connect.BatchUpsertTagRequest;
 import io.wisetime.generated.connect.BatchUpsertTagResponse;
 import io.wisetime.generated.connect.DeleteKeywordRequest;
@@ -30,7 +32,6 @@ import java.net.HttpURLConnection;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -137,31 +138,13 @@ public class DefaultApiClient implements ApiClient {
   }
 
   @Override
-  public Optional<TagCategory> tagCategoryFindByExternalId(String externalId) throws IOException {
-    try {
-      return Optional.of(
-          restRequestExecutor.executeTypedRequest(
-              new TypeReference<>() { },
-              EndpointPath.TagCategoryFind,
-              Map.of("externalId", externalId)
-          )
-      );
-    } catch (HttpClientResponseException e) {
-      if (e.getStatusCode() == HttpURLConnection.HTTP_NOT_FOUND) {
-        return Optional.empty();
-      }
-      throw e;
-    }
-  }
-
-  @Override
-  public TagCategory tagCategoryCreate(TagCategory tagCategory) throws IOException {
-    return restRequestExecutor.executeTypedBodyRequest(TagCategory.class, EndpointPath.TagCategoryCreate, tagCategory);
-  }
-
-  @Override
-  public TagCategory tagCategoryUpdate(TagCategory tagCategory) throws IOException {
-    return restRequestExecutor.executeTypedBodyRequest(TagCategory.class, EndpointPath.TagCategoryUpdate, tagCategory);
+  public List<TagCategory> tagCategoryUpsertBatch(List<TagCategory> categories) throws IOException {
+    BatchUpsertTagCategoryResponse response = restRequestExecutor.executeTypedBodyRequest(
+        BatchUpsertTagCategoryResponse.class,
+        EndpointPath.BatchTagCategoryUpsert,
+        new BatchUpsertTagCategoryRequest().tagCategories(categories)
+    );
+    return response.getTagCategories();
   }
 
   @Override
