@@ -5,10 +5,14 @@
 package io.wisetime.connector.health;
 
 import io.wisetime.connector.WiseTimeConnector;
+import io.wisetime.connector.api_client.ApiClient;
 import io.wisetime.connector.config.ConnectorConfigKey;
+import io.wisetime.generated.connect.HealthCheckFailureNotify;
+import io.wisetime.generated.connect.HealthCheckFailureNotify.ErrorTypeEnum;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.TimerTask;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.extern.slf4j.Slf4j;
@@ -33,21 +37,29 @@ public class HealthCheck extends TimerTask {
 
   private final List<HealthIndicator> healthIndicators;
   private final AtomicInteger failureCount;
+  private final ApiClient apiClient;
+  private final WiseTimeConnector wiseTimeConnector;
   private Runnable shutdownFunction = () -> System.exit(1);
 
-  public HealthCheck() {
+  public HealthCheck(ApiClient apiClient, WiseTimeConnector wiseTimeConnector) {
+    this.apiClient = apiClient;
+    this.wiseTimeConnector = wiseTimeConnector;
     this.failureCount = new AtomicInteger(0);
     this.healthIndicators = new ArrayList<>();
   }
 
   @Override
   public void run() {
-    boolean healthy = checkConnectorHealth();
-    if (healthy) {
-      failureCount.set(0);
-      log.debug("Health check successful");
-
-    } else {
+    Optional<HealthCheckFailureNotify> failure = wiseTimeConnector.checkHealth();
+    if (failure.isEmpty() && !checkBaseLibraryHealth()) {
+      failure = Optional.of(new HealthCheckFailureNotify().errorType(ErrorTypeEnum.UNKNOWN));
+    }
+    if (failure.isPresent()) {
+      try {
+        apiClient.healthCheckFailureNotify(failure.get());
+      } catch (Exception e) {
+        log.error("Failed to send healthcheck failure {}", failure, e);
+      }
       // increment fail count, and if more than {@link HealthCheck#MAX_SUCCESSIVE_FAILURES} successive errors,
       // call shutdown function
       if (failureCount.incrementAndGet() >= MAX_SUCCESSIVE_FAILURES) {
@@ -56,10 +68,18 @@ public class HealthCheck extends TimerTask {
       } else {
         log.warn("Number of successive health failures={}", failureCount.get());
       }
+    } else {
+      try {
+        apiClient.healthCheckFailureRescind();
+      } catch (Exception e) {
+        log.error("Failed to clear error status", e);
+      }
+      failureCount.set(0);
+      log.debug("Health check successful");
     }
   }
 
-  public boolean checkConnectorHealth() {
+  public boolean checkBaseLibraryHealth() {
     try {
       boolean allHealthy = true;
       for (HealthIndicator healthIndicator : healthIndicators) {

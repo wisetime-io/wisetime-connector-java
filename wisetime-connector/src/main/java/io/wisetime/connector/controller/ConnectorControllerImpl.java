@@ -21,7 +21,6 @@ import io.wisetime.connector.datastore.FileStore;
 import io.wisetime.connector.datastore.SqLiteHelper;
 import io.wisetime.connector.health.HealthCheck;
 import io.wisetime.connector.health.HealthIndicator;
-import io.wisetime.connector.health.WiseTimeConnectorHealthIndicator;
 import io.wisetime.connector.metric.ApiClientMetricWrapper;
 import io.wisetime.connector.metric.MetricInfo;
 import io.wisetime.connector.metric.MetricService;
@@ -82,7 +81,6 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
   private final TimerTaskSchedule healthTaskSchedule;
 
   ConnectorControllerImpl(ConnectorControllerConfiguration configuration) {
-    healthRunner = new HealthCheck();
     metricService = new MetricService();
     wiseTimeConnector = configuration.getWiseTimeConnector();
     tagSlowLoopTaskSchedule = new TimerTaskSchedule(
@@ -105,6 +103,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
 
     ApiClient apiClient = new ApiClientMetricWrapper(configuration.getApiClient(), metricService);
     apiClient = new ApiClientTagWrapper(apiClient, tagRunner);
+    healthRunner = new HealthCheck(apiClient, wiseTimeConnector);
 
     final SqLiteHelper sqLiteHelper = new SqLiteHelper(configuration.isForcePersistentStorage());
     connectorModule = new ConnectorModule(apiClient, new FileStore(sqLiteHelper),
@@ -125,8 +124,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
         activityTypeRunner,
         activityTypeSlowLoopRunner,
         timePoster,
-        managedConfigRunner,
-        new WiseTimeConnectorHealthIndicator(wiseTimeConnector));
+        managedConfigRunner);
 
     healthCheckTimer = new Timer("health-check-timer", true);
     tagTimer = new Timer("tag-check-timer", true);
@@ -237,7 +235,7 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
 
   @Override
   public boolean isHealthy() {
-    return healthRunner.checkConnectorHealth();
+    return healthRunner.checkBaseLibraryHealth();
   }
 
   @Override

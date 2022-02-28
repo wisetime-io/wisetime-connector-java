@@ -9,10 +9,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import io.wisetime.connector.ConnectorController;
 import io.wisetime.connector.WiseTimeConnector;
+import io.wisetime.generated.connect.HealthCheckFailureNotify;
+import io.wisetime.generated.connect.HealthCheckFailureNotify.ErrorTypeEnum;
 import java.time.Duration;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -55,6 +59,8 @@ class ConnectorControllerImplTest {
   void stop() {
     Assertions.assertTimeoutPreemptively(Duration.ofSeconds(10), () -> {
       final WiseTimeConnector wiseTimeConnector = mock(WiseTimeConnector.class);
+      when(wiseTimeConnector.checkHealth())
+          .thenReturn(Optional.of(new HealthCheckFailureNotify().errorType(ErrorTypeEnum.UNKNOWN)));
       ConnectorControllerImpl controller = spy((ConnectorControllerImpl) ConnectorController.newBuilder()
           .withApiKey("api key")
           .withWiseTimeConnector(wiseTimeConnector)
