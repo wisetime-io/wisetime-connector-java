@@ -95,14 +95,14 @@ dependencies {
   }
 
   //  required by AWS SDK to log to logback via slf4j
-  implementation("org.slf4j:jcl-over-slf4j:1.7.32")
-  implementation("org.slf4j:jul-to-slf4j:1.7.32")
+  implementation("org.slf4j:jcl-over-slf4j:${io.wisetime.version.model.LegebuildConst.SLF4J}")
+  implementation("org.slf4j:jul-to-slf4j:${io.wisetime.version.model.LegebuildConst.SLF4J}")
 
   // lightweight json lib (no dependencies) https://github.com/ralfstx/minimal-json
   implementation("com.eclipsesource.minimal-json:minimal-json:0.9.5")
 
   @Suppress("GradlePackageUpdate")
-  implementation("com.google.guava:guava:30.1-jre")
+  implementation("com.google.guava:guava:${io.wisetime.version.model.LegebuildConst.GUAVA_VERSION}")
 
   api("org.apache.commons:commons-collections4:4.4")
   @Suppress("GradlePackageUpdate")
@@ -154,7 +154,7 @@ configurations.all {
       "com.fasterxml.jackson.core:jackson-core:${io.wisetime.version.model.LegebuildConst.JACKSON_FASTER}",
       "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:${io.wisetime.version.model.LegebuildConst.JACKSON_FASTER}",
       "commons-codec:commons-codec:1.12",
-      "org.slf4j:slf4j-api:1.7.32",
+      "org.slf4j:slf4j-api:${io.wisetime.version.model.LegebuildConst.SLF4J}",
       "org.apache.httpcomponents:httpclient:4.5.9"
     )
   }

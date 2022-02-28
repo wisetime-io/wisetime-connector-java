@@ -68,11 +68,11 @@ checkstyle {
   toolVersion = "8.45.1"
 }
 
-val slf4jVersion = "1.7.32"
+val slf4jVersion = io.wisetime.version.model.LegebuildConst.SLF4J
 dependencies {
   api(project(":wisetime-connector-openapi-gen"))
 
-  api("org.slf4j:slf4j-api:1.7.32")
+  api("org.slf4j:slf4j-api:$slf4jVersion")
   api("org.apache.httpcomponents:httpclient:4.5.9") {
     exclude(group = "commons-logging", module = "commons-logging")
     exclude(group = "commons-codec", module = "commons-codec")
@@ -86,7 +86,7 @@ dependencies {
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor")
 
   @Suppress("GradlePackageUpdate")
-  implementation("com.google.guava:guava:30.1-jre")
+  implementation("com.google.guava:guava:${io.wisetime.version.model.LegebuildConst.GUAVA_VERSION}")
 
   implementation("org.apache.httpcomponents:httpcore:4.4.11")
   implementation("org.apache.httpcomponents:fluent-hc:4.5.9") {
@@ -128,7 +128,7 @@ configurations.all {
       "com.fasterxml.jackson.core:jackson-core:${io.wisetime.version.model.LegebuildConst.JACKSON_FASTER}",
       "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:${io.wisetime.version.model.LegebuildConst.JACKSON_FASTER}",
       "commons-codec:commons-codec:1.12",
-      "org.slf4j:slf4j-api:1.7.32",
+      "org.slf4j:slf4j-api:${slf4jVersion}",
     )
   }
 }
