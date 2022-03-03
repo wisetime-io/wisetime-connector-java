@@ -7,7 +7,7 @@ package io.wisetime.connector.tag;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * No op tag runner.
+ * No op tag runner for connectors that have tag sync disabled.
  *
  * @see io.wisetime.connector.config.ConnectorConfigKey#TAG_SCAN
  * @author vadym
@@ -21,7 +21,6 @@ public class NoOpTagRunner extends TagRunner {
 
   @Override
   public void run() {
-    logWiseConnectHeartbeat();
   }
 
   public void onSuccessfulTagUpload() {

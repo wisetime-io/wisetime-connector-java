@@ -9,6 +9,8 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import io.wisetime.connector.WiseTimeConnector;
+import io.wisetime.connector.api_client.ApiClient;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
@@ -20,11 +22,15 @@ import org.junit.jupiter.api.Test;
 class HealthCheckTest {
   private AtomicBoolean shutdownCalled;
   private HealthCheck healthCheck;
+  private ApiClient apiClientMock;
+  private WiseTimeConnector wiseTimeConnectorMock;
 
   @BeforeEach
   void setup() {
     shutdownCalled = new AtomicBoolean(false);
-    healthCheck = new HealthCheck();
+    apiClientMock = mock(ApiClient.class);
+    wiseTimeConnectorMock = mock(WiseTimeConnector.class);
+    healthCheck = new HealthCheck(apiClientMock, wiseTimeConnectorMock);
   }
 
   @Test

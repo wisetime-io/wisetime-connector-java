@@ -71,12 +71,12 @@ checkstyle {
 dependencies {
   api(project(":wisetime-connector-openapi-gen"))
 
-  api("org.slf4j:slf4j-api:1.7.32")
+  api("org.slf4j:slf4j-api:${io.wisetime.version.model.LegebuildConst.SLF4J}")
   implementation("ch.qos.logback:logback-core:1.2.5")
   implementation("ch.qos.logback:logback-classic:1.2.5")
 
   @Suppress("GradlePackageUpdate")
-  implementation("com.google.guava:guava:30.1-jre")
+  implementation("com.google.guava:guava:${io.wisetime.version.model.LegebuildConst.GUAVA_VERSION}")
 
   implementation("com.fasterxml.jackson.core:jackson-databind")
 
@@ -111,7 +111,7 @@ configurations.all {
     force(
       "com.fasterxml.jackson.core:jackson-databind:${io.wisetime.version.model.LegebuildConst.JACKSON_FASTER}",
       "joda-time:joda-time:${io.wisetime.version.model.LegebuildConst.JODA_TIME}",
-      "org.slf4j:slf4j-api:1.7.32",
+      "org.slf4j:slf4j-api:${io.wisetime.version.model.LegebuildConst.SLF4J}",
     )
   }
 }

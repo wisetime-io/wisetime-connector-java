@@ -5,7 +5,10 @@
 package io.wisetime.connector;
 
 import io.wisetime.connector.api_client.PostResult;
+import io.wisetime.generated.connect.HealthCheckFailureNotify;
+import io.wisetime.generated.connect.HealthCheckFailureNotify.ErrorTypeEnum;
 import io.wisetime.generated.connect.TimeGroup;
+import java.util.Optional;
 
 /**
  * Main extension point of application. User will have to implement this interface and provide it during building
@@ -75,11 +78,22 @@ public interface WiseTimeConnector {
   }
 
   /**
+   * use {@link #checkHealth()} instead to report reach errors
+   *
    * @return Whether the connector is in a healthy state; as one example, can a critical service such as a database or
-   * endpoint be reached at present?
+   * endpoint be reached at present? null if no failures
    */
+  @Deprecated
   default boolean isConnectorHealthy() {
     return true;
+  }
+
+  /**
+   * Check if connector is health or not.
+   */
+  default Optional<HealthCheckFailureNotify> checkHealth() {
+    return isConnectorHealthy()
+        ? Optional.empty() : Optional.of(new HealthCheckFailureNotify().errorType(ErrorTypeEnum.UNKNOWN));
   }
 
   /**
