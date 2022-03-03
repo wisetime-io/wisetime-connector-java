@@ -54,29 +54,7 @@ public class HealthCheck extends TimerTask {
     if (failure.isEmpty() && !checkBaseLibraryHealth()) {
       failure = Optional.of(new HealthCheckFailureNotify().errorType(ErrorTypeEnum.UNKNOWN));
     }
-    if (failure.isPresent()) {
-      try {
-        apiClient.healthCheckFailureNotify(failure.get());
-      } catch (Exception e) {
-        log.error("Failed to send healthcheck failure {}", failure, e);
-      }
-      // increment fail count, and if more than {@link HealthCheck#MAX_SUCCESSIVE_FAILURES} successive errors,
-      // call shutdown function
-      if (failureCount.incrementAndGet() >= MAX_SUCCESSIVE_FAILURES) {
-        log.error("After {} successive errors, Connector assumed to be unhealthy, stopping now", MAX_SUCCESSIVE_FAILURES);
-        shutdownFunction.run();
-      } else {
-        log.warn("Number of successive health failures={}", failureCount.get());
-      }
-    } else {
-      try {
-        apiClient.healthCheckFailureRescind();
-      } catch (Exception e) {
-        log.error("Failed to clear error status", e);
-      }
-      failureCount.set(0);
-      log.debug("Health check successful");
-    }
+    failure.ifPresentOrElse(this::handleHealthCheckFailed, this::handleHealthCheckSuccess);
   }
 
   public boolean checkBaseLibraryHealth() {
@@ -93,6 +71,32 @@ public class HealthCheck extends TimerTask {
       log.error("Unhealthy state where exception occurred checking health, returning unhealthy", t);
       return false;
     }
+  }
+
+  private void handleHealthCheckFailed(HealthCheckFailureNotify failure) {
+    try {
+      apiClient.healthCheckFailureNotify(failure);
+    } catch (Exception e) {
+      log.error("Failed to send healthcheck failure {}", failure, e);
+    }
+    // increment fail count, and if more than {@link HealthCheck#MAX_SUCCESSIVE_FAILURES} successive errors,
+    // call shutdown function
+    if (failureCount.incrementAndGet() >= MAX_SUCCESSIVE_FAILURES) {
+      log.error("After {} successive errors, Connector assumed to be unhealthy, stopping now", MAX_SUCCESSIVE_FAILURES);
+      shutdownFunction.run();
+    } else {
+      log.warn("Number of successive health failures={}", failureCount.get());
+    }
+  }
+
+  private void handleHealthCheckSuccess() {
+    try {
+      apiClient.healthCheckFailureRescind();
+    } catch (Exception e) {
+      log.error("Failed to clear error status", e);
+    }
+    failureCount.set(0);
+    log.debug("Health check successful");
   }
 
   /**
