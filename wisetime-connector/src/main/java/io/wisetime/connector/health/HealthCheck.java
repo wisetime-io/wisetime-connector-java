@@ -50,11 +50,20 @@ public class HealthCheck extends TimerTask {
 
   @Override
   public void run() {
-    Optional<HealthCheckFailureNotify> failure = wiseTimeConnector.checkHealth();
+    Optional<HealthCheckFailureNotify> failure = checkConnectorHealth();
     if (failure.isEmpty() && !checkBaseLibraryHealth()) {
       failure = Optional.of(new HealthCheckFailureNotify().errorType(ErrorTypeEnum.UNKNOWN));
     }
     failure.ifPresentOrElse(this::handleHealthCheckFailed, this::handleHealthCheckSuccess);
+  }
+
+  private Optional<HealthCheckFailureNotify> checkConnectorHealth() {
+    try {
+      return wiseTimeConnector.checkHealth();
+    } catch (Exception e) {
+      log.error("Failed to check connector health", e);
+      return Optional.of(new HealthCheckFailureNotify().errorType(ErrorTypeEnum.UNKNOWN));
+    }
   }
 
   public boolean checkBaseLibraryHealth() {
@@ -67,8 +76,8 @@ public class HealthCheck extends TimerTask {
         }
       }
       return allHealthy;
-    } catch (Throwable t) {
-      log.error("Unhealthy state where exception occurred checking health, returning unhealthy", t);
+    } catch (Exception e) {
+      log.error("Unhealthy state where exception occurred checking health, returning unhealthy", e);
       return false;
     }
   }
