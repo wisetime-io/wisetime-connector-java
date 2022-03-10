@@ -74,6 +74,9 @@ public class ManagedConfigRunner extends TimerTask implements HealthIndicator {
       return;
     }
     try {
+      if (!RuntimeConfig.getBoolean(() -> "MANAGED_LOGGING").orElse(true)) {
+        return;
+      }
       final ZoneId zoneId = ZoneId.of(connectorInfoProvider.get().getClientTimeZoneOffset());
       // Request a new managed config when the connector service has expired
       if (cachedServiceExpiryDate == null
@@ -93,15 +96,12 @@ public class ManagedConfigRunner extends TimerTask implements HealthIndicator {
   }
 
   private ZonedDateTime fetchManagedConfigResponse(ZoneId zoneId) throws IOException {
-    return onManagedConfigResponse(
-        apiClient.getTeamManagedConfig(createManageConfigRequest()), zoneId);
+    return onManagedConfigResponse(apiClient.getTeamManagedConfig(createManageConfigRequest()), zoneId);
   }
 
   @VisibleForTesting
   ZonedDateTime onManagedConfigResponse(ManagedConfigResponse configResponse, ZoneId zoneId) {
-    if (RuntimeConfig.getBoolean(() -> "MANAGED_LOGGING").orElse(true)) {
-      LogbackConfigurator.configureBaseLogging(configResponse);
-    }
+    LogbackConfigurator.configureBaseLogging(configResponse);
     return toExpiryZoneDateTime(configResponse.getServiceIdExpiry(), zoneId);
   }
 
