@@ -74,14 +74,13 @@ public class ManagedConfigRunner extends TimerTask implements HealthIndicator {
       return;
     }
     try {
-      if (!RuntimeConfig.getBoolean(() -> "MANAGED_LOGGING").orElse(true)) {
-        return;
-      }
-      final ZoneId zoneId = ZoneId.of(connectorInfoProvider.get().getClientTimeZoneOffset());
-      // Request a new managed config when the connector service has expired
-      if (cachedServiceExpiryDate == null
-          || ZonedDateTime.now(zoneId).plusMinutes(getRenewalThresholdMins()).isAfter(cachedServiceExpiryDate)) {
-        cachedServiceExpiryDate = fetchManagedConfigResponse(zoneId);
+      if (RuntimeConfig.getBoolean(() -> "MANAGED_LOGGING").orElse(true)) {
+        final ZoneId zoneId = ZoneId.of(connectorInfoProvider.get().getClientTimeZoneOffset());
+        // Request a new managed config when the connector service has expired
+        if (cachedServiceExpiryDate == null
+            || ZonedDateTime.now(zoneId).plusMinutes(getRenewalThresholdMins()).isAfter(cachedServiceExpiryDate)) {
+          cachedServiceExpiryDate = fetchManagedConfigResponse(zoneId);
+        }
       }
 
       // note config success date/time
