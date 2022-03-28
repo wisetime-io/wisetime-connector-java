@@ -57,7 +57,7 @@ tasks {
 
 openApiGenerate {
   generatorName.set("jaxrs-spec")
-  inputSpec.set("https://raw.githubusercontent.com/wisetime-io/connect-api-spec/154c8e54d53b02cc5ddccc6f9c22012418ed304c/spec/openapi.yaml")
+  inputSpec.set("https://raw.githubusercontent.com/wisetime-io/connect-api-spec/0f9fc5a71c3f713e55bb3df0d04d943311bf3eb6/spec/openapi.yaml")
   outputDir.set("$projectDir")
   modelPackage.set("io.wisetime.generated.connect")
   generateApiTests.set(false)
