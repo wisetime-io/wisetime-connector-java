@@ -140,4 +140,25 @@ class DurationCalculatorTest {
         .as("The user's experience weighting should be ignored")
         .isEqualTo(120);
   }
+
+  @Test
+  void config_checkRounding() {
+    final User user = fakeEntities.randomUser().experienceWeightingPercent(50);
+
+    final TimeGroup timeGroup = fakeEntities
+        .randomTimeGroup()
+        .totalDurationSecs(70)
+        .user(user);
+
+    final long result = DurationCalculator
+        .of(timeGroup)
+        .disregardExperienceWeighting()
+        .roundToNearestSeconds(60)
+        .useDurationFrom(DurationSource.TIME_GROUP)
+        .calculate();
+
+    assertThat(result)
+        .as("The user's experience weighting should be ignored")
+        .isEqualTo(120);
+  }
 }
