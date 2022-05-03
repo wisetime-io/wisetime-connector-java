@@ -14,7 +14,7 @@ save source artifact:
   key: SSA
   tasks:
     - checkout:
-        repository: wisetime-connector-java-stash
+        repository: wisetime-connector-java
         path: wisetime-connector-java
         force-clean-build: 'false'
     - script:
