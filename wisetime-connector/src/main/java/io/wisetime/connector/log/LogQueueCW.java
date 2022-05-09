@@ -13,11 +13,13 @@ import java.util.List;
 import java.util.Queue;
 import java.util.concurrent.atomic.AtomicInteger;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 /**
  * @author thomas.haines
  */
+@Slf4j
 class LogQueueCW {
 
   /**
@@ -49,8 +51,10 @@ class LogQueueCW {
 
         int maxAwsEventSize = getMaxAwsEventSize();
         if (getEventSize(logEvent) >= maxAwsEventSize) {
-          String truncatedMessage = StringUtils.truncate(logEvent.getMessage(), maxAwsEventSize - 26);
+          String eventMessage = logEvent.getMessage();
+          String truncatedMessage = StringUtils.truncate(eventMessage, maxAwsEventSize - 26);
           logEvent.setMessage(truncatedMessage);
+          log.warn("Message has been truncated: {}", eventMessage);
         }
 
         int logBundleSize = byteCount.addAndGet(getEventSize(logEvent));
