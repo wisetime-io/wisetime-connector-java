@@ -54,7 +54,7 @@ class LogQueueCW {
           String eventMessage = logEvent.getMessage();
           String truncatedMessage = StringUtils.truncate(eventMessage, maxAwsEventSize - 26);
           logEvent.setMessage(truncatedMessage);
-          log.warn("Message has been truncated: {}", eventMessage);
+          log.warn("Log message is too long. It was truncated before sending to AWS");
         }
 
         int logBundleSize = byteCount.addAndGet(getEventSize(logEvent));
