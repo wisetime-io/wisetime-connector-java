@@ -9,7 +9,7 @@ git fetch --tags
 # Create Orphan branch
 git checkout --orphan temp_branch
 # Remove unwanted files/dirs from the repo and create fresh commit
-rm -rf bamboo-specs
+rm -rf bamboo-specs .github
 rm -rf bin
 rm .drone.yml
 git add -A
