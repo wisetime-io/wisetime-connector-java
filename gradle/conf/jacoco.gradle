@@ -1,7 +1,7 @@
 
 ext {
     jcLineMin = 0.72
-    jcClassMin = 0.80
+    jcClassMin = 0.75
     jcInstructionMin = 0.74
 
     jacocoExcludes = [
