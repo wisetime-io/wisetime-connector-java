@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.github.benas.randombeans.EnhancedRandomBuilder;
 import io.github.benas.randombeans.api.EnhancedRandom;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -65,6 +66,27 @@ class LogQueueCWTest {
         .as("do not expect to hit attempt count")
         .isLessThan(maxAttemptCount);
 
+  }
+
+  @Test
+  void createListFromQueue_truncateEventMessage() {
+    final LogQueueCW logQueue = new LogQueueCW();
+
+    // queue a few messages exceeding the event size
+    final int generateCount = 10;
+    for (int i = 0; i < generateCount; i++) {
+      LogQueueCW.LogEntryCW item = enhancedRandom.nextObject(LogQueueCW.LogEntryCW.class);
+      item.getInputLogEvent().setMessage(RandomStringUtils.randomAlphanumeric(256_000 + 128_000));
+      messageQueue.add(item);
+    }
+
+    LogQueueCW.PutLogEventList eventList = logQueue.createListFromQueue(messageQueue);
+    assertThat(eventList.getEventList().size())
+        .as("5 generated events are added to the list")
+        .isEqualTo(5);
+    eventList.getEventList().forEach(inputLogEvent -> {
+      assertThat(logQueue.getEventSize(inputLogEvent)).isLessThanOrEqualTo(logQueue.getMaxAwsEventSize());
+    });
   }
 
 }
