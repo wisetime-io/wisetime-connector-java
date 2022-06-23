@@ -1,0 +1,64 @@
+
+ext {
+    jcLineMin = 0.72
+    jcClassMin = 0.75
+    jcInstructionMin = 0.74
+
+    jacocoExcludes = [
+        '**/generated/**',
+        'io/wisetime/connector/adjunct_keywords/*',
+        'io/wisetime/connector/api_client/SyncScope*',
+        'io/wisetime/connector/api_client/support/*',
+        'io/wisetime/connector/template/*'
+    ]
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        csv.enabled false
+        html.enabled true
+    }
+    sourceDirectories.setFrom files(sourceDirectories.files.collect {
+        fileTree(dir: it, exclude: jacocoExcludes)
+    })
+    classDirectories.setFrom files(classDirectories.files.collect {
+        fileTree(dir: it, exclude: jacocoExcludes)
+    })
+}
+
+jacocoTestCoverageVerification {
+    sourceDirectories.setFrom jacocoTestReport.sourceDirectories
+    classDirectories.setFrom jacocoTestReport.classDirectories
+
+    violationRules {
+        rule {
+            // https://docs.gradle.org/4.10/javadoc/org/gradle/testing/jacoco/tasks/rules/JacocoViolationRule.html
+            element = 'BUNDLE'
+            limit {
+                counter = 'LINE'
+                value = 'COVEREDRATIO'
+                minimum = jcLineMin
+            }
+        }
+        rule {
+            element = 'BUNDLE'
+            limit {
+                counter = 'CLASS'
+                value = 'COVEREDRATIO'
+                minimum = jcClassMin
+            }
+        }
+        rule {
+            element = 'BUNDLE'
+            limit {
+                counter = 'INSTRUCTION'
+                value = 'COVEREDRATIO'
+                minimum = jcInstructionMin
+            }
+        }
+    }
+}
+
+test.finalizedBy jacocoTestReport
+check.dependsOn jacocoTestCoverageVerification

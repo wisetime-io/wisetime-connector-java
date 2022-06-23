@@ -1,0 +1,29 @@
+/*
+ * Copyright (c) 2019 Practice Insight Pty Ltd. All Rights Reserved.
+ */
+
+apply plugin: 'io.wisetime.versionChecker'
+
+configurations {
+    rejectConfig {
+        resolutionStrategy {
+            componentSelection {
+                all { ComponentSelection selection ->
+                    boolean rejectedVersionName = ['feature', 'alpha', 'beta', 'rc', 'cr', 'm', 'preview', 'b', 'ea'].any {
+                        qualifier -> selection.candidate.version ==~ /(?i).*[.-]${qualifier}[.\d-+]*/
+                    }
+                    if (rejectedVersionName) {
+                        selection.reject('Release candidate')
+                    }
+                }
+            }
+        }
+    }
+}
+
+tasks.dependencyUpdates {
+    checkForGradleUpdate = false
+    revision = "release"
+    outputFormatter = "json"
+    reportfileName = "report"
+}
