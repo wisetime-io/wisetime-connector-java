@@ -225,6 +225,8 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
         System.exit(-1);
       }
 
+      connectorModule.getApiClient().shutdown();
+
     } catch (Exception e) {
       log.warn("There was an error while stopping the connector", e);
     } finally {

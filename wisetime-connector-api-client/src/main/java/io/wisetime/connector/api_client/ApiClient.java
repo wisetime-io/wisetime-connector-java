@@ -190,4 +190,10 @@ public interface ApiClient {
    * @throws IOException if the request was unsuccessful
    */
   void healthCheckFailureRescind() throws IOException;
+
+  /**
+   * Called when connector is about to stop. Cleanup should be done here.
+   */
+  default void shutdown() {
+  }
 }

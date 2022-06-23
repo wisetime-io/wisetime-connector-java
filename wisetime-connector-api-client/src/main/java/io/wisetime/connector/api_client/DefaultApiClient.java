@@ -38,7 +38,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Multi-thread implementation of {@link ApiClient}. {@link RestRequestExecutor} is responsible for handling
@@ -47,6 +49,7 @@ import java.util.stream.Collectors;
  * @author thomas.haines
  * @author shane.xie@practiceinsight.io
  */
+@Slf4j
 public class DefaultApiClient implements ApiClient {
 
   private final RestRequestExecutor restRequestExecutor;
@@ -68,7 +71,6 @@ public class DefaultApiClient implements ApiClient {
         return thread;
       }
     });
-    Runtime.getRuntime().addShutdownHook(new Thread(executorService::shutdown));
   }
 
   @Override
@@ -208,5 +210,15 @@ public class DefaultApiClient implements ApiClient {
   @Override
   public void healthCheckFailureRescind() throws IOException {
     restRequestExecutor.executeRequest(EndpointPath.HealthCheckFailureRescind, Map.of());
+  }
+
+  @Override
+  public void shutdown() {
+    executorService.shutdownNow();
+    try {
+      executorService.awaitTermination(30, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      log.warn("Error during shutdown", e);
+    }
   }
 }
