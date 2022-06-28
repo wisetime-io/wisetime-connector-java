@@ -24,3 +24,4 @@ result.xml
 test-*.yaml
 .tags
 **/*.orig
+/wisetime-connector-openapi-gen/openapi.yaml

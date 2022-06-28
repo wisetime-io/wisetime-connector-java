@@ -5,7 +5,7 @@ plugins {
 
   id("com.github.ben-manes.versions")
   id("io.wisetime.versionChecker")
-  id("org.openapi.generator") version "4.3.1"
+  id("org.openapi.generator") version "6.0.0"
 }
 
 group = "io.wisetime"
@@ -41,6 +41,7 @@ tasks {
       delete("${projectDir}/src/main/openapi")
       delete("${projectDir}/src/gen/java/io/wisetime/generated/RestApplication.java")
     }
+    dependsOn("downloadSpecFile")
   }
 
   compileJava {
@@ -55,9 +56,22 @@ tasks {
   }
 }
 
+val openApiUrl = "https://raw.githubusercontent.com/wisetime-io/connect-api-spec/0f9fc5a71c3f713e55bb3df0d04d943311bf3eb6/spec/openapi.yaml"
+val specFile = "$projectDir/openapi.yaml"
+
+tasks.register("downloadSpecFile") {
+  download("$openApiUrl", "$specFile")
+}
+
+fun download(url: String, path: String) {
+  val destFile = File(path)
+  logger.info("Downloading file: $url -> $destFile")
+  ant.invokeMethod("get", mapOf("src" to url, "dest" to destFile))
+}
+
 openApiGenerate {
   generatorName.set("jaxrs-spec")
-  inputSpec.set("https://raw.githubusercontent.com/wisetime-io/connect-api-spec/0f9fc5a71c3f713e55bb3df0d04d943311bf3eb6/spec/openapi.yaml")
+  inputSpec.set("$specFile")
   outputDir.set("$projectDir")
   modelPackage.set("io.wisetime.generated.connect")
   generateApiTests.set(false)
