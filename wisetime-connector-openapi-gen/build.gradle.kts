@@ -65,7 +65,7 @@ tasks.register("downloadSpecFile") {
 
 fun download(url: String, path: String) {
   val destFile = File(path)
-  println("Downloading file: $url -> $destFile")
+  logger.info("Downloading file: $url -> $destFile")
   ant.invokeMethod("get", mapOf("src" to url, "dest" to destFile))
 }
 
