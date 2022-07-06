@@ -10,7 +10,7 @@ steps:
       - git fetch --tags
 
   - name: restore-cache
-    image: drillster/drone-volume-cache
+    image: drillster/drone-volume-cache@sha256:b82e143081dfb04ba300ce7854dfcecd31e7858e1998bf89806ec74a80a78e94
     settings:
       restore: true
       mount:
@@ -46,7 +46,7 @@ steps:
       - ./gradlew clean test check
 
   - name: save-cache
-    image: drillster/drone-volume-cache
+    image: drillster/drone-volume-cache@sha256:b82e143081dfb04ba300ce7854dfcecd31e7858e1998bf89806ec74a80a78e94
     settings:
       rebuild: true
       mount:
