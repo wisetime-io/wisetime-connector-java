@@ -80,7 +80,7 @@ dependencies {
 
   implementation("com.fasterxml.jackson.core:jackson-databind")
 
-  api("joda-time:joda-time")
+  api("joda-time:joda-time:${io.wisetime.version.model.LegebuildConst.JODA_TIME}")
 
   // required by activity text template engine
   implementation("org.freemarker:freemarker:2.3.31")
@@ -110,7 +110,6 @@ configurations.all {
 
     force(
       "com.fasterxml.jackson.core:jackson-databind:${io.wisetime.version.model.LegebuildConst.JACKSON_FASTER}",
-      "joda-time:joda-time:${io.wisetime.version.model.LegebuildConst.JODA_TIME}",
       "org.slf4j:slf4j-api:${io.wisetime.version.model.LegebuildConst.SLF4J}",
     )
   }
