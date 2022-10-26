@@ -80,7 +80,7 @@ dependencies {
 
   implementation("com.fasterxml.jackson.core:jackson-databind")
 
-  api("joda-time:joda-time:2.10.12")
+  api("joda-time:joda-time")
 
   // required by activity text template engine
   implementation("org.freemarker:freemarker:2.3.31")
