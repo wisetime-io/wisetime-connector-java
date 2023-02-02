@@ -114,8 +114,8 @@ dependencies {
   @Suppress("GradlePackageUpdate")
   implementation("commons-codec:commons-codec:1.12")
 
-  implementation("ch.qos.logback:logback-core:1.2.5")
-  implementation("ch.qos.logback:logback-classic:1.2.5")
+  implementation("ch.qos.logback:logback-core:1.4.5")
+  implementation("ch.qos.logback:logback-classic:1.4.5")
 
   testImplementation("com.github.javafaker:javafaker:1.0.2") {
     exclude(group = "org.apache.commons", module = "commons-lang3")

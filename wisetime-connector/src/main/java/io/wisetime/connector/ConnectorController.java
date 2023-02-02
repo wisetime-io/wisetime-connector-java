@@ -12,7 +12,7 @@ import io.wisetime.connector.metric.MetricInfo;
  * Main entry point of WiseTime connector. Sample usage:
  * <pre>
  *      ConnectorController controller = ConnectorController.newBuilder()
- *          .useWebhook()
+ *          .useFetchClient()
  *          .withWiseTimeConnector(myConnector)
  *          .withApiKey(apiKey)
  *          .build();

@@ -17,7 +17,7 @@ The WiseTime Connector Library is available on Maven Central. You can include it
 #### Gradle
 
 ```groovy
-compile 'io.wisetime:wisetime-connector:2.5.1'
+compile "io.wisetime:wisetime-connector:2.5.1"
 ```
 
 #### Maven
@@ -95,7 +95,7 @@ public class ConnectorLauncher {
   public static void main(final String... args) throws Exception {
     
     Connector.newBuilder()
-        .useWebhook() // or useFetchClient()
+        .useFetchClient()
         .withWiseTimeConnector(new HelloConnector())
         .build()
         .start();

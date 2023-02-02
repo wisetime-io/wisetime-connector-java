@@ -72,8 +72,8 @@ dependencies {
   api(project(":wisetime-connector-openapi-gen"))
 
   api("org.slf4j:slf4j-api:${io.wisetime.version.model.LegebuildConst.SLF4J}")
-  implementation("ch.qos.logback:logback-core:1.2.5")
-  implementation("ch.qos.logback:logback-classic:1.2.5")
+  implementation("ch.qos.logback:logback-core:1.4.5")
+  implementation("ch.qos.logback:logback-classic:1.4.5")
 
   @Suppress("GradlePackageUpdate")
   implementation("com.google.guava:guava:${io.wisetime.version.model.LegebuildConst.GUAVA_VERSION}")
