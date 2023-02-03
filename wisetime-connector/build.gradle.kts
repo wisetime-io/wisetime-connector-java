@@ -1,5 +1,6 @@
 import io.wisetime.version.GitVersionCalc
 import io.wisetime.version.GitVersionCalc.WiFiGitVersionInfo
+import io.wisetime.version.model.LegebuildConst
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
@@ -75,7 +76,7 @@ dependencies {
 
   api("joda-time:joda-time")
   api("org.thymeleaf:thymeleaf:3.0.12.RELEASE")
-  api("org.slf4j:slf4j-api:1.7.32")
+  api("org.slf4j:slf4j-api:${LegebuildConst.SLF4J}")
 
   implementation("org.apache.commons:commons-configuration2:2.4") {
     exclude(group = "commons-logging", module = "commons-logging")
@@ -95,14 +96,14 @@ dependencies {
   }
 
   //  required by AWS SDK to log to logback via slf4j
-  implementation("org.slf4j:jcl-over-slf4j:${io.wisetime.version.model.LegebuildConst.SLF4J}")
-  implementation("org.slf4j:jul-to-slf4j:${io.wisetime.version.model.LegebuildConst.SLF4J}")
+  implementation("org.slf4j:jcl-over-slf4j:${LegebuildConst.SLF4J}")
+  implementation("org.slf4j:jul-to-slf4j:${LegebuildConst.SLF4J}")
 
   // lightweight json lib (no dependencies) https://github.com/ralfstx/minimal-json
   implementation("com.eclipsesource.minimal-json:minimal-json:0.9.5")
 
   @Suppress("GradlePackageUpdate")
-  implementation("com.google.guava:guava:${io.wisetime.version.model.LegebuildConst.GUAVA_VERSION}")
+  implementation("com.google.guava:guava:${LegebuildConst.GUAVA_VERSION}")
 
   api("org.apache.commons:commons-collections4:4.4")
   @Suppress("GradlePackageUpdate")
@@ -148,13 +149,13 @@ configurations.all {
   resolutionStrategy {
     eachDependency {
       if (requested.group.startsWith("com.fasterxml.jackson")) {
-        useVersion(io.wisetime.version.model.LegebuildConst.JACKSON_FASTER)
+        useVersion(LegebuildConst.JACKSON_FASTER)
       }
       if (requested.group == "joda-time") {
-        useVersion(io.wisetime.version.model.LegebuildConst.JODA_TIME)
+        useVersion(LegebuildConst.JODA_TIME)
       }
       if (requested.group == "org.slf4j") {
-        useVersion(io.wisetime.version.model.LegebuildConst.SLF4J)
+        useVersion(LegebuildConst.SLF4J)
       }
     }
   }

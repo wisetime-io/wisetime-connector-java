@@ -1,5 +1,6 @@
 import io.wisetime.version.GitVersionCalc
 import io.wisetime.version.GitVersionCalc.WiFiGitVersionInfo
+import io.wisetime.version.model.LegebuildConst
 import org.gradle.api.tasks.testing.logging.TestLogEvent
 
 plugins {
@@ -68,7 +69,7 @@ checkstyle {
   toolVersion = "8.45.1"
 }
 
-val slf4jVersion = io.wisetime.version.model.LegebuildConst.SLF4J
+val slf4jVersion = LegebuildConst.SLF4J
 dependencies {
   api(project(":wisetime-connector-openapi-gen"))
 
@@ -86,7 +87,7 @@ dependencies {
   implementation("com.fasterxml.jackson.dataformat:jackson-dataformat-cbor")
 
   @Suppress("GradlePackageUpdate")
-  implementation("com.google.guava:guava:${io.wisetime.version.model.LegebuildConst.GUAVA_VERSION}")
+  implementation("com.google.guava:guava:${LegebuildConst.GUAVA_VERSION}")
 
   implementation("org.apache.httpcomponents:httpcore:4.4.11")
   implementation("org.apache.httpcomponents:fluent-hc:4.5.9") {
@@ -122,13 +123,16 @@ if (taskRequestString.contains("dependencyUpdates")) {
 
 configurations.all {
   resolutionStrategy {
-    force(
-      "org.apache.commons:commons-lang3:3.12.0",
-      "com.fasterxml.jackson.core:jackson-databind:${io.wisetime.version.model.LegebuildConst.JACKSON_FASTER}",
-      "com.fasterxml.jackson.core:jackson-core:${io.wisetime.version.model.LegebuildConst.JACKSON_FASTER}",
-      "com.fasterxml.jackson.dataformat:jackson-dataformat-cbor:${io.wisetime.version.model.LegebuildConst.JACKSON_FASTER}",
-      "commons-codec:commons-codec:1.12",
-      "org.slf4j:slf4j-api:${slf4jVersion}",
-    )
+    eachDependency {
+      if (requested.group.startsWith("com.fasterxml.jackson")) {
+        useVersion(LegebuildConst.JACKSON_FASTER)
+      }
+      if (requested.group == "joda-time") {
+        useVersion(LegebuildConst.JODA_TIME)
+      }
+      if (requested.group == "org.slf4j") {
+        useVersion(LegebuildConst.SLF4J)
+      }
+    }
   }
 }
