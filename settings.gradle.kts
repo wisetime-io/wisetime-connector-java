@@ -1,7 +1,7 @@
 pluginManagement {
   plugins {
     id("com.github.ben-manes.versions") version "0.45.0"
-    id("io.wisetime.versionChecker") version "10.12.71"
+    id("io.wisetime.versionChecker") version "10.12.81"
     id("io.freefair.lombok") version "6.6.1"
   }
   repositories {
