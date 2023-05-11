@@ -129,14 +129,6 @@ dependencies {
   testImplementation("io.github.benas:random-beans:3.9.0")
 }
 
-sourceSets {
-  main {
-    java {
-      srcDir("src/main/java")
-    }
-  }
-}
-
 val taskRequestString = gradle.startParameter.taskRequests.toString()
 if (taskRequestString.contains("publish")) {
   apply(from = "$rootDir/gradle/publish_s3_repo.gradle")
