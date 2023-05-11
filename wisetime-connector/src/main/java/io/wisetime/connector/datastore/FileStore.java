@@ -7,6 +7,7 @@ package io.wisetime.connector.datastore;
 import static io.wisetime.connector.datastore.CoreLocalDbTable.TABLE_KEY_MAP;
 
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 import org.codejargon.fluentjdbc.api.query.Query;
 import org.codejargon.fluentjdbc.api.query.UpdateResult;
 
@@ -17,13 +18,28 @@ import org.codejargon.fluentjdbc.api.query.UpdateResult;
  * @author thomas.haines
  * @author shane.xie@practiceinsight.io
  */
+@Slf4j
 public class FileStore implements ConnectorStore {
+
+  private static FileStore instance;
 
   private SqLiteHelper sqLiteHelper;
 
   public FileStore(SqLiteHelper sqLiteHelper) {
     this.sqLiteHelper = sqLiteHelper;
     sqLiteHelper.createTable(TABLE_KEY_MAP);
+  }
+
+  /**
+   * This utility method can be useful if downstream libraries are using DI.
+   */
+  public static synchronized FileStore getInstance(SqLiteHelper sqLiteHelper) {
+    if (instance == null) {
+      instance = new FileStore(sqLiteHelper);
+    } else {
+      log.debug("Using existing static singleton");
+    }
+    return instance;
   }
 
   @Override

@@ -106,7 +106,9 @@ public class ConnectorControllerImpl implements ConnectorController, HealthIndic
     healthRunner = new HealthCheck(apiClient, wiseTimeConnector);
 
     final SqLiteHelper sqLiteHelper = new SqLiteHelper(configuration.isForcePersistentStorage());
-    connectorModule = new ConnectorModule(apiClient, new FileStore(sqLiteHelper),
+    final FileStore fileStore = FileStore.getInstance(sqLiteHelper);
+
+    connectorModule = new ConnectorModule(apiClient, fileStore,
         new ConnectorModule.IntervalConfig()
             .setActivityTypeSlowLoopIntervalMinutes(
                 (int) MILLISECONDS.toMinutes(activityTypeSlowLoopTaskSchedule.getPeriodMs()))
