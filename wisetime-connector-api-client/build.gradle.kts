@@ -75,7 +75,7 @@ dependencies {
   api(project(":wisetime-connector-openapi-gen"))
 
   api("org.slf4j:slf4j-api:$slf4jVersion")
-  api("org.apache.httpcomponents:httpclient:4.5.9") {
+  api("org.apache.httpcomponents:httpclient:4.5.14") {
     exclude(group = "commons-logging", module = "commons-logging")
     exclude(group = "commons-codec", module = "commons-codec")
     exclude(group = "org.apache.httpcomponents", module = "httpcore")
@@ -90,8 +90,8 @@ dependencies {
   @Suppress("GradlePackageUpdate")
   implementation("com.google.guava:guava:${LegebuildConst.GUAVA_VERSION}")
 
-  implementation("org.apache.httpcomponents:httpcore:4.4.11")
-  implementation("org.apache.httpcomponents:fluent-hc:4.5.9") {
+  implementation("org.apache.httpcomponents:httpcore:4.4.16")
+  implementation("org.apache.httpcomponents:fluent-hc:4.5.14") {
     exclude(group = "commons-logging", module = "commons-logging")
     exclude(group = "commons-codec", module = "commons-codec")
   }
