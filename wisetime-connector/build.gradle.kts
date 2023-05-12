@@ -76,7 +76,7 @@ dependencies {
   api(project(":wisetime-connector-template-formatter"))
 
   api("joda-time:joda-time")
-  api("org.thymeleaf:thymeleaf:3.0.12.RELEASE")
+  api("org.thymeleaf:thymeleaf:3.1.1.RELEASE")
   api("org.slf4j:slf4j-api:${LegebuildConst.SLF4J}")
 
   implementation("org.apache.commons:commons-configuration2:2.4") {
@@ -108,13 +108,12 @@ dependencies {
 
   api("org.apache.commons:commons-collections4:4.4")
   @Suppress("GradlePackageUpdate")
-  implementation("commons-io:commons-io:2.8.0")
+  implementation("commons-io:commons-io:2.11.0")
 
-  implementation("org.xerial:sqlite-jdbc:3.36.0.2")
+  implementation("org.xerial:sqlite-jdbc:3.41.2.1")
   implementation("org.codejargon:fluentjdbc:1.8.6")
 
-  @Suppress("GradlePackageUpdate")
-  implementation("commons-codec:commons-codec:1.12")
+  implementation("commons-codec:commons-codec:1.15")
 
   implementation("ch.qos.logback:logback-core:1.4.5")
   implementation("ch.qos.logback:logback-classic:1.4.5")
@@ -123,7 +122,7 @@ dependencies {
     exclude(group = "org.apache.commons", module = "commons-lang3")
   }
   testImplementation("org.skyscreamer:jsonassert:1.5.0")
-  testImplementation("org.junit.jupiter:junit-jupiter:5.8.1")
+  testImplementation("org.junit.jupiter:junit-jupiter:5.9.3")
   testImplementation("org.mockito:mockito-core:3.12.4")
   testImplementation("org.assertj:assertj-core:3.21.0")
   testImplementation("io.github.benas:random-beans:3.9.0")
