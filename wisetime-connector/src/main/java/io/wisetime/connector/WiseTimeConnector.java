@@ -36,7 +36,9 @@ public interface WiseTimeConnector {
    * scheduled run will be skipped, allowing time for the previous method to complete it's operation.
    * This will be called less frequently than performTagUpdate and allows to refresh already synced tags slowly.
    */
-  void performTagUpdateSlowLoop();
+  default void performTagUpdateSlowLoop() {
+    // default no slow update loop is required
+  }
 
   /**
    * Called on a schedule. If the previously called method is still running when the next scheduled run should occur, the
