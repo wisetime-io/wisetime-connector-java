@@ -110,13 +110,13 @@ dependencies {
   @Suppress("GradlePackageUpdate")
   implementation("commons-io:commons-io:2.11.0")
 
-  implementation("org.xerial:sqlite-jdbc:3.41.2.1")
+  implementation("org.xerial:sqlite-jdbc:3.42.0.0")
   implementation("org.codejargon:fluentjdbc:1.8.6")
 
   implementation("commons-codec:commons-codec:1.15")
 
-  implementation("ch.qos.logback:logback-core:1.4.5")
-  implementation("ch.qos.logback:logback-classic:1.4.5")
+  implementation("ch.qos.logback:logback-core:1.4.7")
+  implementation("ch.qos.logback:logback-classic:1.4.7")
 
   testImplementation("com.github.javafaker:javafaker:1.0.2") {
     exclude(group = "org.apache.commons", module = "commons-lang3")
