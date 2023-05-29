@@ -157,7 +157,7 @@ class DefaultApiClientRunner {
                 .description("DESCRIPTION-api-test"))));
 
     assertThat(response.getErrors())
-        .isEmpty();
+        .isNullOrEmpty();
   }
 
   void managedTimeConfig() throws IOException {

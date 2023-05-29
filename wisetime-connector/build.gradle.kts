@@ -79,20 +79,20 @@ dependencies {
   api("org.thymeleaf:thymeleaf:3.1.1.RELEASE")
   api("org.slf4j:slf4j-api:${LegebuildConst.SLF4J}")
 
-  implementation("org.apache.commons:commons-configuration2:2.4") {
+  implementation("org.apache.commons:commons-configuration2:2.9.0") {
     exclude(group = "commons-logging", module = "commons-logging")
   }
   implementation("org.apache.commons:commons-lang3:3.12.0")
 
   // AWS dependencies
-  implementation("com.amazonaws:aws-java-sdk-logs:1.12.62") {
+  implementation("com.amazonaws:aws-java-sdk-logs:1.12.477") {
     exclude(group = "commons-logging", module = "commons-logging")
     exclude(group = "commons-codec", module = "commons-codec")
     exclude(group = "joda-time", module = "joda-time")
     exclude(group = "org.apache.httpcomponents", module = "httpclient")
   }
 
-  implementation("com.amazonaws:aws-java-sdk-cloudwatch:1.12.62") {
+  implementation("com.amazonaws:aws-java-sdk-cloudwatch:1.12.477") {
     exclude(group = "commons-logging", module = "commons-logging")
   }
 
@@ -108,7 +108,7 @@ dependencies {
 
   api("org.apache.commons:commons-collections4:4.4")
   @Suppress("GradlePackageUpdate")
-  implementation("commons-io:commons-io:2.11.0")
+  implementation("commons-io:commons-io:2.12.0")
 
   implementation("org.xerial:sqlite-jdbc:3.42.0.0")
   implementation("org.codejargon:fluentjdbc:1.8.6")
@@ -121,10 +121,10 @@ dependencies {
   testImplementation("com.github.javafaker:javafaker:1.0.2") {
     exclude(group = "org.apache.commons", module = "commons-lang3")
   }
-  testImplementation("org.skyscreamer:jsonassert:1.5.0")
+  testImplementation("org.skyscreamer:jsonassert:1.5.1")
   testImplementation("org.junit.jupiter:junit-jupiter:5.9.3")
-  testImplementation("org.mockito:mockito-core:3.12.4")
-  testImplementation("org.assertj:assertj-core:3.21.0")
+  testImplementation("org.mockito:mockito-core:5.3.1")
+  testImplementation("org.assertj:assertj-core:3.24.2")
   testImplementation("io.github.benas:random-beans:3.9.0")
 }
 

@@ -1,8 +1,8 @@
 pluginManagement {
   plugins {
     id("com.github.ben-manes.versions") version "0.46.0"
-    id("io.wisetime.versionChecker") version "10.12.90"
-    id("io.freefair.lombok") version "6.6.1"
+    id("io.wisetime.versionChecker") version "10.12.93"
+    id("io.freefair.lombok") version "8.0.1"
   }
   repositories {
     gradlePluginPortal()
