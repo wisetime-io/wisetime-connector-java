@@ -43,8 +43,7 @@ import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Multi-thread implementation of {@link ApiClient}. {@link RestRequestExecutor} is responsible for handling
- * authentication.
+ * Multi-thread implementation of {@link ApiClient}. {@link RestRequestExecutor} is responsible for handling authentication.
  *
  * @author thomas.haines
  * @author shane.xie@practiceinsight.io
@@ -85,7 +84,7 @@ public class DefaultApiClient implements ApiClient {
         EndpointPath.BulkTagUpsert,
         new BatchUpsertTagRequest().tags(upsertTagRequests)
     );
-    if (!response.getErrors().isEmpty()) {
+    if (response.getErrors() != null && !response.getErrors().isEmpty()) {
       throw new IOException("Received errors while upserting tags: " + response.getErrors());
     }
   }

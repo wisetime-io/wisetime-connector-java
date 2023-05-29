@@ -15,9 +15,9 @@ ext {
 
 jacocoTestReport {
     reports {
-        xml.enabled true
-        csv.enabled false
-        html.enabled true
+        xml.getRequired().set(true)
+        csv.getRequired().set(false)
+        html.getRequired().set(true)
     }
     sourceDirectories.setFrom files(sourceDirectories.files.collect {
         fileTree(dir: it, exclude: jacocoExcludes)

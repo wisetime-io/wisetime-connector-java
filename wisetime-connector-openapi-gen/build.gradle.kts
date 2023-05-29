@@ -5,6 +5,7 @@ plugins {
 
   id("com.github.ben-manes.versions")
   id("io.wisetime.versionChecker")
+  // to update openapi.generator to > 6.0 null handlers are needed (picked up by unit tests)
   id("org.openapi.generator") version "6.0.0"
 }
 
