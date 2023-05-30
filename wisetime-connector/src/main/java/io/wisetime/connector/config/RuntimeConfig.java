@@ -33,7 +33,6 @@ import org.slf4j.LoggerFactory;
 @SuppressWarnings("WeakerAccess")
 public class RuntimeConfig {
 
-  // TODO(TH) discuss with Yehor
   // Don't remove this logger!!!
   // Because our logback configurations depends on RuntimeConfig instance, first logger creation
   // shouldn't happen during RuntimeConfig construction. To be sure this doesn't happen we initialize logger here
