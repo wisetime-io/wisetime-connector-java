@@ -61,6 +61,13 @@ tasks {
       attributes("Implementation-Version" to project.version)
     }
   }
+
+  withType<com.github.benmanes.gradle.versions.updates.DependencyUpdatesTask> {
+    rejectVersionIf {
+      candidate.version.isNonStable()
+    }
+  }
+
 }
 
 checkstyle {
@@ -132,10 +139,6 @@ val taskRequestString = gradle.startParameter.taskRequests.toString()
 if (taskRequestString.contains("publish")) {
   apply(from = "$rootDir/gradle/publish_s3_repo.gradle")
 }
-if (taskRequestString.contains("dependencyUpdates")) {
-  // add exclusions for reporting on updates and vulnerabilities
-  apply(from = "$rootDir/gradle/versionPluginConfig.gradle")
-}
 
 configurations.all {
   resolutionStrategy {
@@ -151,4 +154,14 @@ configurations.all {
       }
     }
   }
+}
+
+fun String.isNonStable(): Boolean {
+  @Suppress("UNCHECKED_CAST") val skipList = rootProject.ext["skipList"] as List<String>
+  for (skipItem in skipList) {
+    if (this.lowercase().contains(skipItem)) {
+      return true
+    }
+  }
+  return false
 }
