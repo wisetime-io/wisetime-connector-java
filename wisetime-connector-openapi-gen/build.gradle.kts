@@ -58,7 +58,7 @@ tasks {
   }
 }
 
-val openApiUrl = "https://raw.githubusercontent.com/wisetime-io/connect-api-spec/0f9fc5a71c3f713e55bb3df0d04d943311bf3eb6/spec/openapi.yaml"
+val openApiUrl = "https://raw.githubusercontent.com/wisetime-io/connect-api-spec/master/spec/openapi.yaml"
 val specFile = "$projectDir/openapi.yaml"
 
 tasks.register("downloadSpecFile") {
