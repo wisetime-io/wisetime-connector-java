@@ -10,26 +10,6 @@ WiseTime Java Connector is an open source library that enables you to write a Wi
 
 ## Getting Started
 
-### Set Up the Dependency
-
-The WiseTime Connector Library is available on Maven Central. You can include it in your Java projects like so:
-
-#### Gradle
-
-```groovy
-compile "io.wisetime:wisetime-connector:2.5.1"
-```
-
-#### Maven
-
-```xml
-<dependency>
-  <groupId>io.wisetime</groupId>
-  <artifactId>wisetime-connector</artifactId>
-  <version>2.5.1</version>
-</dependency>
-```
-
 ### Implement the WiseTimeConnector Interface
 
 To create a connector, simply implement the `WiseTimeConnector` interface. Here's an example of a minimal implementation.
