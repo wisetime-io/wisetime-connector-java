@@ -62,7 +62,7 @@ val openApiUrl = "https://raw.githubusercontent.com/wisetime-io/connect-api-spec
 val specFile = "$projectDir/openapi.yaml"
 
 tasks.register("downloadSpecFile") {
-  download("$openApiUrl", "$specFile")
+  download(openApiUrl, specFile)
 }
 
 fun download(url: String, path: String) {
