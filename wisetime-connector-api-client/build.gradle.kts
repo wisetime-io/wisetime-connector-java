@@ -11,18 +11,13 @@ plugins {
   checkstyle
 
   id("com.github.ben-manes.versions")
+  id("com.google.cloud.artifactregistry.gradle-plugin")
   id("io.wisetime.versionChecker")
   id("io.freefair.lombok")
 }
 
 repositories {
   mavenCentral()
-}
-
-java {
-  sourceCompatibility = JavaVersion.VERSION_11
-  targetCompatibility = JavaVersion.VERSION_11
-  withSourcesJar()
 }
 
 apply(from = "${project.rootDir}/gradle/conf/jacoco.gradle")
@@ -88,7 +83,7 @@ dependencies {
     exclude(group = "org.apache.httpcomponents", module = "httpcore")
   }
 
-  implementation("org.apache.commons:commons-lang3:3.12.0")
+  implementation("org.apache.commons:commons-lang3:3.13.0")
 
   implementation("com.fasterxml.jackson.core:jackson-databind")
   implementation("com.fasterxml.jackson.core:jackson-core")
@@ -103,7 +98,7 @@ dependencies {
     exclude(group = "commons-codec", module = "commons-codec")
   }
 
-  implementation("commons-codec:commons-codec:1.15")
+  implementation("commons-codec:commons-codec:1.16.0")
 
   implementation("org.slf4j:jcl-over-slf4j:$slf4jVersion")
   implementation("org.slf4j:jul-to-slf4j:$slf4jVersion")
@@ -115,14 +110,18 @@ dependencies {
     exclude(group = "org.apache.commons", module = "commons-lang3")
   }
   testImplementation("org.skyscreamer:jsonassert:1.5.1")
-  testImplementation("org.junit.jupiter:junit-jupiter:5.9.3")
-  testImplementation("org.mockito:mockito-core:5.3.1")
+  testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+  testImplementation("org.mockito:mockito-core:5.5.0")
   testImplementation("org.assertj:assertj-core:3.24.2")
 }
 
-val taskRequestString = gradle.startParameter.taskRequests.toString()
-if (taskRequestString.contains("publish")) {
-  apply(from = "$rootDir/gradle/publish_s3_repo.gradle")
+publishing {
+  publications {
+    create<MavenPublication>("ApiClient") {
+      artifactId = project.name
+      from(components["java"])
+    }
+  }
 }
 
 configurations.all {

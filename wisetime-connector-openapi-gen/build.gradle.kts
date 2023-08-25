@@ -4,6 +4,7 @@ plugins {
   `maven-publish`
 
   id("com.github.ben-manes.versions")
+  id("com.google.cloud.artifactregistry.gradle-plugin")
   id("io.wisetime.versionChecker")
   // to update openapi.generator to > 6.0 null handlers are needed (picked up by unit tests)
   id("org.openapi.generator") version "6.0.0"
@@ -18,12 +19,6 @@ project.version = versionStr
 
 repositories {
   mavenCentral()
-}
-
-java {
-  sourceCompatibility = JavaVersion.VERSION_11
-  targetCompatibility = JavaVersion.VERSION_11
-  withSourcesJar()
 }
 
 tasks {
@@ -95,9 +90,13 @@ dependencies {
   implementation("javax.validation:validation-api:2.0.1.Final")
 }
 
-val taskRequestString = gradle.startParameter.taskRequests.toString()
-if (taskRequestString.contains("publish")) {
-  apply(from = "$rootDir/gradle/publish_s3_repo.gradle")
+publishing {
+  publications {
+    create<MavenPublication>("OpenApiGen") {
+      artifactId = project.name
+      from(components["java"])
+    }
+  }
 }
 
 sourceSets {

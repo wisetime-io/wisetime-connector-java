@@ -11,18 +11,13 @@ plugins {
   checkstyle
 
   id("com.github.ben-manes.versions")
+  id("com.google.cloud.artifactregistry.gradle-plugin")
   id("io.wisetime.versionChecker")
   id("io.freefair.lombok")
 }
 
 repositories {
   mavenCentral()
-}
-
-java {
-  sourceCompatibility = JavaVersion.VERSION_11
-  targetCompatibility = JavaVersion.VERSION_11
-  withSourcesJar()
 }
 
 apply(from = "${project.rootDir}/gradle/conf/jacoco.gradle")
@@ -89,7 +84,7 @@ dependencies {
   implementation("org.apache.commons:commons-configuration2:2.9.0") {
     exclude(group = "commons-logging", module = "commons-logging")
   }
-  implementation("org.apache.commons:commons-lang3:3.12.0")
+  implementation("org.apache.commons:commons-lang3:3.13.0")
 
   // AWS dependencies
   implementation("com.amazonaws:aws-java-sdk-logs:1.12.477") {
@@ -115,12 +110,12 @@ dependencies {
 
   api("org.apache.commons:commons-collections4:4.4")
   @Suppress("GradlePackageUpdate")
-  implementation("commons-io:commons-io:2.12.0")
+  implementation("commons-io:commons-io:2.13.0")
 
   implementation("org.xerial:sqlite-jdbc:3.42.0.0")
   implementation("org.codejargon:fluentjdbc:1.8.6")
 
-  implementation("commons-codec:commons-codec:1.15")
+  implementation("commons-codec:commons-codec:1.16.0")
 
   implementation("ch.qos.logback:logback-core:1.4.7")
   implementation("ch.qos.logback:logback-classic:1.4.7")
@@ -129,15 +124,19 @@ dependencies {
     exclude(group = "org.apache.commons", module = "commons-lang3")
   }
   testImplementation("org.skyscreamer:jsonassert:1.5.1")
-  testImplementation("org.junit.jupiter:junit-jupiter:5.9.3")
-  testImplementation("org.mockito:mockito-core:5.3.1")
+  testImplementation("org.junit.jupiter:junit-jupiter:5.10.0")
+  testImplementation("org.mockito:mockito-core:5.5.0")
   testImplementation("org.assertj:assertj-core:3.24.2")
   testImplementation("io.github.benas:random-beans:3.9.0")
 }
 
-val taskRequestString = gradle.startParameter.taskRequests.toString()
-if (taskRequestString.contains("publish")) {
-  apply(from = "$rootDir/gradle/publish_s3_repo.gradle")
+publishing {
+  publications {
+    create<MavenPublication>("Connector") {
+      artifactId = project.name
+      from(components["java"])
+    }
+  }
 }
 
 configurations.all {
