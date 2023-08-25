@@ -62,10 +62,8 @@ steps:
     environment:
       GRADLE_USER_HOME: .gcache
       GRADLE_OPTS: -Dorg.gradle.daemon=false -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false
-      AWS_ACCESS_KEY_ID:
-        from_secret: aws-publish-id
-      AWS_SECRET_ACCESS_KEY:
-        from_secret: aws-publish-secret
+      PUBLISH_KEY:
+        from_secret: gcloud-key
     commands:
       - ./gradlew --info publish
     when:
@@ -134,20 +132,6 @@ trigger:
 
 ---
 kind: secret
-name: aws-publish-id
-get:
-  path: drone/publish/s3
-  name: aws-publish-id
-
----
-kind: secret
-name: aws-publish-secret
-get:
-  path: drone/publish/s3
-  name: aws-publish-secret
-
----
-kind: secret
 name: github-ssh-key-b64
 get:
   path: drone/publish/github/core-log
@@ -180,3 +164,10 @@ name: smtp-user
 get:
   path: drone/notify/smtp
   name: user
+
+---
+kind: secret
+name: gcloud-key
+get:
+  path: drone/gcloud
+  name: json_key_b64
