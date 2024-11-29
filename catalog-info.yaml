@@ -1,0 +1,16 @@
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: connector-base-lib
+  annotations:
+    github.com/project-slug: wisetime-io/connector-base-lib
+    backstage.io/techdocs-ref: dir:.
+  tags:
+    - java
+spec:
+  type: library
+  lifecycle: production
+  owner: default
+  system: wisetime
+  consumesApis:
+    - connect-api-spec
