@@ -1,0 +1,2 @@
+# set JVM via `sdk env` in rootDir
+java=25-tem
