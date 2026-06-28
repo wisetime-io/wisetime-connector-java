@@ -1,0 +1,14 @@
+{
+  "a_level": "INFO",
+  "b_mesg": "This is an error message...",
+  "context": {
+    "logger": "ROOT",
+    "mdcPropertyMap": {
+      "mdc-key1": "mdc-value1",
+      "mdc-key2": "mdc-value2"
+    },
+    "message": "This is an error message...",
+    "message_full": "This is an error message...",
+    "stackAdded": true
+  }
+}
