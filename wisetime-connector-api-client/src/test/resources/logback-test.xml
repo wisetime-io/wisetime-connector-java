@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (c) 2025 Practice Insight Pty Ltd. All Rights Reserved.
+  -->
+<configuration>
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <!-- See http://logback.qos.ch/manual/layouts.html#PatternLayout -->
+    <encoder>
+      <pattern>%d{HH:mm:ss.SSS} %green([%thread]) %highlight(%-5level) %white(%logger{50}) -%kvp- %white(%msg%n)</pattern>
+    </encoder>
+  </appender>
+
+  <root>
+    <!-- This is the default logger level INFO, but classes or packages can be easily -->
+    <!-- specified/added above while under dev etc -->
+    <level value="INFO"/>
+    <appender-ref ref="STDOUT"/>
+  </root>
+</configuration>

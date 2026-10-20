@@ -1,0 +1,4 @@
+# EditorConfig is multi-language & growing, see: https://EditorConfig.org
+
+[*.{kt,kts}]
+indent_size=2
